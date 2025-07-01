@@ -1,0 +1,21 @@
+.root {
+    background: #4F4ACC10 !important;
+    background-color: #4F4ACC10 !important;
+    backdrop-filter: blur(25px);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #4F4ACC15;
+}
+
+.description,
+.title {
+  color: var(--mantine-color-white);
+}
+
+.description {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}

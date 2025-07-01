@@ -1,0 +1,12 @@
+.root {
+    background: white !important;
+    background-color: white !important;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid white;
+}
+
+.description,
+.title {
+  color: var(--mantine-color-white);
+}

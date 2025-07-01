@@ -1,0 +1,10 @@
+diff --git a/node_modules/@react-three/drei/node_modules/three-mesh-bvh/src/utils/ExtensionUtilities.js b/node_modules/@react-three/drei/node_modules/three-mesh-bvh/src/utils/ExtensionUtilities.js
+index e673a41..5f650ac 100644
+--- a/node_modules/@react-three/drei/node_modules/three-mesh-bvh/src/utils/ExtensionUtilities.js
++++ b/node_modules/@react-three/drei/node_modules/three-mesh-bvh/src/utils/ExtensionUtilities.js
+@@ -1,4 +1,4 @@
+-import { Ray, Matrix4, Mesh, Vector3, Sphere, BatchedMesh, REVISION } from 'three';
++import { Ray, Matrix4, Mesh, Vector3, Sphere, REVISION } from 'three';
+ import { convertRaycastIntersect } from './GeometryRayIntersectUtilities.js';
+ import { MeshBVH } from '../core/MeshBVH.js';
+ 
