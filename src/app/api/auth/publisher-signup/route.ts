@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import pool from "@/lib/db"; // Your PostgreSQL connection pool
+import prisma from "@/lib/db-prisma";
 
 interface PublisherSignupRequest {
   name: string;
@@ -18,31 +18,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Missing" }, { status: 400 });
     }
 
-    const exists = await pool.query(
-  "SELECT id FROM publishers WHERE email = $1",
-  [body.email]
-);
+    // Check if publisher already exists
+    const existing = await prisma.publisher.findUnique({
+      where: { email: body.email },
+      select: { id: true },
+    });
 
-if (exists && typeof exists.rowCount === "number" && exists.rowCount > 0) {
-  return NextResponse.json(
-    { message: "Email" },
-    { status: 409 }
-  );
-} else {
-  // Proceed to insert
-  const hashedPassword = await bcrypt.hash(body.password, 10);
+    if (existing) {
+      return NextResponse.json(
+        { message: "Email" },
+        { status: 409 }
+      );
+    }
 
-  await pool.query(
-    `INSERT INTO publishers (name, email, company, phone, password) 
-     VALUES ($1, $2, $3, $4, $5)`,
-    [body.name, body.email, body.company, body.phone, hashedPassword]
-  );
+    // Hash password and create publisher
+    const hashedPassword = await bcrypt.hash(body.password, 10);
 
-  return NextResponse.json({ message: "Signup successful" }, { status: 201 });
-}
+    await prisma.publisher.create({
+      data: {
+        name: body.name,
+        email: body.email,
+        company: body.company,
+        phone: body.phone,
+        password: hashedPassword,
+        status: 'pending',
+      },
+    });
 
+    return NextResponse.json({ message: "Signup successful" }, { status: 201 });
   } catch (err) {
-    console.error(err);
+    console.error('Publisher signup error:', err);
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

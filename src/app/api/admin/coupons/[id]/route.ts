@@ -1,14 +1,12 @@
 // app/api/admin/coupons/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { PoolClient } from 'pg';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  let client: PoolClient | null = null;
 
   try {
     const {
@@ -37,94 +35,114 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid dates provided or Valid From is not before Valid To.' }, { status: 400 });
     }
 
-    client = await pool.connect();
-
-    // Ensure coupon exists
-    const couponCheck = await client.query('SELECT id FROM coupons WHERE id = $1', [id]);
-    if (couponCheck.rows.length === 0) {
+    // Validate coupon exists
+    const couponExists = await prisma.coupon.findUnique({
+      where: { id: parseInt(id, 10) },
+    });
+    if (!couponExists) {
       return NextResponse.json({ error: 'Coupon not found.' }, { status: 404 });
     }
 
     // Validate offer ID
-    const offerExists = await client.query('SELECT id FROM offers WHERE id = $1', [offerId]);
-    if (offerExists.rows.length === 0) {
+    const offerExists = await prisma.offer.findUnique({
+      where: { id: parseInt(offerId, 10) },
+    });
+    if (!offerExists) {
       return NextResponse.json({ error: 'Associated Offer ID does not exist.' }, { status: 400 });
     }
 
     // Validate all publisher IDs
-    const publisherCheck = await client.query(
-      `SELECT id FROM publishers WHERE id = ANY($1::uuid[])`,
-      [publisherIds]
-    );
-    if (publisherCheck.rows.length !== publisherIds.length) {
+    const publisherCheck = await prisma.publisher.findMany({
+      where: { id: { in: publisherIds } },
+      select: { id: true },
+    });
+    if (publisherCheck.length !== publisherIds.length) {
       return NextResponse.json({ error: 'One or more publisher IDs are invalid.' }, { status: 400 });
     }
 
-    // Update coupon (no publisher_id field anymore)
-    const result = await client.query(
-      `UPDATE coupons
-       SET code = $1,
-           description = $2,
-           discount = $3,
-           discount_type = $4,
-           offer_id = $5,
-           valid_from = $6,
-           valid_to = $7,
-           status = $8
-       WHERE id = $9
-       RETURNING id, code, description, discount, discount_type as "discountType",
-                 offer_id as "offerId", valid_from as "validFrom", valid_to as "validTo",
-                 status, creation_date as "creationDate"`,
-      [code, description, discount, discountType, offerId, validFrom, validTo, status, id]
-    );
+    // Update coupon and publisher mappings in a transaction
+    const updatedCoupon = await prisma.$transaction(async (tx) => {
+      // Update coupon
+      const coupon = await tx.coupon.update({
+        where: { id: parseInt(id, 10) },
+        data: {
+          code,
+          description,
+          discount,
+          discount_type: discountType,
+          offer_id: parseInt(offerId, 10),
+          valid_from: new Date(validFrom),
+          valid_to: new Date(validTo),
+          status: status as 'active' | 'inactive' | 'expired',
+        },
+        select: {
+          id: true,
+          code: true,
+          description: true,
+          discount: true,
+          discount_type: true,
+          offer_id: true,
+          valid_from: true,
+          valid_to: true,
+          status: true,
+          created_at: true,
+        },
+      });
 
-    if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Coupon not found after update.' }, { status: 404 });
-    }
+      // Remove existing mappings
+      await tx.couponPublisher.deleteMany({
+        where: { coupon_id: parseInt(id, 10) },
+      });
 
-    // Remove existing mappings
-    await client.query(`DELETE FROM coupon_publishers WHERE coupon_id = $1`, [id]);
+      // Insert new mappings
+      if (publisherIds.length > 0) {
+        await tx.couponPublisher.createMany({
+          data: publisherIds.map((pubId: string) => ({
+            coupon_id: parseInt(id, 10),
+            publisher_id: pubId,
+          })),
+        });
+      }
 
-    // Insert new mappings
-    const insertValues = publisherIds.map((_, idx) => `($1, $${idx + 2})`).join(', ');
-    await client.query(
-      `INSERT INTO coupon_publishers (coupon_id, publisher_id) VALUES ${insertValues}`,
-      [id, ...publisherIds]
-    );
+      return coupon;
+    });
 
     // Fetch offer name and publisher names
-    const offerNameResult = await client.query('SELECT name FROM offers WHERE id = $1', [offerId]);
-    const offerName = offerNameResult.rows[0]?.name || 'N/A';
-
-    const publisherNameResult = await client.query(
-      'SELECT name FROM publishers WHERE id = ANY($1::uuid[])',
-      [publisherIds]
-    );
-    const publisherNames = publisherNameResult.rows.map(row => row.name);
+    const [offer, publishers] = await Promise.all([
+      prisma.offer.findUnique({
+        where: { id: parseInt(offerId, 10) },
+        select: { name: true },
+      }),
+      prisma.publisher.findMany({
+        where: { id: { in: publisherIds } },
+        select: { name: true },
+      }),
+    ]);
 
     return NextResponse.json({
       updatedCoupon: {
-        ...result.rows[0],
-        offerName,
+        ...updatedCoupon,
+        discountType: updatedCoupon.discount_type,
+        offerId: updatedCoupon.offer_id,
+        validFrom: updatedCoupon.valid_from?.toISOString(),
+        validTo: updatedCoupon.valid_to.toISOString(),
+        creationDate: updatedCoupon.created_at.toISOString(),
+        offerName: offer?.name || 'N/A',
         publisherIds,
-        publisherNames
+        publisherNames: publishers.map((p) => p.name),
       }
     }, { status: 200 });
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating coupon:', error);
 
-    if (typeof error === 'object' && error !== null && 'code' in error) {
-      const pgError = error as { code: string };
-      if (pgError.code === '23505') {
-        return NextResponse.json({ error: 'Coupon with this code already exists.' }, { status: 409 });
-      }
+    if (error.code === 'P2025') {
+      return NextResponse.json({ error: 'Coupon not found after update.' }, { status: 404 });
+    }
+
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: 'Coupon with this code already exists.' }, { status: 409 });
     }
 
     return NextResponse.json({ error: 'Failed to update coupon.' }, { status: 500 });
-  } finally {
-    if (client) {
-      client.release();
-    }
   }
 }

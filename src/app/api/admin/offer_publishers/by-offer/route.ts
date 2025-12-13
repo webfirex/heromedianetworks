@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 // GET /api/admin/offer_publishers/by-offer?offer_id=123
 export async function GET(req: NextRequest) {
@@ -9,14 +9,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing offer_id' }, { status: 400 });
   }
   try {
-    const result = await pool.query(
-      `SELECT p.id, p.name, p.email
-       FROM offer_publishers op
-       JOIN publishers p ON op.publisher_id = p.id
-       WHERE op.offer_id = $1`,
-      [offerId]
-    );
-    return NextResponse.json({ publishers: result.rows });
+    const offerPublishers = await prisma.offerPublisher.findMany({
+      where: {
+        offer_id: parseInt(offerId, 10),
+      },
+      include: {
+        publisher: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const publishers = offerPublishers.map((op) => ({
+      id: op.publisher.id,
+      name: op.publisher.name,
+      email: op.publisher.email,
+    }));
+
+    return NextResponse.json({ publishers });
   } catch (err) {
     console.error('Error fetching publishers for offer:', err);
     return NextResponse.json({ error: 'Failed to fetch publishers for offer' }, { status: 500 });

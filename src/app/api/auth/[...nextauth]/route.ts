@@ -1,15 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import pool from "@/lib/db"; // your PostgreSQL pool
+import prisma from "@/lib/db-prisma";
 import bcrypt from "bcryptjs";
-
-// Type for returned user
-interface Publisher {
-  id: number;
-  email: string;
-  password: string;
-  role: string; // You can hardcode this as 'publisher' if that's fixed
-}
 
 const handler = NextAuth({
   providers: [
@@ -30,37 +22,48 @@ const handler = NextAuth({
 
         const { email, password, loginType } = credentials;
 
-        let result;
+        let user;
         if (loginType === "admin") {
-          // Query the admins table
-          result = await pool.query<Publisher>(
-            "SELECT id, email, password, 'admin' AS role FROM admins WHERE email = $1",
-            [email]
-          );
+          // Query the admins table using Prisma
+          user = await prisma.admin.findUnique({
+            where: { email },
+            select: { id: true, email: true, password: true },
+          });
+          
+          if (user) {
+            const isValid = await bcrypt.compare(password, user.password);
+            if (!isValid) {
+              throw new Error("Invalid credentials");
+            }
+            return {
+              id: user.id,
+              email: user.email,
+              role: "admin",
+            };
+          }
         } else if (loginType === "publisher") {
-          // Query the publishers table
-          result = await pool.query<Publisher>(
-            "SELECT id, email, password, 'publisher' AS role FROM publishers WHERE email = $1",
-            [email]
-          );
+          // Query the publishers table using Prisma
+          user = await prisma.publisher.findUnique({
+            where: { email },
+            select: { id: true, email: true, password: true },
+          });
+          
+          if (user) {
+            const isValid = await bcrypt.compare(password, user.password);
+            if (!isValid) {
+              throw new Error("Invalid credentials");
+            }
+            return {
+              id: user.id,
+              email: user.email,
+              role: "publisher",
+            };
+          }
         } else {
           throw new Error("Invalid login type");
         }
 
-        if ((result?.rowCount ?? 0) === 0) {
-          throw new Error("Invalid credentials");
-        }
-
-        const user = result.rows[0];
-        const isValid = await bcrypt.compare(password, user.password);
-        if (!isValid) {
-          throw new Error("Invalid credentials");
-        }
-
-        return {
-          ...user,
-          id: user.id.toString(),
-        };
+        throw new Error("Invalid credentials");
       },
     }),
   ],

@@ -1,6 +1,5 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(req: NextRequest) {
@@ -11,9 +10,12 @@ export async function GET(req: NextRequest) {
   // If pub_id is an email, fetch the publisher's id from the database
   let publisherId = pub_id;
   if (pub_id && pub_id.includes('@')) {
-    const pubRes = await pool.query('SELECT id FROM publishers WHERE email = $1', [pub_id]);
-    if (pubRes.rows.length > 0) {
-      publisherId = pubRes.rows[0].id;
+    const publisher = await prisma.publisher.findUnique({
+      where: { email: pub_id },
+      select: { id: true },
+    });
+    if (publisher) {
+      publisherId = publisher.id;
     } else {
       return NextResponse.json({ error: 'Publisher not found' }, { status: 404 });
     }
@@ -33,22 +35,31 @@ export async function GET(req: NextRequest) {
   const geo = 'unknown'; // IP geolocation logic later
 
   try {
-    await pool.query(
-      `INSERT INTO clicks (click_id, pub_id, offer_id, ip_address, user_agent, device, browser, geo)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [click_id, publisherId, offer_id, ip, userAgent, device, browser, geo]
-    );
+    await prisma.click.create({
+      data: {
+        click_id,
+        pub_id: publisherId!,
+        offer_id: parseInt(offer_id, 10),
+        ip_address: ip,
+        user_agent: userAgent,
+        device,
+        browser,
+        geo,
+      },
+    });
 
-    // Fetch offer URL (assuming you have offers table)
-    const offerRes = await pool.query(`SELECT offer_url FROM offers WHERE id = $1`, [offer_id]);
-    const offerUrl = offerRes.rows?.[0]?.offer_url;
+    // Fetch offer URL
+    const offer = await prisma.offer.findUnique({
+      where: { id: parseInt(offer_id, 10) },
+      select: { offer_url: true },
+    });
 
-    if (!offerUrl) {
+    if (!offer) {
       return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
     }
 
     // Redirect with click_id as query param
-    const redirectUrl = new URL(offerUrl);
+    const redirectUrl = new URL(offer.offer_url);
     redirectUrl.searchParams.set('click_id', click_id);
 
     return NextResponse.redirect(redirectUrl.toString());

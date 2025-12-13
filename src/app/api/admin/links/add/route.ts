@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 import { randomUUID } from 'crypto';
 
 // POST /api/admin/links/add
@@ -13,27 +13,33 @@ export async function POST(req: NextRequest) {
     let publisherIdsToInsert: string[] = [];
     if (!publisher_ids || publisher_ids.length === 0) {
       // If no publishers selected, select all approved publishers
-      const result = await pool.query('SELECT id FROM publishers WHERE status = $1', ['approved']);
-      publisherIdsToInsert = result.rows.map((row: { id: string | number }) => String(row.id));
+      const approvedPublishers = await prisma.publisher.findMany({
+        where: { status: 'approved' },
+        select: { id: true },
+      });
+      publisherIdsToInsert = approvedPublishers.map((p) => p.id);
     } else {
       publisherIdsToInsert = publisher_ids;
     }
 
-    // Insert links for each publisher (generate uuid for id)
-    const values: unknown[] = [];
-    const placeholders: string[] = [];
-    publisherIdsToInsert.forEach((pubId, idx) => {
-      const linkId = randomUUID();
-      values.push(linkId, offer_id, pubId, name || null);
-      placeholders.push(`($${idx * 4 + 1}::uuid, $${idx * 4 + 2}, $${idx * 4 + 3}::uuid, $${idx * 4 + 4})`);
-    });
-    if (values.length === 0) {
+    if (publisherIdsToInsert.length === 0) {
       return NextResponse.json({ error: 'No publishers found.' }, { status: 400 });
     }
-    await pool.query(
-      `INSERT INTO links (id, offer_id, publisher_id, name) VALUES ${placeholders.join(', ')} ON CONFLICT DO NOTHING`,
-      values
-    );
+
+    // Insert links for each publisher
+    const linksData = publisherIdsToInsert.map((pubId) => ({
+      id: randomUUID(),
+      offer_id: parseInt(offer_id, 10),
+      publisher_id: pubId,
+      name: name || null,
+    }));
+
+    // Use createMany with skipDuplicates to handle conflicts
+    await prisma.link.createMany({
+      data: linksData,
+      skipDuplicates: true,
+    });
+
     return NextResponse.json({ message: 'Links added successfully.' });
   } catch (err) {
     console.error('Error adding links:', err);

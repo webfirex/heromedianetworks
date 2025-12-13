@@ -1,6 +1,6 @@
 // /app/api/track/click/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(req: NextRequest) {
@@ -17,9 +17,12 @@ export async function GET(req: NextRequest) {
   // If pub_id is an email, resolve to publisher ID
   let publisherId = pub_id;
   if (pub_id.includes('@')) {
-    const pubRes = await pool.query('SELECT id FROM publishers WHERE email = $1', [pub_id]);
-    if (pubRes.rows.length > 0) {
-      publisherId = pubRes.rows[0].id;
+    const publisher = await prisma.publisher.findUnique({
+      where: { email: pub_id },
+      select: { id: true },
+    });
+    if (publisher) {
+      publisherId = publisher.id;
     } else {
       return NextResponse.json({ error: 'Publisher not found' }, { status: 404 });
     }
@@ -31,22 +34,29 @@ export async function GET(req: NextRequest) {
 
   try {
     // Store the click
-    await pool.query(
-      `INSERT INTO clicks (click_id, pub_id, offer_id, link_id, ip_address, user_agent)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [click_id, publisherId, offer_id, link_id, ip, userAgent]
-    );
+    await prisma.click.create({
+      data: {
+        click_id,
+        pub_id: publisherId,
+        offer_id: parseInt(offer_id, 10),
+        link_id,
+        ip_address: ip,
+        user_agent: userAgent,
+      },
+    });
 
     // Get destination offer URL
-    const offerRes = await pool.query(`SELECT offer_url FROM offers WHERE id = $1`, [offer_id]);
-    const offerUrl = offerRes.rows?.[0]?.offer_url;
+    const offer = await prisma.offer.findUnique({
+      where: { id: parseInt(offer_id, 10) },
+      select: { offer_url: true },
+    });
 
-    if (!offerUrl) {
+    if (!offer) {
       return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
     }
 
     // Append link_id to redirect URL instead of click_id
-    const redirectUrl = new URL(offerUrl);
+    const redirectUrl = new URL(offer.offer_url);
     redirectUrl.searchParams.set('link_id', link_id);
 
     return NextResponse.redirect(redirectUrl.toString());

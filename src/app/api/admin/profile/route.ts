@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,21 +9,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const client = await pool.connect();
-    try {
-      const result = await client.query(
-        'SELECT created_at FROM admins WHERE email = $1 LIMIT 1',
-        [token.email]
-      );
+    const admin = await prisma.admin.findUnique({
+      where: { email: token.email },
+      select: { created_at: true },
+    });
 
-      if (result.rows.length === 0) {
-        return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
-      }
-
-      return NextResponse.json({ registeredAt: result.rows[0].created_at });
-    } finally {
-      client.release();
+    if (!admin) {
+      return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
     }
+
+    return NextResponse.json({ registeredAt: admin.created_at });
   } catch (error) {
     console.error('[GET /api/admin/profile/info]', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
