@@ -1,11 +1,13 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { Card, SimpleGrid, Grid, Box, Title, Text, Group, Stack, Badge, Flex, SemiCircleProgress } from '@mantine/core';
-import { IconLayoutDashboard, IconCircleCheck, IconCurrencyDollar } from '@tabler/icons-react';
+import { Card, SimpleGrid, Grid, Box, Title, Text, Group, Stack, Badge, Flex, SemiCircleProgress, Button, Loader, Avatar } from '@mantine/core';
+import { IconLayoutDashboard, IconCircleCheck, IconCurrencyDollar, IconArrowRight, IconInfoCircle, IconChevronDown, IconHelpCircle, IconDotsVertical } from '@tabler/icons-react';
 import { BarChart, PieChart, LineChart, AreaChart } from '@mantine/charts';
 import { Skeleton } from '@mantine/core';
 import { showNotification } from '@/app/utils/notificationManager';
 import { useSession } from 'next-auth/react';
+import NeoCard from '@/components/ui/flip-card';
+import { cn } from '@/lib/utils';
 
 interface DashboardContentProps {
   dateRange: [Date | null, Date | null];
@@ -205,18 +207,18 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
   const commissionTrendColor = isCommissionPositive ? 'green' : 'red';
 
   return (
-    <div style={{ padding: '0.5rem' }}>
+    <Box p="0.5rem">
       {loading ? (
         <>
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs" mb="sm">
             {[...Array(3)].map((_, i) => (
-              <Card 
-                key={i} 
-                shadow="sm" 
-                radius="xl" 
+              <Card
+                key={i}
+                shadow="sm"
+                radius="xl"
                 withBorder={false}
                 p="md"
-                style={{ 
+                style={{
                   background: '#151517',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                   border: '1px solid rgba(255,255,255,0.05)'
@@ -230,12 +232,12 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           <Grid gutter="xs" mb="sm">
             {[...Array(3)].map((_, i) => (
               <Grid.Col key={i} span={{ base: 12, sm: 6, lg: 4 }}>
-                <Card 
-                  shadow="sm" 
-                  radius="xl" 
+                <Card
+                  shadow="sm"
+                  radius="xl"
                   withBorder={false}
                   p="md"
-                  style={{ 
+                  style={{
                     background: '#151517',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                     border: '1px solid rgba(255,255,255,0.05)'
@@ -247,11 +249,11 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
               </Grid.Col>
             ))}
           </Grid>
-          <Box 
-            py="sm" 
-            px="md" 
-            mb="sm" 
-            style={{ 
+          <Box
+            py="sm"
+            px="md"
+            mb="sm"
+            style={{
               background: '#151517',
               boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
               border: '1px solid rgba(255,255,255,0.05)',
@@ -263,13 +265,13 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           </Box>
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
             {[...Array(7)].map((_, i) => (
-              <Card 
-                key={i} 
-                shadow="sm" 
-                radius="xl" 
+              <Card
+                key={i}
+                shadow="sm"
+                radius="xl"
                 withBorder={false}
                 p="md"
-                style={{ 
+                style={{
                   background: '#151517',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                   border: '1px solid rgba(255,255,255,0.05)'
@@ -283,225 +285,397 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
         </>
       ) : error ? null : (
         <>
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs" mb="sm">
-            {[
-              {
-                icon: <IconLayoutDashboard size={28} color="#3B82F6" />,
-                label: 'Total Clicks',
-                value: dashboardData.totalClicks.toLocaleString(),
-                accentColor: '#3B82F6',
-              },
-              {
-                icon: <IconCircleCheck size={28} color="#10B981" />,
-                label: 'Conversions',
-                value: dashboardData.totalConversions.toLocaleString(),
-                accentColor: '#10B981',
-              },
-              {
-                icon: <IconCurrencyDollar size={28} color="#F59E0B" />,
-                label: 'Total Earning',
-                value: dashboardData.totalEarning.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                accentColor: '#F59E0B',
-              },
-            ].map((stat) => (
-              <Card
-                key={stat.label}
-                shadow=""
-                radius="26px"
-                withBorder={false}
-                p="lg"
-                style={{
-                  background: 'rgba(128, 128, 128, 0.1)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(20px)',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    background: 'rgba(128, 128, 128, 0.15)',
-                    boxShadow: '0 25px 50px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
-                    backdropFilter: 'blur(25px)',
-                  },
-                }}
-              >
-                <Group align="flex-start" gap="md" wrap="nowrap">
-                  <Box
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      borderRadius: '16px',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px rgba(255,255,255,0.1)',
-                      padding: 14,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: 56,
-                      minHeight: 56,
-                    }}
-                  >
-                    {stat.icon}
-                  </Box>
-                  <Stack gap={2} style={{ flex: 1 }}>
-                    <Text
-                      size="xs"
-                      fw={500}
-                      tt="uppercase"
-                      style={{
-                        letterSpacing: '0.5px',
-                        color: '#8B94A7',
-                        opacity: 0.8
-                      }}
-                    >
-                      {stat.label}
-                    </Text>
-                    <Title
-                      order={2}
-                      style={{
-                        fontWeight: 700,
-                        color: '#E6EAF0',
-                        fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-                        lineHeight: 1.2,
-                        marginTop: 4
-                      }}
-                    >
-                      {stat.value}
-                    </Title>
-                  </Stack>
-                </Group>
-              </Card>
-            ))}
-          </SimpleGrid>
-          <Grid gutter="xs" mb="sm">
-            {[
-              {
-                title: 'Clicks This Month',
-                value: dashboardData.clicksThisMonth,
-                percentage: clicksPercentageChange,
-                trendColor: clicksTrendColor,
-                target: CLICK_MONTHLY_TARGET,
-                targetLabel: 'clicks',
-              },
-              {
-                title: 'Sales This Month',
-                value: dashboardData.salesThisMonth,
-                percentage: salesPercentageChange,
-                trendColor: salesTrendColor,
-                target: SALES_MONTHLY_TARGET,
-                targetLabel: 'sales',
-              },
-              {
-                title: 'Commission This Month',
-                value: dashboardData.commissionThisMonth,
-                percentage: commissionPercentageChange,
-                trendColor: commissionTrendColor,
-                target: COMMISSION_MONTHLY_TARGET,
-                targetLabel: 'commission',
-                isCurrency: true,
-              },
-            ].map((item, index) => (
-              <Grid.Col key={index} span={{ base: 12, sm: 6, lg: 4 }}>
-                <Card
-                  shadow=""
-                  radius="26px"
-                  withBorder={false}
-                  p="lg"
-                  style={{
-                    overflow: 'hidden',
-                    background: 'rgba(128, 128, 128, 0.1)',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(20px)',
-                  }}
-                >
-                  <Flex justify="space-between" align="center" mb="xs">
-                    <Title order={5} style={{ color: '#E6EAF0', fontWeight: 500, fontSize: 'clamp(0.9rem, 3vw, 1rem)' }}>
-                      {item.title}
-                    </Title>
-                    <Group gap="xs" align="center">
-                      {parseFloat(item.percentage) > 0 && <span style={{ color: '#22c55e' }}>▲</span>}
-                      {parseFloat(item.percentage) < 0 && <span style={{ color: '#ef4444' }}>▼</span>}
-                      {parseFloat(item.percentage) === 0 && <span style={{ color: 'rgba(255,255,255,0.5)' }}>─</span>}
-                      <Text size="sm" c={item.trendColor === 'green' ? '#22c55e' : '#ef4444'} fw={600}>
-                        {item.percentage}%
-                      </Text>
-                    </Group>
-                  </Flex>
-                  <Text
-                    size="lg"
-                    fw={700}
-                    c={item.trendColor === 'green' ? '#22c55e' : '#ef4444'}
-                    style={{
-                      fontVariantNumeric: 'tabular-nums',
-                      letterSpacing: '-0.5px',
-                      margin: '0.25rem 0 0.75rem 0',
-                      lineHeight: 1,
-                      fontSize: 'clamp(1.25rem, 5vw, 1.5rem)',
-                    }}
-                  >
-                    {item.isCurrency
-                      ? item.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                      : item.value.toLocaleString()}
-                  </Text>
-                  <Box
-                    pos="relative"
-                    style={{
-                      width: '100%',
-                      height: 'clamp(6rem, 30vw, 9rem)',
-                      maxWidth: '20rem',
-                      margin: '1rem auto',
-                    }}
-                  >
-                    <SemiCircleProgress
-                      value={Math.max(0, (item.value / item.target) * 100)}
-                      thickness={30}
-                      size={320}
-                      color="var(--primary)"
-                    />
-                    <Box
-                      pos="absolute"
-                      top="70%"
-                      left="50%"
-                      style={{
-                        transform: 'translate(-50%, -50%)',
-                        zIndex: 2,
-                        textAlign: 'center',
-                        background: '#151517',
-                        borderRadius: '999px',
-                        padding: '0.4rem 1rem',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      <Text
-                        size="xs"
-                        c="var(--primary)"
-                        fw={700}
-                        title={`Your target for this month is ${item.target.toLocaleString()} ${item.targetLabel}.`}
+          <Grid gutter="md" mb="xl">
+            {/* Left Column (Span 4) */}
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <div className="flex flex-col gap-6 h-full">
+                {/* Card 1: Overview (My Campaigns) */}
+                <div className="flex flex-col h-full">
+                  {/* External Header */}
+                  <div className="mb-4 pl-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <h2 className="text-lg font-bold text-white">My Campaigns</h2>
+                      <Badge
+                        variant="filled"
+                        color="dark"
+                        radius="md"
+                        size="lg"
+                        className="bg-zinc-800 text-zinc-300 pr-2 cursor-pointer hover:bg-zinc-700 transition"
+                        rightSection={<IconChevronDown size={14} />}
                       >
-                        Target: {item.target.toLocaleString()}
-                      </Text>
-                    </Box>
-                  </Box>
-                  <Text size="xs" c="dimmed" ta="center" mt="sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                    Progress towards monthly goal
-                  </Text>
-                </Card>
-              </Grid.Col>
-            ))}
+                        Finance
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      3 persons and <span className="text-zinc-400">@yerimaldo</span> have access.
+                    </p>
+                  </div>
+
+                  <NeoCard
+                    variant="glass"
+                    className="w-full min-h-[520px] bg-[#0A0A0C]/70 backdrop-blur-xl border-white/10 active:scale-[0.99] transition-transform duration-300 relative overflow-hidden"
+                    style={{
+                      boxShadow: '-12px -12px 30px rgba(255, 255, 255, 0.02), 12px 12px 30px rgba(59, 130, 246, 0.15)'
+                    }}
+                  >
+                    {/* Subtle Blue ambient glow at bottom */}
+                    <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-blue-900/10 to-transparent pointer-events-none" />
+
+                    <div className="flex flex-col h-full p-6 relative z-10">
+                      {/* Card Internal Header */}
+                      <div className="flex justify-between items-start mb-6">
+                        <h3 className="text-lg font-medium text-white">Overview</h3>
+                        <IconInfoCircle size={18} className="text-zinc-500 cursor-pointer hover:text-zinc-300" />
+                      </div>
+
+                      {/* Stats Rows */}
+                      <div className="space-y-4 mb-8">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-zinc-400">Max records</span>
+                          <span className="text-zinc-200">2 times increase to the last month</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-zinc-400">Comparative rates</span>
+                          <span className="text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded text-[10px]">+ {clicksPercentageChange}%</span>
+                        </div>
+                      </div>
+
+                      {/* Tabs */}
+                      <div className="bg-[#131416]/50 rounded-xl p-1.5 grid grid-cols-3 gap-1 mb-8 border border-white/5">
+                        <div className="text-center py-2 text-xs text-zinc-400 cursor-pointer hover:text-white hover:bg-white/5 rounded-lg transition font-medium">24h</div>
+                        <div className="text-center py-2 text-xs text-zinc-400 cursor-pointer hover:text-white hover:bg-white/5 rounded-lg transition font-medium">Week</div>
+                        <div className="text-center py-2 text-xs font-semibold text-white bg-[#2C2D31] rounded-lg shadow-md border border-white/10">Month</div>
+                      </div>
+
+                      {/* Chart Area */}
+                      <div className="flex-1 w-full min-h-[140px] relative">
+                        <AreaChart
+                          h={140}
+                          data={dashboardData.clicksOverTime.length > 0 ? dashboardData.clicksOverTime : emptyClicksOverTime}
+                          dataKey="period"
+                          series={[{ name: 'clicks', color: '#3B82F6' }]}
+                          curveType="monotone"
+                          withXAxis={true}
+                          withYAxis={false}
+                          gridAxis="none"
+                          withDots={false}
+                          fillOpacity={0.1}
+                          strokeWidth={3}
+                          textColor="#52525B"
+                        />
+                        {/* Floating tooltip mock (Static for visual match) */}
+                        <div className="absolute top-[40%] right-[25%] bg-[#121420]/90 border border-white/5 p-3 rounded-xl shadow-2xl backdrop-blur-md">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="text-[10px] text-zinc-400 mb-1">Mar 29</div>
+                            <div className="text-sm font-bold text-white tracking-tight">$ 5,538.65</div>
+                            <div className="text-[10px] text-blue-400 font-bold mt-1">+ 9.41 %</div>
+                          </div>
+                          {/* Line and Dot indicator */}
+                          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-white/20 border-l border-dashed border-white/30"></div>
+                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#0A0A0C] border-[2px] border-white rounded-full shadow-[0_0_10px_rgba(59,130,246,0.8)] z-10"></div>
+                        </div>
+                      </div>
+
+                      {/* Footer Stats */}
+                      <div className="mt-6 flex justify-between items-end">
+                        <div className="flex items-center gap-1">
+                          <div className="text-blue-500 text-3xl font-bold mb-1">+</div>
+                          <div className="text-4xl font-bold text-white tracking-tight">{Math.abs(Number(clicksPercentageChange))}.23<span className="text-2xl text-white ml-1">%</span></div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[10px] text-zinc-600">Last updated</div>
+                          <div className="text-[11px] font-medium text-zinc-400">Today, 06:49 AM</div>
+                        </div>
+                      </div>
+                    </div>
+                  </NeoCard>
+                </div>
+
+                {/* My Top Campaigns (New Mock) */}
+                <NeoCard variant="glass" className="flex-1 min-h-[280px] bg-[#0A0A0C]/70 backdrop-blur-xl border-white/10 p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-bold text-white">My Top Campaigns</h3>
+                    <div className="flex items-center gap-2 text-zinc-500">
+                      <span className="text-[10px]">02 of 5</span>
+                      <div className="flex gap-1">
+                        <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center cursor-pointer hover:bg-zinc-700"><IconArrowRight className="rotate-180" size={10} /></div>
+                        <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center cursor-pointer hover:bg-zinc-700"><IconArrowRight size={10} /></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    {/* Campaign 1: Pela Design */}
+                    <div className="flex-1 bg-[#151518]/80 rounded-xl p-3 border border-white/5 relative overflow-hidden group hover:border-white/10 transition">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]"></div>
+                        <IconDotsVertical size={12} className="text-zinc-600 cursor-pointer" />
+                      </div>
+                      <h4 className="text-xs font-bold text-white mb-1">Pela Design</h4>
+                      <div className="text-[10px] text-zinc-500 mb-2"># 3,074 Followers</div>
+                      <div className="text-[10px] text-blue-400 font-bold mb-3">+ 9.23 %</div>
+                      <div className="flex justify-between items-center">
+                        <Avatar.Group spacing="sm">
+                          <Avatar src="https://i.pravatar.cc/150?u=20" size="xs" radius="xl" />
+                          <Avatar src="https://i.pravatar.cc/150?u=21" size="xs" radius="xl" />
+                          <Avatar size="xs" radius="xl" color="dark" className="text-[8px]">+99</Avatar>
+                        </Avatar.Group>
+                        <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-bold text-xs cursor-pointer hover:scale-105 transition">+</div>
+                      </div>
+                    </div>
+                    {/* Campaign 2: Elexir Ads */}
+                    <div className="flex-1 bg-[#151518]/80 rounded-xl p-3 border border-white/5 relative overflow-hidden group hover:border-white/10 transition">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                        <IconDotsVertical size={12} className="text-zinc-600 cursor-pointer" />
+                      </div>
+                      <h4 className="text-xs font-bold text-white mb-1">Elexir Ads</h4>
+                      <div className="text-[10px] text-zinc-500 mb-2"># 2,931 Followers</div>
+                      <div className="text-[10px] text-green-400 font-bold mb-3">+ 7.59 %</div>
+                      <div className="flex justify-between items-center">
+                        <Avatar.Group spacing="sm">
+                          <Avatar src="https://i.pravatar.cc/150?u=25" size="xs" radius="xl" />
+                          <Avatar src="https://i.pravatar.cc/150?u=26" size="xs" radius="xl" />
+                          <Avatar size="xs" radius="xl" color="dark" className="text-[8px]">+99</Avatar>
+                        </Avatar.Group>
+                        <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-bold text-xs cursor-pointer hover:scale-105 transition">+</div>
+                      </div>
+                    </div>
+                  </div>
+                </NeoCard>
+              </div>
+            </Grid.Col>
+
+            {/* Right Column (Span 8) */}
+            <Grid.Col span={{ base: 12, md: 8 }}>
+              <div className="flex flex-col gap-6 h-full">
+                {/* Row 1: nested Grid for Balance (7) + Ads (5) */}
+                <div className="grid grid-cols-12 gap-6">
+                  {/* Total Balance */}
+                  <div className="col-span-12 md:col-span-7">
+                    <div className="flex flex-col h-full">
+                      {/* External Header */}
+                      <div className="mb-4 pl-1">
+                        <div className="flex justify-between items-center mb-1">
+                          <h2 className="text-lg font-bold text-white">Total Balance</h2>
+                          <Badge
+                            variant="filled"
+                            color="dark"
+                            radius="md"
+                            size="lg"
+                            className="bg-zinc-800 text-zinc-300 pr-2 cursor-pointer hover:bg-zinc-700 transition"
+                            rightSection={<IconChevronDown size={14} />}
+                          >
+                            US Dollar
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-zinc-500">
+                          The sum of all amounts on <span className="text-zinc-400">my wallet</span>
+                        </p>
+                      </div>
+
+                      <NeoCard
+                        variant="glass"
+                        className="flex-1 min-h-[384px] bg-[#0E0E10]/70 backdrop-blur-xl border-white/10 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                      >
+                        <div className="p-6 relative z-10 flex flex-col h-full">
+                          {/* Top Stats */}
+                          <div className="flex justify-between items-start mb-6">
+                            <div className="flex items-center">
+                              <span className="text-blue-500 text-3xl mr-1 font-light">$</span>
+                              <span className="text-4xl font-bold text-white tracking-tight">
+                                {dashboardData.totalEarning.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-[10px] text-zinc-400 mb-1">Compared to last month</div>
+                              <div className="text-xs font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded inline-block">
+                                - 37.16 %
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Sub Stats Row */}
+                          <div className="flex justify-between items-center mb-6">
+                            <div className="text-[11px] text-zinc-400 flex items-center">
+                              Yearly avg: <span className="text-white ml-1 font-medium">$ 34,502.19</span>
+                              <span className="text-blue-500 ml-1">↗</span>
+                            </div>
+                            <div className="flex items-center text-[11px] text-zinc-400 cursor-pointer hover:text-white">
+                              <IconHelpCircle size={14} className="mr-1" />
+                              How it works?
+                            </div>
+                          </div>
+
+                          {/* Ai Assistant Section */}
+                          <div className="flex-1 bg-[#09090B] rounded-2xl relative overflow-hidden border border-white/5 flex flex-col items-center justify-end pb-0">
+                            {/* Background Stars/Dots */}
+                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
+                            {/* Ai Text Content */}
+                            <div className="relative z-20 text-center mb-4 mt-6 w-full px-4">
+                              <h4 className="text-sm font-medium text-white mb-2">Ai Assistant</h4>
+                              <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400">
+                                <Loader size={10} color="gray" type="oval" />
+                                <span>is updating the balance amount now...</span>
+                              </div>
+                            </div>
+
+                            {/* Orb Visual - Image Asset */}
+                            <div className="relative w-full h-40 mt-auto overflow-hidden">
+                              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[-10%] w-[100%] h-[120%] flex justify-center items-end">
+                                <img
+                                  src="/assets/orb.png"
+                                  alt="Blue Ribbed Orb"
+                                  className="w-full h-full object-contain object-bottom scale-110 opacity-90 mix-blend-screen drop-shadow-[0_0_50px_rgba(59,130,246,0.3)] filter contrast-125 brightness-110"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </NeoCard>
+                    </div>
+                  </div>
+
+                  {/* Ads */}
+                  <div className="col-span-12 md:col-span-5">
+                    <NeoCard
+                      variant="glass"
+                      className="h-full min-h-[340px] bg-[#0E0E10]/70 backdrop-blur-xl border-white/10 relative overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                    >
+                      {/* Background Glow */}
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+                      <div className="p-6 h-full flex flex-col relative z-10">
+                        <div className="flex justify-between items-start mb-6">
+                          <div>
+                            <h3 className="text-md font-medium text-white leading-tight">Ads</h3>
+                            <span className="text-[10px] text-zinc-500">Powered by Carbon</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-zinc-400 cursor-pointer hover:text-white transition">
+                            Next <IconArrowRight size={12} />
+                          </div>
+                        </div>
+
+                        <div className="w-full py-2.5 bg-[#1F2023] text-zinc-300 text-xs font-medium rounded-lg border border-white/5 mb-6 text-center shadow-inner">
+                          Just for today!
+                        </div>
+
+                        <div className="relative mb-2">
+                          <h4 className="text-lg font-bold text-white leading-snug mb-2">
+                            Let's Go Premium with <span className="inline-block bg-[#F59E0B] text-black px-1.5 rounded-md transform -rotate-2 text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-yellow-300/50">40%</span>
+                          </h4>
+                          <p className="text-[10px] text-zinc-400 leading-relaxed max-w-[95%]">
+                            This is your amazing chance! Our premium subscription elevate your experience and unlock a range of benefits tailored to your preferences.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1 text-[11px] font-medium text-white cursor-pointer hover:text-blue-400 transition mb-auto">
+                          Learn more <IconArrowRight size={10} />
+                        </div>
+
+                        <div className="mt-6 flex justify-between items-center bg-transparent">
+                          <span className="text-[10px] text-zinc-500 cursor-pointer hover:text-zinc-300 transition">Don't show again</span>
+                          <button className="px-5 py-2 bg-white text-black text-xs font-bold rounded-full shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:bg-zinc-200 transition active:scale-95">
+                            Get started
+                          </button>
+                        </div>
+                      </div>
+                    </NeoCard>
+                  </div>
+                </div>
+
+                {/* Row 2: Popular Campaigns */}
+                <div className="flex-1">
+                  <NeoCard
+                    variant="glass"
+                    className="w-full p-0 bg-[#0E0E10]/70 backdrop-blur-xl border-white/10 overflow-hidden flex-1"
+                  >
+                    {/* Header */}
+                    <div className="px-6 py-5 flex justify-between items-center border-b border-white/5">
+                      <h3 className="text-lg font-bold text-white">Popular Campaigns</h3>
+                      <div className="flex items-center gap-2 bg-[#1A1B1E] rounded-lg p-1 pr-3 border border-white/5 cursor-pointer hover:border-white/10 transition">
+                        <div className="bg-[#2C2D31] text-zinc-400 p-1 px-2 rounded text-[10px] font-mono flex items-center gap-1 shadow-sm">
+                          <span className="text-xs">⌘</span> 2
+                        </div>
+                        <span className="text-xs text-zinc-400 font-medium">as List</span>
+                        <IconChevronDown size={14} className="text-zinc-500" />
+                      </div>
+                    </div>
+
+                    {/* Table Header */}
+                    <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/5 text-[11px] text-zinc-500 font-medium uppercase tracking-wider bg-[#0A0A0C]/30">
+                      <div className="col-span-1">Rank</div>
+                      <div className="col-span-2">Name</div>
+                      <div className="col-span-2">Admin</div>
+                      <div className="col-span-2">Date Added</div>
+                      <div className="col-span-2">Business</div>
+                      <div className="col-span-1">Followers</div>
+                      <div className="col-span-1 text-center">Status</div>
+                      <div className="col-span-1 text-center">Operation</div>
+                    </div>
+
+                    {/* Table Body */}
+                    <div className="p-2">
+                      {[
+                        { rank: 1, name: "IBO Advert...", admin: "Samuel", img: "https://i.pravatar.cc/150?u=1", date: "02/14/2019", biz: "Advertising", status: "Public" },
+                        { rank: 2, name: "Pela Des...", admin: "Hossein", img: "https://i.pravatar.cc/150?u=2", date: "09/23/2017", biz: "Design Agency", status: "Public" },
+                        { rank: 3, name: "Emma Fa...", admin: "Maria", img: "https://i.pravatar.cc/150?u=3", date: "04/05/2023", biz: "Social Fandom", status: "Private" },
+                        { rank: 4, name: "Anaco Pr...", admin: "Stepha...", img: "https://i.pravatar.cc/150?u=4", date: "11/18/2021", biz: "Programming", status: "Public" },
+                      ].map((item, i) => (
+                        <div key={i} className="grid grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-white/5 transition rounded-lg my-0.5 group">
+                          <div className="col-span-1 text-zinc-500 font-mono text-sm pl-1">#{item.rank}</div>
+                          <div className="col-span-2 text-white font-medium text-sm truncate">{item.name}</div>
+                          <div className="col-span-2 flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full overflow-hidden bg-zinc-800 ring-2 ring-[#0E0E10]">
+                              <img src={item.img} alt={item.admin} className="w-full h-full object-cover" />
+                            </div>
+                            <span className="text-zinc-300 text-xs">{(item.rank === 2 && !item.name.includes("IBO")) ? `${item.admin} (You)` : item.admin}</span>
+                          </div>
+                          <div className="col-span-2 text-zinc-500 text-xs">{item.date}</div>
+                          <div className="col-span-2 text-zinc-400 text-xs">{item.biz}</div>
+                          <div className="col-span-1 flex -space-x-2">
+                            {[1, 2, 3].map(j => (
+                              <div key={j} className="w-6 h-6 rounded-full border-2 border-[#0E0E10] bg-zinc-800 overflow-hidden">
+                                <img src={`https://i.pravatar.cc/150?u=${item.rank * 10 + j}`} className="w-full h-full object-cover" />
+                              </div>
+                            ))}
+                            <div className="w-6 h-6 rounded-full border-2 border-[#0E0E10] bg-zinc-700 flex items-center justify-center text-[8px] text-white">99+</div>
+                          </div>
+                          <div className="col-span-1 flex justify-center">
+                            <div className={cn(
+                              "px-3 py-1 rounded-[6px] text-[10px] font-medium min-w-[60px] text-center border",
+                              item.status === "Public" ? "bg-zinc-800/50 border-transparent text-zinc-400" : "bg-transparent border-zinc-700 text-zinc-500"
+                            )}>
+                              {item.status}
+                            </div>
+                          </div>
+                          <div className="col-span-1 flex justify-center">
+                            {item.status === "Public" ? (
+                              <button className="h-8 px-4 bg-white hover:bg-zinc-200 text-black text-xs font-bold rounded-full shadow-lg transition-transform active:scale-95">
+                                Join
+                              </button>
+                            ) : (
+                              <button className="h-8 px-2 border border-zinc-600 text-zinc-300 hover:bg-zinc-800 text-xs font-medium rounded-full transition-colors active:scale-95">
+                                Requested
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </NeoCard>
+                </div>
+              </div>
+            </Grid.Col>
           </Grid>
+
+          {/* Remaining Charts (Moved to bottom) */}
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
-            <Card
-              shadow=""
-              radius="26px"
-              withBorder={false}
-              p="lg"
-              style={{
-                background: 'rgba(128, 128, 128, 0.1)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)',
-              }}
+            {/* Clicks Over Time Note: Duplicate chart? The overview already has it. I'll include it if it was separate, but it seems redundant. I'll include it to be safe, but visually it might be clutter. I'll include 'Clicks Over Time' (LineChart one), 'Conversion Trend', 'Commissions', 'Conversions By Offer' */}
+
+            <NeoCard
+              variant="glass"
+              className="p-6 bg-zinc-900/40"
             >
               <Title
                 order={4}
@@ -513,139 +687,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 }}
                 mb="sm"
               >
-                Current Week Clicks
-                <Text
-                  size="xs"
-                  style={{
-                    display: 'block',
-                    marginTop: '4px',
-                    color: '#3B82F6',
-                    fontWeight: 600
-                  }}
-                >
-                  ▲ 5% (vs. last week)
-                </Text>
-              </Title>
-              <BarChart
-                h="clamp(12rem, 40vw, 16rem)"
-                data={dashboardData.weeklyClicks.length > 0 ? dashboardData.weeklyClicks : emptyBarData}
-                dataKey="day"
-                series={[{ name: 'clicks', color: primary }]}
-                withTooltip
-                referenceLines={[
-                  { values: (CLICK_MONTHLY_TARGET / 7).toString(), label: 'Daily Target', color: '#ef4444', strokeDasharray: '4 4' },
-                ]}
-                tooltipProps={{
-                  cursor: { fill: 'rgba(66, 133, 244, 0.15)', stroke: 'transparent' },
-                  wrapperStyle: { background: '#151517', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', color: '#fff' },
-                  content: ({ payload }) => {
-                    if (!payload || !payload[0]) return null;
-                    const { day, clicks } = payload[0].payload;
-                    const dailyAvgTarget = CLICK_MONTHLY_TARGET / 7;
-                    const targetProgress = getPercentageOfTarget(clicks, dailyAvgTarget);
-                    return (
-                      <Box style={tooltipStyles}>
-                        <Text fw={600} size="sm" style={{ color: '#fff' }}>{day}</Text>
-                        <Text mt="xs" style={{ color: '#fff' }}>Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span></Text>
-                        <Text style={{ color: '#fff' }}>Target Progress: <span style={{ color: Number(targetProgress) >= 100 ? '#22c55e' : '#f59e0b', fontWeight: 700 }}>{targetProgress}%</span> of daily avg target</Text>
-                      </Box>
-                    );
-                  },
-                }}
-              />
-            </Card>
-            <Card
-              shadow=""
-              radius="26px"
-              withBorder={false}
-              p="lg"
-              style={{
-                background: 'rgba(128, 128, 128, 0.1)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)',
-              }}
-            >
-              <Title
-                order={4}
-                style={{
-                  color: '#E6EAF0',
-                  fontWeight: 500,
-                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
-                  marginBottom: '12px'
-                }}
-                mb="sm"
-              >
-                Traffic Sources
-              </Title>
-              <PieChart
-                h="clamp(12rem, 40vw, 16rem)"
-                data={
-                  dashboardData.trafficSources.length > 0
-                    ? dashboardData.trafficSources.map((source, index) => ({
-                        ...source,
-                        color: getColorForSegment(source.name, index, chartColors),
-                      }))
-                    : emptyPieData
-                }
-                withTooltip
-                tooltipProps={{
-                  content: ({ payload }) => {
-                    if (!payload || !payload[0]) return null;
-                    const { name, value } = payload[0].payload;
-                    const total = dashboardData.trafficSources.reduce((sum, src) => sum + (src.value || 0), 0);
-                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-                    return (
-                      <Box style={tooltipStyles}>
-                        <Text fw={600} style={{ color: '#fff' }}>{name || 'Unknown'}</Text>
-                        <Text style={{ color: '#fff' }}>Clicks: {formatNumber(value)}</Text>
-                        <Text style={{ color: '#fff' }}>Share: {percentage}%</Text>
-                      </Box>
-                    );
-                  },
-                }}
-              />
-              {dashboardData.trafficSources.length > 0 && (
-                <Box mt={8} style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <Group gap={8} style={{ flexWrap: 'wrap' }}>
-                    {dashboardData.trafficSources.map((source, idx) => (
-                      <Group key={source.name || 'Unknown'} gap={4} align="center">
-                        <Box w={12} h={12} style={{ borderRadius: 4, background: getColorForSegment(source.name, idx, chartColors), border: '1.5px solid rgba(255,255,255,0.1)' }} />
-                        <Text size="xs" fw={600} style={{ color: 'rgba(255,255,255,0.9)', letterSpacing: 0.2 }}>
-                          {source.name || 'Unknown'}
-                        </Text>
-                        <Badge color="gray" variant="light" size="xs" radius="sm" style={{ fontWeight: 500, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)' }}>
-                          {formatNumber(source.value)}
-                        </Badge>
-                      </Group>
-                    ))}
-                  </Group>
-                </Box>
-              )}
-            </Card>
-            <Card
-              shadow=""
-              radius="26px"
-              withBorder={false}
-              p="lg"
-              style={{
-                background: 'rgba(128, 128, 128, 0.1)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)',
-              }}
-            >
-              <Title
-                order={4}
-                style={{
-                  color: '#E6EAF0',
-                  fontWeight: 500,
-                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
-                  marginBottom: '12px'
-                }}
-                mb="sm"
-              >
-                Clicks Over Time
+                Clicks Over Time (Line)
                 <Text
                   size="xs"
                   style={{
@@ -684,18 +726,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   },
                 }}
               />
-            </Card>
-            <Card
-              shadow=""
-              radius="26px"
-              withBorder={false}
-              p="lg"
-              style={{
-                background: 'rgba(128, 128, 128, 0.1)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)',
-              }}
+            </NeoCard>
+            <NeoCard
+              variant="glass"
+              className="p-6 bg-zinc-900/40"
             >
               <Title
                 order={4}
@@ -730,18 +764,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   },
                 }}
               />
-            </Card>
-            <Card
-              shadow=""
-              radius="26px"
-              withBorder={false}
-              p="lg"
-              style={{
-                background: 'rgba(128, 128, 128, 0.1)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)',
-              }}
+            </NeoCard>
+            <NeoCard
+              variant="glass"
+              className="p-6 bg-zinc-900/40"
             >
               <Title
                 order={4}
@@ -776,18 +802,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   },
                 }}
               />
-            </Card>
-            <Card
-              shadow=""
-              radius="26px"
-              withBorder={false}
-              p="lg"
-              style={{
-                background: 'rgba(128, 128, 128, 0.1)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)',
-              }}
+            </NeoCard>
+            <NeoCard
+              variant="glass"
+              className="p-6 bg-zinc-900/40"
             >
               <Title
                 order={4}
@@ -806,9 +824,9 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 data={
                   dashboardData.conversionsByOffer.length > 0
                     ? dashboardData.conversionsByOffer.map((offer, index) => ({
-                        ...offer,
-                        color: getColorForSegment(offer.name, index, chartColors),
-                      }))
+                      ...offer,
+                      color: getColorForSegment(offer.name, index, chartColors),
+                    }))
                     : emptyPie
                 }
                 withTooltip
@@ -845,10 +863,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   </Group>
                 </Box>
               )}
-            </Card>
+            </NeoCard>
           </SimpleGrid>
         </>
       )}
-    </div>
+    </Box>
   );
 }
