@@ -71,7 +71,7 @@ export default function SearchBrowsePage() {
           </Button>
         </Group>
       </form>
-      <Text size="lg" fw={600} mb={18} color="#2563eb" style={{ letterSpacing: 0.2 }}>Browse Offers</Text>
+      <Text size="lg" fw={600} mb={18} style={{ color: 'var(--primary)', letterSpacing: 0.2 }}>Browse Offers</Text>
       <div style={{ overflowX: 'auto' }}>
         {loading ? (
           <Table striped highlightOnHover withTableBorder style={{ minWidth: isMobile ? 'auto' : 900 }}>
@@ -135,7 +135,7 @@ export default function SearchBrowsePage() {
                     )}
                     <Table.Td>
                       {offer.offer_url && offer.offer_url.startsWith('http') ? (
-                        <a href={offer.offer_url} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <a href={offer.offer_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <IconExternalLink size={18} />
                         </a>
                       ) : (

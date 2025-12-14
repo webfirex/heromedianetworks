@@ -19,13 +19,14 @@ type CommissionOverTime = { period: string; commission: number };
 type ConversionByOffer = { name: string; value: number; color?: string };
 
 const tooltipStyles = {
-  backgroundColor: '#ffffff',
-  border: '1px solid #e0e0e0',
-  borderRadius: '4px',
-  padding: '8px 12px',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  fontSize: '12px',
-  color: '#333',
+  background: 'linear-gradient(135deg, #0B0F16 0%, #141C2A 100%)',
+  boxShadow: '0 12px 32px rgba(0,0,0,0.6), inset 0 1px rgba(255,255,255,0.04)',
+  borderRadius: '12px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  color: '#E6EAF0',
+  padding: '12px',
+  fontSize: '14px',
+  backdropFilter: 'blur(8px)',
 };
 
 // Helper function to format numbers for tooltips
@@ -43,17 +44,17 @@ const getPercentageOfTarget = (value: number, target: number) => {
 const CLICK_MONTHLY_TARGET = 50;
 const SALES_MONTHLY_TARGET = 10;
 const COMMISSION_MONTHLY_TARGET = 500;
-const primary = '#4169E1';
+const primary = '#3B82F6';
 const chartColors = [
-  '#4169E1', '#66BB6A', '#FFC107', '#42A5F5', '#EF5350', '#26A69A', '#AB47BC',
+  '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#06B6D4', '#EC4899',
 ];
 // Define dummy data structures
 const emptyConversionTrend = [{ period: 'Week 1', conversions: 0 }];
 const emptyClicksOverTime = [{ period: 'Week 1', clicks: 0 }];
 const emptyCommissions = [{ period: 'Week 1', commission: 0 }];
-const emptyPie = [{ name: 'No Data', value: 1, color: '#E0E0E0' }];
+const emptyPie = [{ name: 'No Data', value: 1, color: 'rgba(255,255,255,0.1)' }];
 const emptyBarData = [{ day: 'Mon', clicks: 0 }];
-const emptyPieData = [{ name: 'No Data', value: 1, color: '#E0E0E0' }];
+const emptyPieData = [{ name: 'No Data', value: 1, color: 'rgba(255,255,255,0.1)' }];
 
 export default function DashboardContent({ dateRange }: DashboardContentProps) {
   const { data: session } = useSession();
@@ -209,7 +210,18 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
         <>
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs" mb="sm">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} shadow="sm" radius="md" withBorder>
+              <Card 
+                key={i} 
+                shadow="sm" 
+                radius="xl" 
+                withBorder={false}
+                p="md"
+                style={{ 
+                  background: '#151517',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)'
+                }}
+              >
                 <Skeleton height="2rem" width="60%" mb="xs" />
                 <Skeleton height="1.5rem" width="40%" />
               </Card>
@@ -218,20 +230,51 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           <Grid gutter="xs" mb="sm">
             {[...Array(3)].map((_, i) => (
               <Grid.Col key={i} span={{ base: 12, sm: 6, lg: 4 }}>
-                <Card shadow="sm" radius="md" withBorder>
+                <Card 
+                  shadow="sm" 
+                  radius="xl" 
+                  withBorder={false}
+                  p="md"
+                  style={{ 
+                    background: '#151517',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(255,255,255,0.05)'
+                  }}
+                >
                   <Skeleton height="2rem" width="60%" mb="xs" />
                   <Skeleton height="8rem" width="100%" />
                 </Card>
               </Grid.Col>
             ))}
           </Grid>
-          <Box bg="white" py="sm" px="md" mb="sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <Box 
+            py="sm" 
+            px="md" 
+            mb="sm" 
+            style={{ 
+              background: '#151517',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '1.3rem'
+            }}
+          >
             <Skeleton height="1.75rem" width="30%" mb="xs" />
             <Skeleton height="2.5rem" width="100%" />
           </Box>
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
             {[...Array(7)].map((_, i) => (
-              <Card key={i} shadow="sm" radius="md" withBorder>
+              <Card 
+                key={i} 
+                shadow="sm" 
+                radius="xl" 
+                withBorder={false}
+                p="md"
+                style={{ 
+                  background: '#151517',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)'
+                }}
+              >
                 <Skeleton height="1.75rem" width="40%" mb="xs" />
                 <Skeleton height="12rem" width="100%" />
               </Card>
@@ -243,59 +286,82 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs" mb="sm">
             {[
               {
-                icon: <IconLayoutDashboard size={24} color={primary} />,
+                icon: <IconLayoutDashboard size={28} color="#3B82F6" />,
                 label: 'Total Clicks',
                 value: dashboardData.totalClicks.toLocaleString(),
-                bg: '#e3f0ff',
+                accentColor: '#3B82F6',
               },
               {
-                icon: <IconCircleCheck size={24} color="#43a047" />,
+                icon: <IconCircleCheck size={28} color="#10B981" />,
                 label: 'Conversions',
                 value: dashboardData.totalConversions.toLocaleString(),
-                bg: '#e8f5e9',
+                accentColor: '#10B981',
               },
               {
-                icon: <IconCurrencyDollar size={24} color="#ff9800" />,
+                icon: <IconCurrencyDollar size={28} color="#F59E0B" />,
                 label: 'Total Earning',
                 value: dashboardData.totalEarning.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                bg: '#fff3e0',
+                accentColor: '#F59E0B',
               },
             ].map((stat) => (
               <Card
                 key={stat.label}
-                shadow="sm"
-                radius="md"
-                withBorder
-                p="sm"
-                style={{ background: stat.bg, boxShadow: '0 2px 8px rgba(65,105,225,0.06)' }}
+                shadow=""
+                radius="26px"
+                withBorder={false}
+                p="lg"
+                style={{
+                  background: 'rgba(128, 128, 128, 0.1)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(20px)',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    background: 'rgba(128, 128, 128, 0.15)',
+                    boxShadow: '0 25px 50px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
+                    backdropFilter: 'blur(25px)',
+                  },
+                }}
               >
-                <Group align="flex-start" gap="sm" wrap="nowrap">
+                <Group align="flex-start" gap="md" wrap="nowrap">
                   <Box
                     style={{
-                      background: '#fff',
-                      borderRadius: '50%',
-                      boxShadow: '0 2px 8px rgba(65,105,225,0.08)',
-                      padding: 8,
+                      background: 'rgba(255,255,255,0.05)',
+                      borderRadius: '16px',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px rgba(255,255,255,0.1)',
+                      padding: 14,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minWidth: 50,
-                      minHeight: 50,
+                      minWidth: 56,
+                      minHeight: 56,
                     }}
                   >
                     {stat.icon}
                   </Box>
-                  <Stack gap={0} style={{ flex: 1 }}>
-                    <Text size="sm" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: 0.5 }}>
+                  <Stack gap={2} style={{ flex: 1 }}>
+                    <Text
+                      size="xs"
+                      fw={500}
+                      tt="uppercase"
+                      style={{
+                        letterSpacing: '0.5px',
+                        color: '#8B94A7',
+                        opacity: 0.8
+                      }}
+                    >
                       {stat.label}
                     </Text>
                     <Title
                       order={2}
                       style={{
-                        fontWeight: 800,
-                        color: '#222',
-                        fontSize: 'clamp(1.25rem, 4vw, 1.5rem)',
-                        lineHeight: 1.5,
+                        fontWeight: 700,
+                        color: '#E6EAF0',
+                        fontSize: 'clamp(1.5rem, 4vw, 2rem)',
+                        lineHeight: 1.2,
+                        marginTop: 4
                       }}
                     >
                       {stat.value}
@@ -334,16 +400,28 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
               },
             ].map((item, index) => (
               <Grid.Col key={index} span={{ base: 12, sm: 6, lg: 4 }}>
-                <Card shadow="sm" radius="md" withBorder style={{ overflow: 'hidden' }}>
+                <Card
+                  shadow=""
+                  radius="26px"
+                  withBorder={false}
+                  p="lg"
+                  style={{
+                    overflow: 'hidden',
+                    background: 'rgba(128, 128, 128, 0.1)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(20px)',
+                  }}
+                >
                   <Flex justify="space-between" align="center" mb="xs">
-                    <Title order={5} style={{ color: primary, fontSize: 'clamp(0.9rem, 3vw, 1rem)' }}>
+                    <Title order={5} style={{ color: '#E6EAF0', fontWeight: 500, fontSize: 'clamp(0.9rem, 3vw, 1rem)' }}>
                       {item.title}
                     </Title>
                     <Group gap="xs" align="center">
-                      {parseFloat(item.percentage) > 0 && <span style={{ color: 'green' }}>▲</span>}
-                      {parseFloat(item.percentage) < 0 && <span style={{ color: 'red' }}>▼</span>}
-                      {parseFloat(item.percentage) === 0 && <span style={{ color: 'gray' }}>─</span>}
-                      <Text size="sm" c={item.trendColor} fw={600}>
+                      {parseFloat(item.percentage) > 0 && <span style={{ color: '#22c55e' }}>▲</span>}
+                      {parseFloat(item.percentage) < 0 && <span style={{ color: '#ef4444' }}>▼</span>}
+                      {parseFloat(item.percentage) === 0 && <span style={{ color: 'rgba(255,255,255,0.5)' }}>─</span>}
+                      <Text size="sm" c={item.trendColor === 'green' ? '#22c55e' : '#ef4444'} fw={600}>
                         {item.percentage}%
                       </Text>
                     </Group>
@@ -351,7 +429,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   <Text
                     size="lg"
                     fw={700}
-                    c={item.trendColor}
+                    c={item.trendColor === 'green' ? '#22c55e' : '#ef4444'}
                     style={{
                       fontVariantNumeric: 'tabular-nums',
                       letterSpacing: '-0.5px',
@@ -377,7 +455,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       value={Math.max(0, (item.value / item.target) * 100)}
                       thickness={30}
                       size={320}
-                      color={primary}
+                      color="var(--primary)"
                     />
                     <Box
                       pos="absolute"
@@ -387,17 +465,17 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         transform: 'translate(-50%, -50%)',
                         zIndex: 2,
                         textAlign: 'center',
-                        background: 'rgba(255,255,255,0.9)',
+                        background: '#151517',
                         borderRadius: '999px',
                         padding: '0.4rem 1rem',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        border: `1px solid ${primary}`,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        border: '1px solid rgba(255,255,255,0.1)',
                         whiteSpace: 'nowrap',
                       }}
                     >
                       <Text
                         size="xs"
-                        c={primary}
+                        c="var(--primary)"
                         fw={700}
                         title={`Your target for this month is ${item.target.toLocaleString()} ${item.targetLabel}.`}
                       >
@@ -405,7 +483,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       </Text>
                     </Box>
                   </Box>
-                  <Text size="xs" color="dimmed" ta="center" mt="sm">
+                  <Text size="xs" c="dimmed" ta="center" mt="sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     Progress towards monthly goal
                   </Text>
                 </Card>
@@ -413,11 +491,39 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             ))}
           </Grid>
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
-            <Card shadow="sm" radius="md" withBorder>
-              <Title order={4} style={{ color: primary, fontSize: 'clamp(1rem, 3vw, 1.125rem)' }} mb="sm">
+            <Card
+              shadow=""
+              radius="26px"
+              withBorder={false}
+              p="lg"
+              style={{
+                background: 'rgba(128, 128, 128, 0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <Title
+                order={4}
+                style={{
+                  color: '#E6EAF0',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
+                  marginBottom: '12px'
+                }}
+                mb="sm"
+              >
                 Current Week Clicks
-                <Text size="xs" color="dimmed" style={{ display: 'block', marginTop: '4px' }}>
-                  Performance (Last 7 Days): <span style={{ color: 'green', fontWeight: 600 }}>▲ 5% (vs. last week)</span>
+                <Text
+                  size="xs"
+                  style={{
+                    display: 'block',
+                    marginTop: '4px',
+                    color: '#3B82F6',
+                    fontWeight: 600
+                  }}
+                >
+                  ▲ 5% (vs. last week)
                 </Text>
               </Title>
               <BarChart
@@ -427,11 +533,11 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 series={[{ name: 'clicks', color: primary }]}
                 withTooltip
                 referenceLines={[
-                  { values: (CLICK_MONTHLY_TARGET / 7).toString(), label: 'Daily Target', color: 'red', strokeDasharray: '4 4' },
+                  { values: (CLICK_MONTHLY_TARGET / 7).toString(), label: 'Daily Target', color: '#ef4444', strokeDasharray: '4 4' },
                 ]}
                 tooltipProps={{
                   cursor: { fill: 'rgba(66, 133, 244, 0.15)', stroke: 'transparent' },
-                  wrapperStyle: { background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', borderRadius: 8, border: '1px solid #e0e0e0', color: '#333' },
+                  wrapperStyle: { background: '#151517', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', color: '#fff' },
                   content: ({ payload }) => {
                     if (!payload || !payload[0]) return null;
                     const { day, clicks } = payload[0].payload;
@@ -439,17 +545,37 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     const targetProgress = getPercentageOfTarget(clicks, dailyAvgTarget);
                     return (
                       <Box style={tooltipStyles}>
-                        <Text fw={600} size="sm">{day}</Text>
-                        <Text mt="xs">Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span></Text>
-                        <Text>Target Progress: <span style={{ color: Number(targetProgress) >= 100 ? 'green' : 'orange', fontWeight: 700 }}>{targetProgress}%</span> of daily avg target</Text>
+                        <Text fw={600} size="sm" style={{ color: '#fff' }}>{day}</Text>
+                        <Text mt="xs" style={{ color: '#fff' }}>Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span></Text>
+                        <Text style={{ color: '#fff' }}>Target Progress: <span style={{ color: Number(targetProgress) >= 100 ? '#22c55e' : '#f59e0b', fontWeight: 700 }}>{targetProgress}%</span> of daily avg target</Text>
                       </Box>
                     );
                   },
                 }}
               />
             </Card>
-            <Card shadow="sm" radius="md" withBorder>
-              <Title order={4} style={{ color: primary, fontSize: 'clamp(1rem, 3vw, 1.125rem)' }} mb="sm">
+            <Card
+              shadow=""
+              radius="26px"
+              withBorder={false}
+              p="lg"
+              style={{
+                background: 'rgba(128, 128, 128, 0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <Title
+                order={4}
+                style={{
+                  color: '#E6EAF0',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
+                  marginBottom: '12px'
+                }}
+                mb="sm"
+              >
                 Traffic Sources
               </Title>
               <PieChart
@@ -471,9 +597,9 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
                     return (
                       <Box style={tooltipStyles}>
-                        <Text fw={600}>{name || 'Unknown'}</Text>
-                        <Text>Clicks: {formatNumber(value)}</Text>
-                        <Text>Share: {percentage}%</Text>
+                        <Text fw={600} style={{ color: '#fff' }}>{name || 'Unknown'}</Text>
+                        <Text style={{ color: '#fff' }}>Clicks: {formatNumber(value)}</Text>
+                        <Text style={{ color: '#fff' }}>Share: {percentage}%</Text>
                       </Box>
                     );
                   },
@@ -484,11 +610,11 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   <Group gap={8} style={{ flexWrap: 'wrap' }}>
                     {dashboardData.trafficSources.map((source, idx) => (
                       <Group key={source.name || 'Unknown'} gap={4} align="center">
-                        <Box w={12} h={12} style={{ borderRadius: 4, background: getColorForSegment(source.name, idx, chartColors), border: '1.5px solid #e0e0e0' }} />
-                        <Text size="xs" fw={600} style={{ color: '#333', letterSpacing: 0.2 }}>
+                        <Box w={12} h={12} style={{ borderRadius: 4, background: getColorForSegment(source.name, idx, chartColors), border: '1.5px solid rgba(255,255,255,0.1)' }} />
+                        <Text size="xs" fw={600} style={{ color: 'rgba(255,255,255,0.9)', letterSpacing: 0.2 }}>
                           {source.name || 'Unknown'}
                         </Text>
-                        <Badge color="gray" variant="light" size="xs" radius="sm" style={{ fontWeight: 500 }}>
+                        <Badge color="gray" variant="light" size="xs" radius="sm" style={{ fontWeight: 500, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)' }}>
                           {formatNumber(source.value)}
                         </Badge>
                       </Group>
@@ -497,11 +623,39 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 </Box>
               )}
             </Card>
-            <Card shadow="sm" radius="md" withBorder>
-              <Title order={4} style={{ color: primary, fontSize: 'clamp(1rem, 3vw, 1.125rem)' }} mb="sm">
+            <Card
+              shadow=""
+              radius="26px"
+              withBorder={false}
+              p="lg"
+              style={{
+                background: 'rgba(128, 128, 128, 0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <Title
+                order={4}
+                style={{
+                  color: '#E6EAF0',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
+                  marginBottom: '12px'
+                }}
+                mb="sm"
+              >
                 Clicks Over Time
-                <Text size="xs" color="dimmed" style={{ display: 'block', marginTop: '4px' }}>
-                  Monthly Trend (Last 30 Days): <span style={{ color: 'green', fontWeight: 600 }}>▲ 12% (vs. previous month)</span>
+                <Text
+                  size="xs"
+                  style={{
+                    display: 'block',
+                    marginTop: '4px',
+                    color: '#3B82F6',
+                    fontWeight: 600
+                  }}
+                >
+                  ▲ 12% (vs. previous month)
                 </Text>
               </Title>
               <LineChart
@@ -512,7 +666,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 curveType="monotone"
                 withTooltip
                 referenceLines={[
-                  { values: (CLICK_MONTHLY_TARGET / 4).toString(), label: 'Monthly Avg Target', color: 'red', strokeDasharray: '4 4' },
+                  { values: (CLICK_MONTHLY_TARGET / 4).toString(), label: 'Monthly Avg Target', color: '#ef4444', strokeDasharray: '4 4' },
                 ]}
                 tooltipProps={{
                   content: ({ payload }) => {
@@ -522,17 +676,37 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     const targetProgress = getPercentageOfTarget(clicks, weeklyAvgTarget);
                     return (
                       <Box style={tooltipStyles}>
-                        <Text fw={600} size="sm">{period}</Text>
-                        <Text mt="xs">Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span></Text>
-                        <Text>Target Progress: <span style={{ color: Number(targetProgress) >= 100 ? 'green' : 'orange', fontWeight: 700 }}>{targetProgress}%</span> of weekly avg target</Text>
+                        <Text fw={600} size="sm" style={{ color: '#fff' }}>{period}</Text>
+                        <Text mt="xs" style={{ color: '#fff' }}>Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span></Text>
+                        <Text style={{ color: '#fff' }}>Target Progress: <span style={{ color: Number(targetProgress) >= 100 ? '#22c55e' : '#f59e0b', fontWeight: 700 }}>{targetProgress}%</span> of weekly avg target</Text>
                       </Box>
                     );
                   },
                 }}
               />
             </Card>
-            <Card shadow="sm" radius="md" withBorder>
-              <Title order={4} style={{ color: primary, fontSize: 'clamp(1rem, 3vw, 1.125rem)' }} mb="sm">
+            <Card
+              shadow=""
+              radius="26px"
+              withBorder={false}
+              p="lg"
+              style={{
+                background: 'rgba(128, 128, 128, 0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <Title
+                order={4}
+                style={{
+                  color: '#E6EAF0',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
+                  marginBottom: '12px'
+                }}
+                mb="sm"
+              >
                 Conversion Trend
               </Title>
               <AreaChart
@@ -548,17 +722,37 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     const { period, conversions } = payload[0].payload;
                     return (
                       <Box style={tooltipStyles}>
-                        <Text fw={600}>{period}</Text>
-                        <Text>Conversions: {formatNumber(conversions)}</Text>
-                        <Text>Target Progress: {getPercentageOfTarget(conversions, SALES_MONTHLY_TARGET / 4)}% of weekly avg target</Text>
+                        <Text fw={600} style={{ color: '#fff' }}>{period}</Text>
+                        <Text style={{ color: '#fff' }}>Conversions: {formatNumber(conversions)}</Text>
+                        <Text style={{ color: '#fff' }}>Target Progress: {getPercentageOfTarget(conversions, SALES_MONTHLY_TARGET / 4)}% of weekly avg target</Text>
                       </Box>
                     );
                   },
                 }}
               />
             </Card>
-            <Card shadow="sm" radius="md" withBorder>
-              <Title order={4} style={{ color: primary, fontSize: 'clamp(1rem, 3vw, 1.125rem)' }} mb="sm">
+            <Card
+              shadow=""
+              radius="26px"
+              withBorder={false}
+              p="lg"
+              style={{
+                background: 'rgba(128, 128, 128, 0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <Title
+                order={4}
+                style={{
+                  color: '#E6EAF0',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
+                  marginBottom: '12px'
+                }}
+                mb="sm"
+              >
                 Commissions
               </Title>
               <LineChart
@@ -574,17 +768,37 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     const { period, commission } = payload[0].payload;
                     return (
                       <Box style={tooltipStyles}>
-                        <Text fw={600}>{period}</Text>
-                        <Text>Commission: ₹{formatNumber(commission, true)}</Text>
-                        <Text>Target Progress: {getPercentageOfTarget(commission, COMMISSION_MONTHLY_TARGET / 4)}% of weekly avg target</Text>
+                        <Text fw={600} style={{ color: '#fff' }}>{period}</Text>
+                        <Text style={{ color: '#fff' }}>Commission: ₹{formatNumber(commission, true)}</Text>
+                        <Text style={{ color: '#fff' }}>Target Progress: {getPercentageOfTarget(commission, COMMISSION_MONTHLY_TARGET / 4)}% of weekly avg target</Text>
                       </Box>
                     );
                   },
                 }}
               />
             </Card>
-            <Card shadow="sm" radius="md" withBorder>
-              <Title order={4} style={{ color: primary, fontSize: 'clamp(1rem, 3vw, 1.125rem)' }} mb="sm">
+            <Card
+              shadow=""
+              radius="26px"
+              withBorder={false}
+              p="lg"
+              style={{
+                background: 'rgba(128, 128, 128, 0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <Title
+                order={4}
+                style={{
+                  color: '#E6EAF0',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
+                  marginBottom: '12px'
+                }}
+                mb="sm"
+              >
                 Conversions By Offer
               </Title>
               <PieChart
@@ -606,9 +820,9 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
                     return (
                       <Box style={tooltipStyles}>
-                        <Text fw={600}>{name}</Text>
-                        <Text>Conversions: {formatNumber(value)}</Text>
-                        <Text>Share: {percentage}%</Text>
+                        <Text fw={600} style={{ color: '#fff' }}>{name}</Text>
+                        <Text style={{ color: '#fff' }}>Conversions: {formatNumber(value)}</Text>
+                        <Text style={{ color: '#fff' }}>Share: {percentage}%</Text>
                       </Box>
                     );
                   },
@@ -619,11 +833,11 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   <Group gap={8} style={{ flexWrap: 'wrap' }}>
                     {dashboardData.conversionsByOffer.map((offer, idx) => (
                       <Group key={offer.name || 'Unknown'} gap={4} align="center">
-                        <Box w={12} h={12} style={{ borderRadius: 4, background: getColorForSegment(offer.name, idx, chartColors), border: '1.5px solid #e0e0e0' }} />
-                        <Text size="xs" fw={600} style={{ color: '#333', letterSpacing: 0.2 }}>
+                        <Box w={12} h={12} style={{ borderRadius: 4, background: getColorForSegment(offer.name, idx, chartColors), border: '1.5px solid rgba(255,255,255,0.1)' }} />
+                        <Text size="xs" fw={600} style={{ color: 'rgba(255,255,255,0.9)', letterSpacing: 0.2 }}>
                           {offer.name || 'Unknown'}
                         </Text>
-                        <Badge color="gray" variant="light" size="xs" radius="sm" style={{ fontWeight: 500 }}>
+                        <Badge color="gray" variant="light" size="xs" radius="sm" style={{ fontWeight: 500, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)' }}>
                           {formatNumber(offer.value)}
                         </Badge>
                       </Group>

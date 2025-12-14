@@ -73,7 +73,18 @@ export default function CouponsAddPage() {
   };
 
   return (
-    <Card shadow="md" radius="md" withBorder style={{ background: '#f9fafb', border: '1px solid #e3e8f0', padding: 32 }}>
+    <Card
+      shadow=""
+      radius="26px"
+      withBorder={false}
+      style={{
+        background: 'rgba(128, 128, 128, 0.1)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+        backdropFilter: 'blur(20px)',
+        padding: 32
+      }}
+    >
       {loading ? (
         <div style={{ padding: 8 }}>
           {Array.from({ length: 5 }).map((_, idx) => (
@@ -93,7 +104,16 @@ export default function CouponsAddPage() {
             onChange={(e) => handleChange('code', e.target.value)}
             mb="sm"
             size="md"
-            styles={{ input: { fontSize: 15 } }}
+            styles={{
+              input: {
+                fontSize: 15,
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#E6EAF0',
+                '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+              },
+              label: { color: '#E6EAF0' }
+            }}
             placeholder="e.g. SAVE20"
           />
           <Textarea
@@ -102,7 +122,16 @@ export default function CouponsAddPage() {
             onChange={(e) => handleChange('description', e.target.value)}
             mb="sm"
             size="md"
-            styles={{ input: { fontSize: 15 } }}
+            styles={{
+              input: {
+                fontSize: 15,
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#E6EAF0',
+                '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+              },
+              label: { color: '#E6EAF0' }
+            }}
             required
             placeholder="Describe the coupon and its requirements."
           />
@@ -113,7 +142,16 @@ export default function CouponsAddPage() {
             onChange={(e) => handleChange('offer_id', e.target.value)}
             mb="sm"
             size="md"
-            styles={{ input: { fontSize: 15 } }}
+            styles={{
+              input: {
+                fontSize: 15,
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#E6EAF0',
+                '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+              },
+              label: { color: '#E6EAF0' }
+            }}
             placeholder="e.g. 123"
           />
           <DateInput
@@ -122,7 +160,16 @@ export default function CouponsAddPage() {
             onChange={(val) => handleChange('valid_from', val)}
             mb="sm"
             size="md"
-            styles={{ input: { fontSize: 15 } }}
+            styles={{
+              input: {
+                fontSize: 15,
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#E6EAF0',
+                '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+              },
+              label: { color: '#E6EAF0' }
+            }}
             placeholder="Start date"
           />
           <DateInput
@@ -132,11 +179,33 @@ export default function CouponsAddPage() {
             onChange={(val) => handleChange('valid_to', val)}
             mb="sm"
             size="md"
-            styles={{ input: { fontSize: 15 } }}
+            styles={{
+              input: {
+                fontSize: 15,
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#E6EAF0',
+                '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+              },
+              label: { color: '#E6EAF0' }
+            }}
             placeholder="End date"
           />
           <Group mt="md">
-            <Button type="submit" loading={loading} size="md" style={{ fontWeight: 600, letterSpacing: 0.2 }}>
+            <Button
+              type="submit"
+              loading={loading}
+              size="md"
+              style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                color: '#E6EAF0',
+                fontWeight: 600,
+                letterSpacing: 0.2,
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 8px 24px rgba(59, 130, 246, 0.3)',
+              }}
+            >
               Add Coupon
             </Button>
           </Group>

@@ -36,10 +36,12 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    if (status === 'active') {
+    // Handle status filter - 'expired' is a frontend concept that maps to 'terminated'
+    if (status && status === 'active') {
       where.status = 'active';
-    } else if (status === 'expired') {
-      where.status = 'terminated'; // Assuming 'expired' maps to 'terminated'
+    } else if (status && (status as string) === 'expired') {
+      // Map 'expired' to 'terminated' for Prisma enum
+      where.status = 'terminated';
     }
 
     // Get offers with links and clicks count

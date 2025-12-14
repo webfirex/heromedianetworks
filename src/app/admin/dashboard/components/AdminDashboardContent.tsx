@@ -58,10 +58,10 @@ interface DashboardData {
 }
 
 
-// Example chart colors (you would define your actual color palette)
-const chartColors = ['#4169E1', '#43a047', '#ff9800', '#1976d2', '#EF5350', '#8D6E63', '#AB47BC', '#26A69A'];
+// Premium chart colors for dark mode
+const chartColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#6B7280', '#EC4899', '#06B6D4'];
 
-const primary = '#4169E1'; // Example primary color, replace with your actual primary color
+const primary = '#3B82F6';
 
 const formatNumber = (num: number): string => {
   if (num === undefined || num === null) return 'N/A'; // Handle undefined/null explicitly
@@ -77,13 +77,14 @@ const getPercentageOfTarget = (value: number, target: number): string => {
 };
 
 const tooltipStyles = {
-  background: '#fff',
-  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-  borderRadius: rem(8),
-  border: '1px solid #e0e0e0',
-  color: '#333',
-  padding: rem(10),
+  background: 'linear-gradient(135deg, #0B0F16 0%, #141C2A 100%)',
+  boxShadow: '0 12px 32px rgba(0,0,0,0.6), inset 0 1px rgba(255,255,255,0.04)',
+  borderRadius: '12px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  color: '#E6EAF0',
+  padding: rem(12),
   fontSize: rem(14),
+  backdropFilter: 'blur(8px)',
 };
 
 const getColorForSegment = (name: string, index: number, palette: string[]) => {
@@ -204,48 +205,90 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
           <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="xs" mb="sm">
             {[
               {
-                icon: <IconLayoutDashboard size={28} color="#4169E1" />,
+                icon: <IconLayoutDashboard size={28} color="#3B82F6" />,
                 label: 'Total Clicks',
                 value: safeValue(dashboardData.totalClicks).toLocaleString(),
-                bg: '#e3f0ff',
+                accentColor: '#3B82F6',
               },
               {
-                icon: <IconCircleCheck size={28} color="#43a047" />,
+                icon: <IconCircleCheck size={28} color="#10B981" />,
                 label: 'Conversions',
                 value: safeValue(dashboardData.totalConversions).toLocaleString(),
-                bg: '#e8f5e9',
+                accentColor: '#10B981',
               },
               {
-                icon: <IconCurrencyRupee size={28} color="#ff9800" />,
+                icon: <IconCurrencyRupee size={28} color="#F59E0B" />,
                 label: 'Total Earning',
                 value: safeValue(dashboardData.totalEarnings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                bg: '#fff3e0',
+                accentColor: '#F59E0B',
               },
               {
-                icon: <IconFileCheck size={28} color="#1976d2" />,
+                icon: <IconFileCheck size={28} color="#8B5CF6" />,
                 label: 'Approvals',
                 value: safeValue(dashboardData.totalApprovals).toLocaleString(),
-                bg: '#e3f2fd',
+                accentColor: '#8B5CF6',
               },
             ].map((stat) => (
-              <Card key={stat.label} shadow="md" radius="lg" withBorder p="lg" style={{ background: stat.bg, boxShadow: '0 2px 12px 0 rgba(65,105,225,0.06)' }}>
+              <Card
+                key={stat.label}
+                shadow=""
+                radius="26px"
+                withBorder={false}
+                p="lg"
+                style={{
+                  background: 'rgba(128, 128, 128, 0.1)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(20px)',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    background: 'rgba(128, 128, 128, 0.15)',
+                    boxShadow: '0 25px 50px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
+                    backdropFilter: 'blur(25px)',
+                  },
+                }}
+              >
                 <Group align="flex-start" gap="md" wrap="nowrap">
                   <Box style={{
-                    background: '#fff',
-                    borderRadius: '50%',
-                    boxShadow: '0 2px 8px 0 rgba(65,105,225,0.08)',
-                    padding: rem(12),
+                    background: 'rgba(255,255,255,0.05)',
+                    borderRadius: '16px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px rgba(255,255,255,0.1)',
+                    padding: rem(14),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    minWidth: rem(48),
-                    minHeight: rem(48),
+                    minWidth: rem(56),
+                    minHeight: rem(56),
                   }}>
                     {stat.icon}
                   </Box>
-                  <Stack gap={0} style={{ flex: 1 }}>
-                    <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: rem(1) }}>{stat.label}</Text>
-                    <Title order={2} style={{ fontWeight: 800, color: '#222', fontSize: rem(28), lineHeight: 1.1 }}>{stat.value}</Title>
+                  <Stack gap={2} style={{ flex: 1 }}>
+                    <Text
+                      size="xs"
+                      fw={500}
+                      tt="uppercase"
+                      style={{
+                        letterSpacing: '0.5px',
+                        color: '#8B94A7',
+                        opacity: 0.8
+                      }}
+                    >
+                      {stat.label}
+                    </Text>
+                    <Title
+                      order={2}
+                      style={{
+                        fontWeight: 700,
+                        color: '#E6EAF0',
+                        fontSize: rem(28),
+                        lineHeight: 1.1,
+                        marginTop: rem(4)
+                      }}
+                    >
+                      {stat.value}
+                    </Title>
                   </Stack>
                 </Group>
               </Card>
@@ -255,11 +298,45 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
           <Box>
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
               {/* Weekly Clicks Bar Chart */}
-              <Card shadow="sm" radius="md" withBorder>
-                <Title order={4} style={{ color: primary }} mb="sm">
+              <Card
+                shadow=""
+                radius="26px"
+                withBorder={false}
+                p="lg"
+                style={{
+                  background: 'rgba(128, 128, 128, 0.1)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(20px)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-1px)',
+                    background: 'rgba(128, 128, 128, 0.15)',
+                    boxShadow: '0 22px 44px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
+                    backdropFilter: 'blur(25px)',
+                  },
+                }}
+              >
+                <Title
+                  order={4}
+                  style={{
+                    color: '#E6EAF0',
+                    fontWeight: 500,
+                    marginBottom: rem(12)
+                  }}
+                  mb="sm"
+                >
                   Weekly Clicks
-                  <Text size="sm" color="dimmed" style={{ display: 'block', marginTop: rem(4) }}>
-                    Performance (Last 7 Days): <span style={{ color: 'green', fontWeight: 600 }}>▲ 5% (vs. last week)</span>
+                  <Text
+                    size="sm"
+                    style={{
+                      display: 'block',
+                      marginTop: rem(4),
+                      color: '#3B82F6',
+                      fontWeight: 600
+                    }}
+                  >
+                    ▲ 5% (vs. last week)
                   </Text>
                 </Title>
 
@@ -307,8 +384,36 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
               </Card>
 
               {/* Traffic Sources Pie Chart */}
-              <Card shadow="sm" radius="md" withBorder>
-                <Title order={4} style={{ color: primary }} mb="sm">Traffic Sources</Title>
+              <Card
+                shadow=""
+                radius="26px"
+                withBorder={false}
+                p="lg"
+                style={{
+                  background: 'rgba(128, 128, 128, 0.1)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(20px)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-1px)',
+                    background: 'rgba(128, 128, 128, 0.15)',
+                    boxShadow: '0 22px 44px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
+                    backdropFilter: 'blur(25px)',
+                  },
+                }}
+              >
+                <Title
+                  order={4}
+                  style={{
+                    color: '#E6EAF0',
+                    fontWeight: 500,
+                    marginBottom: rem(12)
+                  }}
+                  mb="sm"
+                >
+                  Traffic Sources
+                </Title>
 
                 {safeArray(dashboardData.trafficSources).length > 0 ? (
                   <>
@@ -358,11 +463,45 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
               </Card>
 
               {/* Clicks Over Time Line Chart */}
-              <Card shadow="sm" radius="md" withBorder>
-                <Title order={4} style={{ color: primary }} mb="sm">
+              <Card
+                shadow=""
+                radius="26px"
+                withBorder={false}
+                p="lg"
+                style={{
+                  background: 'rgba(128, 128, 128, 0.1)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(20px)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-1px)',
+                    background: 'rgba(128, 128, 128, 0.15)',
+                    boxShadow: '0 22px 44px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
+                    backdropFilter: 'blur(25px)',
+                  },
+                }}
+              >
+                <Title
+                  order={4}
+                  style={{
+                    color: '#E6EAF0',
+                    fontWeight: 500,
+                    marginBottom: rem(12)
+                  }}
+                  mb="sm"
+                >
                   Clicks Over Time
-                  <Text size="sm" color="dimmed" style={{ display: 'block', marginTop: rem(4) }}>
-                    Monthly Trend (Last 30 Days): <span style={{ color: 'green', fontWeight: 600 }}>▲ 12% (vs. previous month)</span>
+                  <Text
+                    size="sm"
+                    style={{
+                      display: 'block',
+                      marginTop: rem(4),
+                      color: '#3B82F6',
+                      fontWeight: 600
+                    }}
+                  >
+                    ▲ 12% (vs. previous month)
                   </Text>
                 </Title>
                 {safeArray(dashboardData.clicksOverTime).length > 0 ? (
@@ -402,11 +541,45 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
               </Card>
 
               {/* Conversion Trend Area Chart */}
-              <Card shadow="sm" radius="md" withBorder>
-                <Title order={4} style={{ color: primary }} mb="sm">
+              <Card
+                shadow=""
+                radius="26px"
+                withBorder={false}
+                p="lg"
+                style={{
+                  background: 'rgba(128, 128, 128, 0.1)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(20px)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-1px)',
+                    background: 'rgba(128, 128, 128, 0.15)',
+                    boxShadow: '0 22px 44px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
+                    backdropFilter: 'blur(25px)',
+                  },
+                }}
+              >
+                <Title
+                  order={4}
+                  style={{
+                    color: '#E6EAF0',
+                    fontWeight: 500,
+                    marginBottom: rem(12)
+                  }}
+                  mb="sm"
+                >
                   Conversion Trend
-                  <Text size="sm" color="dimmed" style={{ display: 'block', marginTop: rem(4) }}>
-                    Overall Trend: <span style={{ color: 'green', fontWeight: 600 }}>▲ 7% (vs. previous period)</span>
+                  <Text
+                    size="sm"
+                    style={{
+                      display: 'block',
+                      marginTop: rem(4),
+                      color: '#3B82F6',
+                      fontWeight: 600
+                    }}
+                  >
+                    ▲ 7% (vs. previous period)
                   </Text>
                 </Title>
                 {safeArray(dashboardData.conversionTrend).length > 0 ? (

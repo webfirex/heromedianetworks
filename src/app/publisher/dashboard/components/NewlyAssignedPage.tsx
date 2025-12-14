@@ -107,7 +107,7 @@ export default function NewlyAssignedPage() {
                 </Table.Td>
                 <Table.Td>
                   {offer.offer_url && offer.offer_url.startsWith('http') ? (
-                    <a href={offer.offer_url} target="_blank" rel="noopener noreferrer" style={{ color: '#4169E1', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: 4, fontSize: 14 }}>
+                    <a href={offer.offer_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: 4, fontSize: 14 }}>
                       Visit <IconExternalLink size={14} />
                     </a>
                   ) : (

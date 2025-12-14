@@ -19,8 +19,8 @@ import {
   IconHeadset, // Imported IconHeadset for Customer Support
 } from '@tabler/icons-react';
 
-// 🎨 Colors (Matched to the provided image)
-const primary = '#4169E1'; // Royal Blue
+// 🎨 Colors - Using theme variables
+const primary = 'var(--primary)';
 
 interface AdminSidebarProps {
   activeTab: string;

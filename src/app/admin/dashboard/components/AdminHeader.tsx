@@ -26,7 +26,7 @@ interface AdminHeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
-const primary = '#4169E1';
+const primary = 'var(--primary)';
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, isMobile, setSidebarOpen }) => {
   const [settingsOpened, setSettingsOpened] = useState(false);

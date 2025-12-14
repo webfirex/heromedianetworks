@@ -63,7 +63,7 @@ export default function PublisherReportsPage() {
           <Group wrap="wrap" justify="space-between" align="end" className="gap-y-4">
             {/* Offer Select */}
             <div className="w-full sm:w-[32%]">
-              <Text size="sm" fw={600} className="mb-1 text-[#2563eb]">Select Offer</Text>
+              <Text size="sm" fw={600} className="mb-1" style={{ color: 'var(--primary)' }}>Select Offer</Text>
               <Select
                 placeholder="Choose an offer"
                 data={offers.map(o => ({ value: o.name, label: o.name }))}
@@ -76,7 +76,7 @@ export default function PublisherReportsPage() {
 
             {/* Start Date */}
             <div className="w-full sm:w-[30%]">
-              <Text size="sm" fw={600} className="mb-1 text-[#2563eb]">Start Date</Text>
+              <Text size="sm" fw={600} className="mb-1" style={{ color: 'var(--primary)' }}>Start Date</Text>
               <DateInput
                 value={startDate ? new Date(startDate) : null}
                 onChange={(date) => setStartDate(date ? date.toString().slice(0, 10) : '')}
@@ -103,7 +103,7 @@ export default function PublisherReportsPage() {
             </div>
 
             {/* Apply Button */}
-            <Button color="#2563eb" size="md" className="w-full sm:w-auto mt-2" onClick={fetchReports} loading={loading}>
+            <Button style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }} size="md" className="w-full sm:w-auto mt-2" onClick={fetchReports} loading={loading}>
               Apply Filters
             </Button>
           </Group>

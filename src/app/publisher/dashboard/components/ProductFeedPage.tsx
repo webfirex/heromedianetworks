@@ -60,7 +60,17 @@ export default function ProductFeedPage() {
   }, [session]);
 
   if (loading) return (
-    <Card shadow="md" radius="md" withBorder>
+    <Card
+      shadow=""
+      radius="26px"
+      withBorder={false}
+        style={{
+          background: 'rgba(128, 128, 128, 0.1)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(20px)',
+        }}
+    >
       <Skeleton height={32} width="40%" mb="md" />
       <Skeleton height={40} width="100%" mb="sm" />
       <Skeleton height={40} width="100%" mb="sm" />
@@ -72,7 +82,17 @@ export default function ProductFeedPage() {
   if (error) return null;
 
   return (
-    <Card shadow="md" radius="md" withBorder>
+    <Card
+      shadow=""
+      radius="26px"
+      withBorder={false}
+        style={{
+          background: 'rgba(128, 128, 128, 0.1)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(20px)',
+        }}
+    >
       {products.length === 0 ? (
         <Text>No products found.</Text>
       ) : (
@@ -103,7 +123,7 @@ export default function ProductFeedPage() {
                 </Table.Td>
                 <Table.Td>
                   {product.url && product.url.startsWith('http') ? (
-                    <a href={product.url} target="_blank" rel="noopener noreferrer" style={{ color: '#4169E1', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: 4, fontSize: 14 }}>
+                    <a href={product.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: 4, fontSize: 14 }}>
                       View <IconExternalLink size={14} />
                     </a>
                   ) : (

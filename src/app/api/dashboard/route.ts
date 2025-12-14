@@ -113,10 +113,11 @@ export async function GET(req: NextRequest) {
     // Calculate average commission cut
     const commissionCuts = conversions
       .map((conv) => conv.offer.offerPublishers[0]?.commission_cut)
-      .filter((cut): cut is number => cut !== null && cut !== undefined);
+      .filter((cut) => cut !== null && cut !== undefined)
+      .map((cut) => Number(cut));
     
     dashboardData.avgCommissionCut = commissionCuts.length > 0
-      ? commissionCuts.reduce((sum, cut) => sum + Number(cut), 0) / commissionCuts.length
+      ? commissionCuts.reduce((sum, cut) => sum + cut, 0) / commissionCuts.length
       : 0;
 
     dashboardData.totalConversions = Math.round(
@@ -181,10 +182,11 @@ export async function GET(req: NextRequest) {
 
     const salesThisMonthCommissionCuts = salesThisMonthConversions
       .map((conv) => conv.offer.offerPublishers[0]?.commission_cut)
-      .filter((cut): cut is number => cut !== null && cut !== undefined);
+      .filter((cut) => cut !== null && cut !== undefined)
+      .map((cut) => Number(cut));
     
     const salesThisMonthCommission = salesThisMonthCommissionCuts.length > 0
-      ? salesThisMonthCommissionCuts.reduce((sum, cut) => sum + Number(cut), 0) / salesThisMonthCommissionCuts.length
+      ? salesThisMonthCommissionCuts.reduce((sum, cut) => sum + cut, 0) / salesThisMonthCommissionCuts.length
       : 0;
     
     dashboardData.salesThisMonth = Math.round(
@@ -214,10 +216,11 @@ export async function GET(req: NextRequest) {
 
     const salesPreviousMonthCommissionCuts = salesPreviousMonthConversions
       .map((conv) => conv.offer.offerPublishers[0]?.commission_cut)
-      .filter((cut): cut is number => cut !== null && cut !== undefined);
+      .filter((cut) => cut !== null && cut !== undefined)
+      .map((cut) => Number(cut));
     
     const salesPreviousMonthCommission = salesPreviousMonthCommissionCuts.length > 0
-      ? salesPreviousMonthCommissionCuts.reduce((sum, cut) => sum + Number(cut), 0) / salesPreviousMonthCommissionCuts.length
+      ? salesPreviousMonthCommissionCuts.reduce((sum, cut) => sum + cut, 0) / salesPreviousMonthCommissionCuts.length
       : 0;
     
     dashboardData.salesPreviousMonth = Math.round(

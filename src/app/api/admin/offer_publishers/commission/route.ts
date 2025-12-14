@@ -48,11 +48,11 @@ export async function DELETE(req: NextRequest) {
     if (!link_id) {
       return NextResponse.json({ error: 'Missing link_id' }, { status: 400 });
     }
-    const result = await pool.query(
-      'DELETE FROM links WHERE id = $1',
-      [link_id]
-    );
-    if (result.rowCount === 0) {
+    // Using Prisma instead of pool
+    const result = await prisma.link.deleteMany({
+      where: { id: link_id },
+    });
+    if (result.count === 0) {
       return NextResponse.json({ error: 'Link not found' }, { status: 404 });
     }
     return NextResponse.json({ message: 'Link deleted successfully' });
