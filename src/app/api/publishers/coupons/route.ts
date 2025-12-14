@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,55 +9,70 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get('status'); // 'active' | 'expired' | undefined
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = 15;
-    const offset = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
     if (!publisher_id) {
       return NextResponse.json({ error: 'Missing publisher_id' }, { status: 400 });
     }
 
-    const conditions: string[] = [
-      `(cp.publisher_id = $1 OR cp.publisher_id IS NULL)`
-    ];
-    const values: unknown[] = [publisher_id];
-    let i = 2;
+    const now = new Date();
+
+    // Build where clause
+    const where: any = {
+      OR: [
+        { couponPublishers: { some: { publisher_id } } },
+        { couponPublishers: { none: {} } }, // Global coupons
+      ],
+    };
 
     if (search) {
-      conditions.push(`(LOWER(c.code) LIKE $${i} OR LOWER(o.name) LIKE $${i})`);
-      values.push(`%${search}%`);
-      i++;
+      where.OR = [
+        ...(where.OR || []),
+        { code: { contains: search, mode: 'insensitive' } },
+        { offer: { name: { contains: search, mode: 'insensitive' } } },
+      ];
     }
 
     if (status === 'active') {
-      conditions.push(`c.valid_to >= NOW()`);
+      where.valid_to = { gte: now };
     } else if (status === 'expired') {
-      conditions.push(`c.valid_to < NOW()`);
+      where.valid_to = { lt: now };
     }
 
-    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+    const coupons = await prisma.coupon.findMany({
+      where,
+      include: {
+        offer: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        valid_from: 'desc',
+      },
+      skip,
+      take: limit,
+    });
 
-    const query = `
-      SELECT 
-        c.id,
-        c.code,
-        c.description,
-        o.name AS offer_name,
-        c.valid_from,
-        c.valid_to,
-        c.offer_id,
-        CONCAT(c.discount, ' ', c.discount_type) AS discount_value,
-        (CASE WHEN c.valid_to >= NOW() THEN 'active' ELSE 'expired' END) AS status
-      FROM coupons c
-      LEFT JOIN coupon_publishers cp ON cp.coupon_id = c.id
-      JOIN offers o ON c.offer_id = o.id
-      ${whereClause}
-      GROUP BY c.id, o.name
-      ORDER BY c.valid_from DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
+    const results = coupons.map((coupon) => {
+      const isActive = coupon.valid_to >= now;
+      const discountValue = `${coupon.discount} ${coupon.discount_type}`;
 
-    const { rows } = await pool.query(query, values);
+      return {
+        id: coupon.id,
+        code: coupon.code,
+        description: coupon.description,
+        offer_name: coupon.offer.name,
+        valid_from: coupon.valid_from,
+        valid_to: coupon.valid_to,
+        offer_id: coupon.offer_id,
+        discount_value: discountValue,
+        status: isActive ? 'active' : 'expired',
+      };
+    });
 
-    return NextResponse.json(rows);
+    return NextResponse.json(results);
   } catch (error) {
     console.error('Failed to fetch coupons:', error);
     return NextResponse.json({ error: 'Failed to fetch coupons.' }, { status: 500 });

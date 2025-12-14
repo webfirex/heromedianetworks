@@ -1,7 +1,7 @@
 // app/api/admin/profile/password/route.ts
 import { NextResponse, NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import pool from '@/lib/db'; // Your database connection
+import prisma from '@/lib/db-prisma';
 import bcrypt from 'bcryptjs';
 
 const secret = process.env.NEXTAUTH_SECRET; // Your NextAuth secret
@@ -31,14 +31,16 @@ export async function PATCH(req: Request) {
     const userId = token.id;
 
     // Update the password in the database
-    const result = await pool.query(
-      `UPDATE admins SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id`,
-      [hashedPassword, userId]
-    );
-
-    if (result.rowCount === 0) {
-      // This scenario is unlikely if the token.id is valid, but good for robustness
-      return new NextResponse(JSON.stringify({ error: 'User not found in database.' }), { status: 404 });
+    try {
+      await prisma.admin.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        return new NextResponse(JSON.stringify({ error: 'User not found in database.' }), { status: 404 });
+      }
+      throw error;
     }
 
     return NextResponse.json({ message: 'Password updated successfully.' });

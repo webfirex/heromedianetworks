@@ -18,6 +18,14 @@ const config: Config = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        'card': '20px', // Large rounded corners for cards (20-28px)
+        'card-lg': '24px',
+        'card-xl': '28px',
+      },
+      boxShadow: {
+        'inner-dark': 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+        'outer-dark': '0 4px 6px rgba(0, 0, 0, 0.2)',
+        'card': '0 4px 6px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.3)',
       },
       colors: {
         // Custom color palette (from the first file)
@@ -85,6 +93,17 @@ const config: Config = {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
+        // Dark Fintech Palette
+        'bg-primary': '#0B0E14',
+        'bg-secondary': '#0F131A',
+        'bg-tertiary': '#141A23',
+        'card-bg': '#151A23',
+        'card-border': 'rgba(255, 255, 255, 0.04)',
+        'accent-blue': '#3B82F6',
+        'accent-blue-dark': '#2563EB',
+        'text-primary': '#E5E7EB',
+        'text-secondary': '#9CA3AF',
+        'text-muted': '#6B7280',
       },
       keyframes: {
         'accordion-down': {

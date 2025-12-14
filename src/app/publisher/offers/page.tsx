@@ -69,7 +69,24 @@ export default function PublisherOffersPage() {
 
   return (
     <div className=" items-center justify-center">
-      <Card shadow="xl" radius="lg" p={36} ml={23} mr={34} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#f9fafb', border: '1px solid #e3e8f0' }}>
+      <Card
+        shadow=""
+        radius="26px"
+        withBorder={false}
+        p="lg"
+        ml={23}
+        mr={34}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          background: 'rgba(128, 128, 128, 0.1)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
         {/* Removed Title for cleaner look */}
         {loading ? (
           <Stack gap="sm" style={{ width: 360 }}>
@@ -94,7 +111,16 @@ export default function PublisherOffersPage() {
                 required
                 placeholder="e.g. Amazon Affiliate Offer"
                 size="md"
-                styles={{ input: { fontSize: 15 } }}
+                styles={{
+                  input: {
+                    fontSize: 15,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#E6EAF0',
+                    '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+                  },
+                  label: { color: '#E6EAF0' }
+                }}
               />
               <TextInput
                 label="Payout"
@@ -104,7 +130,16 @@ export default function PublisherOffersPage() {
                 required
                 placeholder="e.g. $2.50"
                 size="md"
-                styles={{ input: { fontSize: 15 } }}
+                styles={{
+                  input: {
+                    fontSize: 15,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#E6EAF0',
+                    '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+                  },
+                  label: { color: '#E6EAF0' }
+                }}
               />
               <TextInput
                 label="Target Geo"
@@ -114,7 +149,16 @@ export default function PublisherOffersPage() {
                 required
                 placeholder="e.g. US, CA"
                 size="md"
-                styles={{ input: { fontSize: 15 } }}
+                styles={{
+                  input: {
+                    fontSize: 15,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#E6EAF0',
+                    '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+                  },
+                  label: { color: '#E6EAF0' }
+                }}
               />
               <TextInput
                 label="Offer Link"
@@ -124,7 +168,16 @@ export default function PublisherOffersPage() {
                 required
                 placeholder="https://..."
                 size="md"
-                styles={{ input: { fontSize: 15 } }}
+                styles={{
+                  input: {
+                    fontSize: 15,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#E6EAF0',
+                    '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+                  },
+                  label: { color: '#E6EAF0' }
+                }}
               />
               <DateInput
                 label="Expired At"
@@ -142,7 +195,16 @@ export default function PublisherOffersPage() {
                 }}
                 placeholder="YYYY-MM-DD"
                 required
-                styles={{ input: { fontSize: 15 } }}
+                styles={{
+                  input: {
+                    fontSize: 15,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#E6EAF0',
+                    '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+                  },
+                  label: { color: '#E6EAF0' }
+                }}
                 minDate={new Date()}
                 size="md"
               />
@@ -155,7 +217,16 @@ export default function PublisherOffersPage() {
                 placeholder="Describe the offer and requirements."
                 minRows={3}
                 size="md"
-                styles={{ input: { fontSize: 15 } }}
+                styles={{
+                  input: {
+                    fontSize: 15,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#E6EAF0',
+                    '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+                  },
+                  label: { color: '#E6EAF0' }
+                }}
               />
               {error && (
                 <Notification color="red" mt="sm">{error}</Notification>
@@ -163,7 +234,23 @@ export default function PublisherOffersPage() {
               {success && (
                 <Notification color="green" mt="sm">{success}</Notification>
               )}
-              <Button type="submit" loading={loading} color="#2563eb" size="md" radius="md" mt="md" fullWidth style={{ fontWeight: 600, letterSpacing: 0.2 }}>
+              <Button
+                type="submit"
+                loading={loading}
+                style={{
+                  backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                  color: '#E6EAF0',
+                  fontWeight: 600,
+                  letterSpacing: 0.2,
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 8px 24px rgba(59, 130, 246, 0.3)',
+                }}
+                size="md"
+                radius="md"
+                mt="md"
+                fullWidth
+              >
                 Add Offer
               </Button>
             </Stack>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 // PATCH /api/admin/offer_publishers/commission
 export async function PATCH(req: NextRequest) {
@@ -8,30 +8,34 @@ export async function PATCH(req: NextRequest) {
     if (!offer_id || !publisher_id) {
       return NextResponse.json({ error: 'Missing offer_id or publisher_id' }, { status: 400 });
     }
-    const fields = [];
-    const values = [];
-    let i = 1;
+
+    const updateData: any = {};
     if (commission_percent !== undefined) {
-      fields.push(`commission_percent = $${i++}`);
-      values.push(commission_percent);
+      updateData.commission_percent = commission_percent;
     }
     if (commission_cut !== undefined) {
-      fields.push(`commission_cut = $${i++}`);
-      values.push(commission_cut);
+      updateData.commission_cut = commission_cut;
     }
-    if (fields.length === 0) {
+
+    if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No commission fields provided' }, { status: 400 });
     }
-    values.push(offer_id, publisher_id);
-    const result = await pool.query(
-      `UPDATE offer_publishers SET ${fields.join(', ')} WHERE offer_id = $${i++} AND publisher_id = $${i}`,
-      values
-    );
-    if (result.rowCount === 0) {
+
+    await prisma.offerPublisher.update({
+      where: {
+        offer_id_publisher_id: {
+          offer_id: parseInt(offer_id, 10),
+          publisher_id: publisher_id,
+        },
+      },
+      data: updateData,
+    });
+
+    return NextResponse.json({ message: 'Commission updated successfully' });
+  } catch (err: any) {
+    if (err.code === 'P2025') {
       return NextResponse.json({ error: 'No matching offer-publisher found' }, { status: 404 });
     }
-    return NextResponse.json({ message: 'Commission updated successfully' });
-  } catch (err) {
     console.error('PATCH /api/admin/offer_publishers/commission error:', err);
     return NextResponse.json({ error: 'Failed to update commission' }, { status: 500 });
   }
@@ -44,11 +48,11 @@ export async function DELETE(req: NextRequest) {
     if (!link_id) {
       return NextResponse.json({ error: 'Missing link_id' }, { status: 400 });
     }
-    const result = await pool.query(
-      'DELETE FROM links WHERE id = $1',
-      [link_id]
-    );
-    if (result.rowCount === 0) {
+    // Using Prisma instead of pool
+    const result = await prisma.link.deleteMany({
+      where: { id: link_id },
+    });
+    if (result.count === 0) {
       return NextResponse.json({ error: 'Link not found' }, { status: 404 });
     }
     return NextResponse.json({ message: 'Link deleted successfully' });

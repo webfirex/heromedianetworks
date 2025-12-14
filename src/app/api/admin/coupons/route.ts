@@ -1,7 +1,6 @@
 // app/api/admin/coupons/route.ts
 import { NextResponse } from 'next/server';
-import { PoolClient } from 'pg';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,98 +9,75 @@ export async function GET(request: Request) {
   const search = searchParams.get('search')?.toLowerCase() || '';
   const statusFilter = searchParams.get('status')?.toLowerCase();
 
-  let client: PoolClient | null = null;
-
   try {
-    client = await pool.connect();
+    const where: any = {};
 
-    const queryParams: (string | number)[] = [];
-    let paramIndex = 1;
-
-    // Base FROM and WHERE
-    let baseQuery = `
-      FROM coupons c
-      LEFT JOIN offers o ON c.offer_id = o.id
-      LEFT JOIN coupon_publishers cp ON cp.coupon_id = c.id
-      LEFT JOIN publishers p ON cp.publisher_id = p.id
-      WHERE 1=1
-    `;
-
-    // Search
+    // Search condition
     if (search) {
-      baseQuery += `
-        AND (
-          LOWER(c.code) LIKE $${paramIndex} OR
-          LOWER(c.description) LIKE $${paramIndex} OR
-          LOWER(o.name) LIKE $${paramIndex} OR
-          LOWER(p.name) LIKE $${paramIndex} OR
-          LOWER(c.id::text) LIKE $${paramIndex}
-        )
-      `;
-      queryParams.push(`%${search}%`);
-      paramIndex++;
+      where.OR = [
+        { code: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { offer: { name: { contains: search, mode: 'insensitive' } } },
+        { couponPublishers: { some: { publisher: { name: { contains: search, mode: 'insensitive' } } } } },
+        { id: { equals: isNaN(parseInt(search, 10)) ? undefined : parseInt(search, 10) } },
+      ].filter((condition) => {
+        // Remove invalid conditions
+        if ('id' in condition && condition.id?.equals === undefined) return false;
+        return true;
+      });
     }
 
-    // Status
-    if (statusFilter && statusFilter !== 'all') {
-      baseQuery += ` AND c.status = $${paramIndex}`;
-      queryParams.push(statusFilter);
-      paramIndex++;
+    // Status filter
+    if (statusFilter && statusFilter !== 'all' && ['active', 'inactive', 'expired'].includes(statusFilter)) {
+      where.status = statusFilter;
     }
 
-    // Count query
-    const countResult = await client.query(
-      `SELECT COUNT(DISTINCT c.id) ${baseQuery}`,
-      queryParams
-    );
-    const totalCount = parseInt(countResult.rows[0].count, 10);
+    const [coupons, totalCount] = await Promise.all([
+      prisma.coupon.findMany({
+        where,
+        include: {
+          offer: {
+            select: {
+              name: true,
+            },
+          },
+          couponPublishers: {
+            include: {
+              publisher: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { created_at: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.coupon.count({ where }),
+    ]);
 
-    // Data query
-    const dataQuery = `
-      SELECT 
-        c.id,
-        c.code,
-        COALESCE(c.description, '') AS description,
-        COALESCE(c.discount, 0) AS discount,
-        COALESCE(c.discount_type, 'fixed_amount') AS "discountType",
-        c.offer_id AS "offerId",
-        COALESCE(o.name, 'N/A') AS "offerName",
-        c.valid_from AS "validFrom",
-        c.valid_to AS "validTo",
-        c.status,
-        c.creation_date AS "creationDate",
-        ARRAY_AGG(DISTINCT p.id) AS "publisherIds",
-        ARRAY_AGG(DISTINCT p.name) AS "publisherNames"
-      ${baseQuery}
-      GROUP BY c.id, o.name
-      ORDER BY c.creation_date DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
-
-    queryParams.push(limit, offset);
-    const result = await client.query(dataQuery, queryParams);
-
-    const coupons = result.rows.map(row => ({
-      id: row.id,
-      code: row.code,
-      description: row.description,
-      discount: parseFloat(row.discount),
-      discountType: row.discountType,
-      offerId: row.offerId,
-      offerName: row.offerName,
-      publisherIds: row.publisherIds.filter(Boolean), // remove nulls if global
-      publisherNames: row.publisherNames.filter(Boolean),
-      validFrom: new Date(row.validFrom).toISOString(),
-      validTo: new Date(row.validTo).toISOString(),
-      status: row.status,
-      creationDate: new Date(row.creationDate).toISOString(),
+    const formattedCoupons = coupons.map((coupon) => ({
+      id: coupon.id,
+      code: coupon.code,
+      description: coupon.description || '',
+      discount: Number(coupon.discount),
+      discountType: coupon.discount_type,
+      offerId: coupon.offer_id,
+      offerName: coupon.offer.name || 'N/A',
+      publisherIds: coupon.couponPublishers.map((cp) => cp.publisher.id).filter(Boolean),
+      publisherNames: coupon.couponPublishers.map((cp) => cp.publisher.name).filter(Boolean),
+      validFrom: coupon.valid_from?.toISOString() || null,
+      validTo: coupon.valid_to.toISOString(),
+      status: coupon.status,
+      creationDate: coupon.created_at.toISOString(),
     }));
 
-    return NextResponse.json({ coupons, totalCount }, { status: 200 });
+    return NextResponse.json({ coupons: formattedCoupons, totalCount }, { status: 200 });
   } catch (error) {
     console.error('Error fetching coupons:', error);
     return NextResponse.json({ error: 'Failed to fetch coupons.' }, { status: 500 });
-  } finally {
-    if (client) client.release();
   }
 }

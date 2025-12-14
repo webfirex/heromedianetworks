@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,17 +7,39 @@ export async function GET(req: NextRequest) {
     if (!publisher_id) {
       return NextResponse.json({ error: 'Missing publisher_id' }, { status: 400 });
     }
-    // Fetch coupons for this publisher (assumes coupons table with publisher_id or global coupons)
-    const { rows } = await pool.query(
-      `SELECT c.id, c.code, c.description, o.name as offer_name, c.valid_from, c.valid_to, c.offer_id
-       FROM coupons c
-       JOIN offers o ON c.offer_id = o.id
-       WHERE c.publisher_id = $1 OR c.publisher_id IS NULL
-       ORDER BY c.valid_from DESC
-       LIMIT 50`,
-      [publisher_id]
-    );
-    return NextResponse.json(rows);
+
+    // Fetch coupons for this publisher (global coupons or publisher-specific)
+    const coupons = await prisma.coupon.findMany({
+      where: {
+        OR: [
+          { couponPublishers: { some: { publisher_id } } },
+          { couponPublishers: { none: {} } }, // Global coupons (no publisher association)
+        ],
+      },
+      include: {
+        offer: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        valid_from: 'desc',
+      },
+      take: 50,
+    });
+
+    const results = coupons.map((coupon) => ({
+      id: coupon.id,
+      code: coupon.code,
+      description: coupon.description,
+      offer_name: coupon.offer.name,
+      valid_from: coupon.valid_from,
+      valid_to: coupon.valid_to,
+      offer_id: coupon.offer_id,
+    }));
+
+    return NextResponse.json(results);
   } catch (error) {
     console.error('Failed to fetch coupons:', error);
     return NextResponse.json({ error: 'Failed to fetch coupons.' }, { status: 500 });

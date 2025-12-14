@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -7,46 +7,62 @@ export async function GET(req: NextRequest) {
   const offset = parseInt(searchParams.get('offset') || '0', 10);
 
   try {
-    const client = await pool.connect();
+    const offers = await prisma.offer.findMany({
+      include: {
+        offerPublishers: {
+          include: {
+            publisher: {
+              select: { name: true },
+            },
+          },
+        },
+        clicks: true,
+        conversions: true,
+      },
+      orderBy: { created_at: 'desc' },
+      take: limit,
+      skip: offset,
+    });
 
-    const query = `
-      SELECT 
-        o.id,
-        o.name,
-        STRING_AGG(DISTINCT pub.name, ', ') AS advertisers,
-        o.offer_url,
-        o.description,
-        o.geo,
-        o.payout,
-        o.currency,
-        ARRAY_AGG(op.commission_percent) FILTER (WHERE op.commission_percent IS NOT NULL) AS commission_percent,
-        ARRAY_AGG(op.commission_cut) FILTER (WHERE op.commission_cut IS NOT NULL) AS commission_cut,
-        o.status,
-        o.created_at AS "creationDate",
-        COUNT(DISTINCT c.id) AS clicks,
-        COUNT(DISTINCT conv.id) AS conversions,
-        CASE 
-          WHEN COUNT(DISTINCT c.id) = 0 THEN 0 
-          ELSE ROUND(COUNT(DISTINCT conv.id)::numeric / COUNT(DISTINCT c.id) * 100, 2) 
-        END AS cr,
-        CASE 
-          WHEN COUNT(DISTINCT c.id) = 0 THEN 0 
-          ELSE ROUND(o.payout * COUNT(DISTINCT conv.id)::numeric / COUNT(DISTINCT c.id), 2)
-        END AS epc
-      FROM offers o
-      LEFT JOIN offer_publishers op ON o.id = op.offer_id
-      LEFT JOIN publishers pub ON pub.id = op.publisher_id
-      LEFT JOIN clicks c ON c.offer_id = o.id
-      LEFT JOIN conversions conv ON conv.offer_id = o.id
-      GROUP BY o.id
-      ORDER BY o.created_at DESC
-      LIMIT $1 OFFSET $2
-    `;
+    const formattedOffers = offers.map((offer) => {
+      const clicks = offer.clicks.length;
+      const conversions = offer.conversions.length;
+      const cr = clicks === 0 ? 0 : Number(((conversions / clicks) * 100).toFixed(2));
+      const epc = clicks === 0 ? 0 : Number(((Number(offer.payout) * conversions) / clicks).toFixed(2));
 
-    const result = await client.query(query, [limit, offset]);
-    client.release();
+      const advertisers = Array.from(
+        new Set(offer.offerPublishers.map((op) => op.publisher.name))
+      ).join(', ');
 
-    return NextResponse.json({ offers: result.rows });
+      const commission_percent = offer.offerPublishers
+        .map((op) => op.commission_percent)
+        .filter((cp) => cp !== null);
+
+      const commission_cut = offer.offerPublishers
+        .map((op) => op.commission_cut)
+        .filter((cc) => cc !== null);
+
+      return {
+        id: offer.id,
+        name: offer.name,
+        advertisers,
+        offer_url: offer.offer_url,
+        description: offer.description,
+        geo: offer.geo,
+        payout: Number(offer.payout),
+        currency: offer.currency,
+        commission_percent: commission_percent.length > 0 ? commission_percent : null,
+        commission_cut: commission_cut.length > 0 ? commission_cut : null,
+        status: offer.status,
+        creationDate: offer.created_at,
+        clicks,
+        conversions,
+        cr,
+        epc,
+      };
+    });
+
+    return NextResponse.json({ offers: formattedOffers });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to fetch offers' }, { status: 500 });

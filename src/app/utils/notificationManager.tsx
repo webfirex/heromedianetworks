@@ -24,12 +24,12 @@ export const showNotification = ({title, message, icon, withClose} : showNotific
         position: 'bottom-right',
         styles: {
             root: {
-                background: '#2563eb',
-                backgroundColor: '#2563eb',
-                color: 'white',
+                background: 'var(--primary)',
+                backgroundColor: 'var(--primary)',
+                color: 'var(--primary-foreground)',
             },
-            title: { color: '#2563eb' },
-            description: { color: '#2563eb' },
+            title: { color: 'var(--primary-foreground)' },
+            description: { color: 'var(--primary-foreground)' },
         },
     });
 };
@@ -47,12 +47,12 @@ export const showDashNotification = ({title, message, icon, withClose} : showNot
         position: 'bottom-right',
         styles: {
             root: {
-                background: '#2563eb',
-                backgroundColor: '#2563eb',
-                color: 'white',
+                background: 'var(--primary)',
+                backgroundColor: 'var(--primary)',
+                color: 'var(--primary-foreground)',
             },
-            title: { color: 'white' },
-            description: { color: 'white' },
+            title: { color: 'var(--primary-foreground)' },
+            description: { color: 'var(--primary-foreground)' },
         },
     });
 };

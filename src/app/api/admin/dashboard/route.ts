@@ -1,125 +1,152 @@
-import pool from "@/lib/db";
+import prisma from "@/lib/db-prisma";
 import { NextResponse } from "next/server";
 
-// Corrected the route to ensure proper error handling and consistent data formatting
+// Helper function to format date as day name
+function getDayName(date: Date): string {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return days[date.getDay()];
+}
+
+// Helper function to format date as YYYY-MM-DD
+function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
 export async function GET() {
   try {
-    const client = await pool.connect();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Fetch total clicks
-    const totalClicksResult = await client.query(
-      `SELECT COUNT(*) AS total_clicks FROM clicks;`
-    );
-    const totalClicks = parseInt(totalClicksResult.rows[0]?.total_clicks || '0', 10);
+    // Fetch all stats in parallel
+    const [
+      totalClicks,
+      totalConversions,
+      totalEarningsData,
+      totalApprovals,
+      weeklyClicksData,
+      trafficSourcesData,
+      topPerformingOffersData,
+      clicksOverTimeData,
+      conversionTrendData,
+    ] = await Promise.all([
+      prisma.click.count(),
+      prisma.conversion.count(),
+      prisma.conversion.aggregate({
+        _sum: { amount: true },
+      }),
+      prisma.publisher.count({
+        where: { status: 'approved' },
+      }),
+      prisma.click.findMany({
+        where: {
+          timestamp: { gte: sevenDaysAgo },
+        },
+        select: { timestamp: true },
+      }),
+      prisma.click.findMany({
+        where: {
+          offer: { status: 'active' },
+        },
+        include: {
+          offer: {
+            select: { name: true },
+          },
+        },
+      }),
+      prisma.offer.findMany({
+        include: {
+          clicks: true,
+          conversions: true,
+        },
+        take: 10,
+      }),
+      prisma.click.findMany({
+        where: {
+          timestamp: { gte: thirtyDaysAgo },
+        },
+        select: { timestamp: true },
+      }),
+      prisma.conversion.findMany({
+        where: {
+          created_at: { gte: thirtyDaysAgo },
+        },
+        select: { created_at: true },
+      }),
+    ]);
 
-    // Fetch total conversions
-    const totalConversionsResult = await client.query(
-      `SELECT COUNT(*) AS total_conversions FROM conversions;`
-    );
-    const totalConversions = parseInt(totalConversionsResult.rows[0]?.total_conversions || '0', 10);
+    // Process weekly clicks by day
+    const weeklyClicksMap = new Map<string, number>();
+    weeklyClicksData.forEach((click) => {
+      const day = getDayName(click.timestamp);
+      weeklyClicksMap.set(day, (weeklyClicksMap.get(day) || 0) + 1);
+    });
+    const weeklyClicks = Array.from(weeklyClicksMap.entries())
+      .map(([day, clicks]) => ({ day, clicks }))
+      .sort((a, b) => {
+        const dayOrder = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+      });
 
-    // Fetch total earnings
-    const totalEarningsResult = await client.query(
-      `SELECT COALESCE(SUM(amount), 0) AS total_earnings FROM conversions;`
-    );
-    const totalEarnings = parseFloat(totalEarningsResult.rows[0]?.total_earnings || '0');
+    // Process traffic sources
+    const trafficSourcesMap = new Map<string, number>();
+    trafficSourcesData.forEach((click) => {
+      const name = click.offer.name;
+      trafficSourcesMap.set(name, (trafficSourcesMap.get(name) || 0) + 1);
+    });
+    const trafficSources = Array.from(trafficSourcesMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
-    // Fetch total approvals
-    const totalApprovalsResult = await client.query(
-      `SELECT COUNT(*) AS total_approvals FROM publishers WHERE status = 'approved';`
-    );
-    const totalApprovals = parseInt(totalApprovalsResult.rows[0]?.total_approvals || '0', 10);
+    // Process top performing offers
+    const topPerformingOffers = topPerformingOffersData
+      .map((offer) => {
+        const clicks = offer.clicks.length;
+        const conversions = offer.conversions.length;
+        const revenue = offer.conversions.reduce((sum, c) => sum + Number(c.amount), 0);
+        return {
+          offerName: offer.name,
+          clicks,
+          conversions,
+          revenue: revenue.toFixed(2),
+        };
+      })
+      .sort((a, b) => {
+        if (Number(b.revenue) !== Number(a.revenue)) {
+          return Number(b.revenue) - Number(a.revenue);
+        }
+        if (b.conversions !== a.conversions) {
+          return b.conversions - a.conversions;
+        }
+        return b.clicks - a.clicks;
+      })
+      .slice(0, 10);
 
-    // Fetch weekly clicks grouped by day
-    const weeklyClicksResult = await client.query(
-      `SELECT
-        TO_CHAR(timestamp AT TIME ZONE 'UTC', 'Dy') AS day,
-        COUNT(*) AS clicks
-      FROM clicks
-      WHERE timestamp >= NOW() - INTERVAL '7 days'
-      GROUP BY TO_CHAR(timestamp AT TIME ZONE 'UTC', 'Dy'), EXTRACT(DOW FROM timestamp AT TIME ZONE 'UTC')
-      ORDER BY EXTRACT(DOW FROM timestamp AT TIME ZONE 'UTC');`
-    );
-    const weeklyClicks = weeklyClicksResult.rows.map(row => ({
-      day: row.day,
-      clicks: parseInt(row.clicks || '0', 10),
-    }));
+    // Process clicks over time
+    const clicksOverTimeMap = new Map<string, number>();
+    clicksOverTimeData.forEach((click) => {
+      const period = formatDate(click.timestamp);
+      clicksOverTimeMap.set(period, (clicksOverTimeMap.get(period) || 0) + 1);
+    });
+    const clicksOverTime = Array.from(clicksOverTimeMap.entries())
+      .map(([period, clicks]) => ({ period, clicks }))
+      .sort((a, b) => a.period.localeCompare(b.period));
 
-    // Fetch traffic sources
-    const trafficSourcesResult = await client.query(
-  `SELECT
-    o.name AS name,
-    COUNT(c.id) AS value
-  FROM clicks c
-  JOIN offers o ON c.offer_id = o.id
-  WHERE o.status = 'active' 
-  GROUP BY o.name
-  ORDER BY value DESC;`
-);
+    // Process conversion trend
+    const conversionTrendMap = new Map<string, number>();
+    conversionTrendData.forEach((conv) => {
+      const period = formatDate(conv.created_at);
+      conversionTrendMap.set(period, (conversionTrendMap.get(period) || 0) + 1);
+    });
+    const conversionTrend = Array.from(conversionTrendMap.entries())
+      .map(([period, conversions]) => ({ period, conversions }))
+      .sort((a, b) => a.period.localeCompare(b.period));
 
-    const trafficSources = trafficSourcesResult.rows.map(row => ({
-      name: row.name,
-      value: parseInt(row.value || '0', 10),
-    }));
-
-    // Fetch top performing offers
-    const topPerformingOffersResult = await client.query(
-      `SELECT
-        o.name AS offer_name,
-        COUNT(c.id) AS clicks,
-        COUNT(cv.id) AS conversions,
-        COALESCE(SUM(cv.amount), 0) AS revenue
-      FROM offers o
-      LEFT JOIN clicks c ON o.id = c.offer_id
-      LEFT JOIN conversions cv ON o.id = cv.offer_id
-      GROUP BY o.name
-      ORDER BY revenue DESC, conversions DESC, clicks DESC
-      LIMIT 10;`
-    );
-    const topPerformingOffers = topPerformingOffersResult.rows.map(row => ({
-      offerName: row.offer_name,
-      clicks: parseInt(row.clicks || '0', 10),
-      conversions: parseInt(row.conversions || '0', 10),
-      revenue: parseFloat(row.revenue || '0').toFixed(2),
-    }));
-
-    // Fetch clicks over time
-    const clicksOverTimeResult = await client.query(
-      `SELECT
-        TO_CHAR(timestamp AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS period,
-        COUNT(*) AS clicks
-      FROM clicks
-      WHERE timestamp >= NOW() - INTERVAL '30 days'
-      GROUP BY TO_CHAR(timestamp AT TIME ZONE 'UTC', 'YYYY-MM-DD')
-      ORDER BY period;`
-    );
-    const clicksOverTime = clicksOverTimeResult.rows.map(row => ({
-      period: row.period,
-      clicks: parseInt(row.clicks || '0', 10),
-    }));
-
-    // Fetch conversion trend
-    const conversionTrendResult = await client.query(
-      `SELECT
-        TO_CHAR(timestamp AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS period,
-        COUNT(*) AS conversions
-      FROM conversions
-      WHERE timestamp >= NOW() - INTERVAL '30 days'
-      GROUP BY TO_CHAR(timestamp AT TIME ZONE 'UTC', 'YYYY-MM-DD')
-      ORDER BY period;`
-    );
-    const conversionTrend = conversionTrendResult.rows.map(row => ({
-      period: row.period,
-      conversions: parseInt(row.conversions || '0', 10),
-    }));
-
-    client.release();
-
-    // Include new data in the response
     return NextResponse.json({
       totalClicks,
       totalConversions,
-      totalEarnings,
+      totalEarnings: Number(totalEarningsData._sum.amount || 0),
       totalApprovals,
       weeklyClicks,
       trafficSources,

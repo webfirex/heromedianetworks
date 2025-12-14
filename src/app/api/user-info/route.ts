@@ -1,6 +1,6 @@
 // app/api/user-info/route.ts or pages/api/user-info.ts
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db'; // Your database connection pool
+import prisma from '@/lib/db-prisma';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -11,14 +11,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Assuming 'created_at' stores the registration date in your 'publishers' table
-    const { rows } = await pool.query('SELECT created_at FROM publishers WHERE email = $1 LIMIT 1', [email]);
+    const publisher = await prisma.publisher.findUnique({
+      where: { email },
+      select: { created_at: true },
+    });
 
-    if (rows.length === 0) {
+    if (!publisher) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ registeredAt: rows[0].created_at });
+    return NextResponse.json({ registeredAt: publisher.created_at });
   } catch (error) {
     console.error('Failed to fetch user info:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

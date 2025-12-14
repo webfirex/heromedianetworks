@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -10,18 +10,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const { rows } = await pool.query(
-      'SELECT id, status FROM publishers WHERE email = $1 LIMIT 1', // Select both id and status
-      [email]
-    );
+    const publisher = await prisma.publisher.findUnique({
+      where: { email },
+      select: { id: true, status: true },
+    });
 
-    if (rows.length === 0) {
+    if (!publisher) {
       return NextResponse.json({ error: 'Publisher not found' }, { status: 404 });
     }
 
-    const publisher = rows[0];
-
-    return NextResponse.json({ id: publisher.id, status: publisher.status }); // Return status as well
+    return NextResponse.json({ id: publisher.id, status: publisher.status });
   } catch (error) {
     console.error('Failed to fetch publisher id and status:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

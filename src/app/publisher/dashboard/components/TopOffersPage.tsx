@@ -86,7 +86,17 @@ export default function MyOffersPage() {
   const totalPages = Math.ceil(totalOffersCount / itemsPerPage);
 
   if (loading) return (
-    <Card shadow="md" radius="md" withBorder>
+    <Card
+      shadow=""
+      radius="26px"
+      withBorder={false}
+      style={{
+        background: 'rgba(128, 128, 128, 0.1)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+        backdropFilter: 'blur(20px)',
+      }}
+    >
       <Skeleton height={40} width="100%" mb="sm" />
       <Skeleton height={40} width="100%" mb="sm" />
       <Skeleton height={40} width="100%" mb="sm" />
@@ -98,7 +108,17 @@ export default function MyOffersPage() {
   if (error) return null;
 
   return (
-    <Card shadow="md" radius="md" withBorder>
+    <Card
+      shadow=""
+      radius="26px"
+      withBorder={false}
+      style={{
+        background: 'rgba(128, 128, 128, 0.1)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+        backdropFilter: 'blur(20px)',
+      }}
+    >
       <Group mb="md">
         <TextInput
           placeholder="Search offers by name or description"
@@ -107,8 +127,16 @@ export default function MyOffersPage() {
             setSearch(event.currentTarget.value);
             setPage(1);
           }}
-          leftSection={<IconSearch size={16} />}
+          leftSection={<IconSearch size={16} style={{ color: 'rgba(255,255,255,0.6)' }} />}
           style={{ flexGrow: 1 }}
+          styles={{
+            input: {
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#E6EAF0',
+              '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+            }
+          }}
         />
         <Select
           placeholder="Filter by status"
@@ -124,6 +152,29 @@ export default function MyOffersPage() {
           }}
           clearable
           style={{ width: isMobile ? '100%' : 'auto' }}
+          styles={{
+            input: {
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#E6EAF0',
+              '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+            },
+            dropdown: {
+              backgroundColor: '#0B0F16',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px'
+            },
+            option: {
+              color: '#E6EAF0',
+              '&[data-selected]': {
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                color: '#3B82F6'
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.05)'
+              }
+            }
+          }}
         />
       </Group>
 
@@ -187,7 +238,7 @@ export default function MyOffersPage() {
                               onClick={copy}
                               style={{
                                 cursor: 'pointer',
-                                color: '#4169E1',
+                                color: 'var(--primary)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 4,
