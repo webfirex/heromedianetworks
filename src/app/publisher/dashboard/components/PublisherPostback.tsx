@@ -205,7 +205,7 @@ const PublisherPostback: React.FC = () => {
       // if the backend is always providing only the current publisher's clicks.
       // However, keeping this check makes the client-side logic robust.
       if (click.publisherId === currentPublisherId) {
-         ownClicks.push(click);
+        ownClicks.push(click);
       }
     });
 
@@ -221,19 +221,29 @@ const PublisherPostback: React.FC = () => {
 
   // Render loading skeleton if session is still loading or data is being fetched
   if (status === 'loading' || loading) {
+    {/* Loading Skeleton */ }
     return (
       <Container size="xl">
-        <Paper shadow="sm" radius="md" p="md" withBorder>
-          <Skeleton height={40} mb="md" width="100%" />
-          <Skeleton height={300} mb="md" width="100%" />
-        </Paper>
+        <div className="w-full flex-1 min-h-[400px] backdrop-blur-xl border border-white/10 rounded-xl relative overflow-hidden flex flex-col p-6" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+          <div className="flex justify-between items-center mb-6">
+            <div className="h-10 w-64 bg-white/5 rounded-lg border border-white/5 animate-pulse" />
+          </div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 w-full bg-white/5 rounded-lg border border-white/5 animate-pulse" />
+            ))}
+          </div>
+        </div>
       </Container>
     );
   }
 
   return (
     <Container size="xl">
-      <Paper shadow="sm" radius="md" p="md" withBorder>
+      <div
+        className="backdrop-blur-xl border border-white/10 rounded-xl p-6"
+        style={{ background: 'rgba(255, 255, 255, 0.03)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)' }}
+      >
         <Flex justify="space-between" align="center" mb="md" wrap="wrap" gap="md">
           <TextInput
             placeholder="Search by Offer Name"
@@ -241,6 +251,14 @@ const PublisherPostback: React.FC = () => {
             onChange={handleSearchChange}
             leftSection={<IconSearch size={16} />}
             style={{ flexGrow: 1, minWidth: '250px' }}
+            styles={{
+              input: {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#E6EAF0',
+                '&::placeholder': { color: 'rgba(255, 255, 255, 0.5)' }
+              }
+            }}
           />
         </Flex>
 
@@ -249,7 +267,7 @@ const PublisherPostback: React.FC = () => {
         ) : isMobile ? (
           <Stack gap="sm">
             {offersData.map((offer) => (
-              <Paper key={offer.offerId + offer.linkId} shadow="xs" radius="md" p="md" withBorder>
+              <div key={offer.offerId + offer.linkId} className="backdrop-blur-xl border border-white/10 rounded-xl p-4 bg-white/5">
                 <Stack gap="xs">
                   <Group gap={6}>
                     <IconGift size={16} />
@@ -303,25 +321,39 @@ const PublisherPostback: React.FC = () => {
                     </Button>
                   </Group>
                 </Stack>
-              </Paper>
+              </div>
             ))}
           </Stack>
         ) : (
           <ScrollArea>
-            <Table striped highlightOnHover withTableBorder withColumnBorders miw={900}>
+            <Table
+              verticalSpacing="sm"
+              horizontalSpacing="md"
+              style={{
+                backgroundColor: 'transparent',
+                color: '#E6EAF0'
+              }}
+            >
               <Table.Thead>
-                <Table.Tr>
-                  <Table.Th><Group gap={4}><IconWorldWww size={16} />Link Name</Group></Table.Th>
-                  <Table.Th><Group gap={4}><IconGift size={16} />Offer Name</Group></Table.Th>
-                  <Table.Th><Group gap={4}><IconExternalLink size={16} />Your Tracking Link</Group></Table.Th>
-                  <Table.Th><Group gap={4}><IconFingerprint size={16} />Total Clicks</Group></Table.Th>
-                  <Table.Th><Group gap={4}><IconFingerprint size={16} />Total Conversions</Group></Table.Th> {/* UPDATED: Table header for conversions */}
-                  <Table.Th><Group gap={4}><IconInfoCircle size={16} />Details</Group></Table.Th>
+                <Table.Tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconWorldWww size={16} />Link Name</Group></Table.Th>
+                  <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconGift size={16} />Offer Name</Group></Table.Th>
+                  <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconExternalLink size={16} />Your Tracking Link</Group></Table.Th>
+                  <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconFingerprint size={16} />Total Clicks</Group></Table.Th>
+                  <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconFingerprint size={16} />Total Conversions</Group></Table.Th>
+                  <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconInfoCircle size={16} />Details</Group></Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {offersData.map((offer) => (
-                  <Table.Tr key={offer.offerId + offer.linkId}>
+                  <Table.Tr
+                    key={offer.offerId + offer.linkId}
+                    style={{
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      transition: 'background-color 0.2s',
+                    }}
+                    className="hover:bg-white/5"
+                  >
                     <Table.Td>{offer.linkName}</Table.Td>
                     <Table.Td>{offer.offerName}</Table.Td>
                     <Table.Td>
@@ -365,10 +397,22 @@ const PublisherPostback: React.FC = () => {
 
         {totalPages > 1 && (
           <Flex justify="flex-end" mt="md">
-            <Pagination total={totalPages} value={activePage} onChange={setActivePage} />
+            <Pagination
+              total={totalPages}
+              value={activePage}
+              onChange={setActivePage}
+              color="gray"
+              styles={{
+                control: {
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#E6EAF0'
+                }
+              }}
+            />
           </Flex>
         )}
-      </Paper>
+      </div>
 
       <Modal
         opened={detailModalOpened}

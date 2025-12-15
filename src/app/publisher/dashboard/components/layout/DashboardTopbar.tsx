@@ -144,76 +144,13 @@ export default function DashboardTopbar({
           </div>
         </div>
 
-        {/* Center Section - Rounded Search with Arrow */}
-        <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-            <Input
-              type="search"
-              placeholder="STOMina campaign"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={cn(
-                'pl-10 pr-10 rounded-full bg-card border-border',
-                'text-foreground placeholder:text-muted-foreground',
-                'focus-visible:ring-primary focus-visible:border-primary',
-                'h-10'
-              )}
-            />
-            <ArrowUp className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" />
-          </div>
-        </div>
-
-        {/* Right Section - Notifications, Date, User */}
+        {/* Right Section - Date, User */}
         <div className="flex items-center gap-3">
-          {/* Notifications with "X new" badge - BEFORE date picker */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  'relative h-9 w-9 rounded-full text-foreground hover:bg-card',
-                  'border border-border'
-                )}
-              >
-                <Bell className="h-4 w-4" />
-                {notificationCount > 0 && (
-                  <>
-                    {/* Red dot indicator */}
-                    <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
-                    {/* "X new" badge */}
-                    <Badge
-                      className={cn(
-                        'absolute -top-2 -right-2 h-5 px-1.5 flex items-center justify-center rounded-full',
-                        'bg-card text-foreground text-[10px] border border-border',
-                        'font-normal'
-                      )}
-                    >
-                      {notificationCount} new
-                    </Badge>
-                  </>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className={cn(
-                'w-80 bg-card border-border',
-                'text-foreground'
-              )}
-            >
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border" />
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                No new notifications
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Date Picker - AFTER notifications */}
 
           {/* Date Picker - AFTER notifications */}
           {activeTab === 'dashboard' && (
-            <div className="flex items-center gap-1 h-9 bg-card border border-border rounded-lg relative z-[60]">
+            <div className="flex items-center gap-1 h-auto py-1 px-1 bg-card border border-border rounded-full relative z-[60]">
               <DatePickerInput
                 type="range"
                 placeholder="Pick dates range"
@@ -226,10 +163,10 @@ export default function DashboardTopbar({
                     background: 'transparent',
                     border: 'none',
                     color: '#e4e4e7', // zinc-200
-                    height: '100%',
-                    paddingLeft: '40px',
-                    paddingRight: '12px',
-                    width: '240px',
+                    height: '34px',
+                    paddingLeft: '38px',
+                    paddingRight: '16px',
+                    width: '320px',
                     fontSize: '13px',
                     fontWeight: 500,
                   },
@@ -237,7 +174,7 @@ export default function DashboardTopbar({
                     color: '#a1a1aa' // zinc-400
                   }
                 }}
-                leftSection={<Calendar size={14} />}
+                leftSection={<Calendar size={16} className="text-muted-foreground ml-2" />}
                 leftSectionPointerEvents="none"
               />
             </div>

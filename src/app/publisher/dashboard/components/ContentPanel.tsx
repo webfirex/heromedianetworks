@@ -24,7 +24,7 @@ export default function ContentPanel({ activeTab, dateRange }: ContentPanelProps
     case 'dashboard':
       return <DashboardContent dateRange={dateRange} />;
     case 'my-offers':
-      return <PublisherOffersPage/>
+      return <PublisherOffersPage />
     case 'offers-expired':
       return <OffersExpiredPage />;
     case 'top-offers':
@@ -35,18 +35,24 @@ export default function ContentPanel({ activeTab, dateRange }: ContentPanelProps
       return <CouponsPage />;
     case 'coupons-reports':
       return <CouponsReportsPage />;
-      case 'product-feed':
-        return <ProductFeedPage />;
-      case 'postback':
-        return <PublisherPostback />;
-      case 'smartlinks':
+    case 'product-feed':
+      return <ProductFeedPage />;
+    case 'postback':
+      return <PublisherPostback />;
+    case 'smartlinks':
       return <PublisherSmartlinksPage />;
     case 'reports':
       return <PublisherReportsPage />;
-      case 'track':
-        return <PublisherTrackPage />;
-      case 'coupons-add':
+    case 'track':
+      return <PublisherTrackPage />;
+    case 'coupons-add':
       return <CouponsAddPage />;
+    case 'support':
+      return (
+        <div className="flex h-full items-center justify-center">
+          <Text size="xl" fw={700} c="dimmed">Contact Support module coming soon</Text>
+        </div>
+      );
     default:
       return <Text>Invalid tab selected.</Text>;
   }
