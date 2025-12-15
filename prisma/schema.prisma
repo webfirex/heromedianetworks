@@ -131,6 +131,8 @@ model Click {
   @@index([offer_id])
   @@index([link_id])
   @@index([timestamp])
+  @@index([pub_id, timestamp]) // Composite index for dashboard date filtering
+  @@index([pub_id, offer_id])  // Composite index for grouping by offer
 }
 
 model Conversion {
@@ -158,6 +160,8 @@ model Conversion {
   @@index([pub_id])
   @@index([status])
   @@index([created_at])
+  @@index([pub_id, created_at]) // Composite index for dashboard date filtering
+  @@index([pub_id, offer_id])   // Composite index for grouping by offer
 }
 
 model Smartlink {
