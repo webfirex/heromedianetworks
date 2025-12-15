@@ -81,9 +81,9 @@ export default function PublisherOffersPage() {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          background: 'rgba(128, 128, 128, 0.1)',
-          border: '1px solid rgba(255,255,255,0.15)',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(20px)',
         }}
       >
@@ -91,14 +91,14 @@ export default function PublisherOffersPage() {
         {loading ? (
           <Stack gap="sm" style={{ width: 360 }}>
             {Array.from({ length: 6 }).map((_, idx) => (
-              <div key={idx}>
+              <div key={idx} className="animate-pulse">
                 <div style={{ marginBottom: 8 }}>
-                  <div style={{ height: 18, width: 120, background: '#e3e8f0', borderRadius: 4, marginBottom: 6 }} />
-                  <div style={{ height: 38, width: '100%', background: '#e3e8f0', borderRadius: 8 }} />
+                  <div className="h-4 w-32 bg-white/10 rounded mb-2" />
+                  <div className="h-10 w-full bg-white/5 rounded-lg border border-white/5" />
                 </div>
               </div>
             ))}
-            <div style={{ height: 44, width: '100%', background: '#e3e8f0', borderRadius: 8, marginTop: 8 }} />
+            <div className="h-11 w-full bg-blue-500/20 rounded-lg mt-2 animate-pulse" />
           </Stack>
         ) : (
           <form onSubmit={handleSubmit} style={{ width: '100%' }}>

@@ -96,15 +96,19 @@ export default function DashboardSidebar({
                       'w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                       'group relative',
                       'text-zinc-400',
-                      collapsed && 'justify-center px-2'
+                      collapsed && 'justify-center px-0'
                     )}
                   >
                     {/* Icon container with rounded background on hover/active */}
                     <div
                       className={cn(
-                        'flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200',
-                        isActive && 'bg-white/10',
-                        !isActive && 'group-hover:bg-white/5'
+                        'flex items-center justify-center w-10 h-10 flex-shrink-0 transition-all duration-200',
+                        isActive
+                          ? 'bg-white/10 rounded-full'
+                          : cn(
+                            'group-hover:bg-white/5 rounded-xl',
+                            collapsed && 'group-hover:rounded-full'
+                          )
                       )}
                     >
                       <Icon
@@ -132,17 +136,76 @@ export default function DashboardSidebar({
                     )}
                   </motion.button>
                 </TooltipTrigger>
-                {collapsed && (
-                  <TooltipContent side="right" className="bg-sidebar border border-sidebar-border text-sidebar-foreground">
-                    <p>{item.label}</p>
-                  </TooltipContent>
-                )}
+                {
+                  collapsed && (
+                    <TooltipContent side="right" className="bg-sidebar border border-sidebar-border text-sidebar-foreground">
+                      <p>{item.label}</p>
+                    </TooltipContent>
+                  )
+                }
               </Tooltip>
             );
           })}
         </nav>
+
+        {/* Support Button (Footer) */}
+        <div className="p-3 mt-auto">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onTabChange('support')}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
+                  'group relative',
+                  'text-zinc-400',
+                  collapsed && 'justify-center px-0'
+                )}
+              >
+                <div
+                  className={cn(
+                    'flex items-center justify-center w-10 h-10 flex-shrink-0 transition-all duration-200',
+                    activeTab === 'support'
+                      ? 'bg-white/10 rounded-full'
+                      : cn(
+                        'group-hover:bg-white/5 rounded-xl',
+                        collapsed && 'group-hover:rounded-full'
+                      )
+                  )}
+                >
+                  <Ticket
+                    size={18}
+                    className={cn(
+                      'flex-shrink-0 transition-colors duration-200 stroke-[1.5]',
+                      activeTab === 'support' ? 'text-white' : 'text-zinc-400 group-hover:text-white'
+                    )}
+                  />
+                </div>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className={cn(
+                      'text-sm font-medium whitespace-nowrap transition-colors duration-200',
+                      activeTab === 'support' ? 'text-white' : 'text-zinc-400 group-hover:text-white'
+                    )}
+                  >
+                    Contact Support
+                  </motion.span>
+                )}
+              </motion.button>
+            </TooltipTrigger>
+            {collapsed && (
+              <TooltipContent side="right" className="bg-sidebar border border-sidebar-border text-sidebar-foreground">
+                <p>Contact Support</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </div>
       </motion.aside>
-    </TooltipProvider>
+    </TooltipProvider >
   );
 }
 
