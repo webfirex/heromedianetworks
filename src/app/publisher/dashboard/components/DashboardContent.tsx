@@ -356,8 +356,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       {/* Stats Rows */}
                       <div className="space-y-4 mb-8">
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-zinc-400">Max records</span>
-                          <span className="text-zinc-200">2 times increase to the last month</span>
+                          {/* <span className="text-zinc-400">Max records</span>
+                          <span className="text-zinc-200">2 times increase to the last month</span> */}
                         </div>
                         <div className="flex justify-between items-center text-xs">
                           <span className="text-zinc-400">Comparative rates</span>
@@ -489,50 +489,27 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-bold text-white">My Top Campaigns</h3>
                     <div className="flex items-center gap-2 text-zinc-500">
-                      <span className="text-[10px]">02 of 5</span>
-                      <div className="flex gap-1">
-                        <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center cursor-pointer hover:bg-zinc-700"><IconArrowRight className="rotate-180" size={10} /></div>
-                        <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center cursor-pointer hover:bg-zinc-700"><IconArrowRight size={10} /></div>
-                      </div>
+                      <span className="text-[10px]">{Math.min(2, dashboardData.conversionsByOffer.length)} of {dashboardData.conversionsByOffer.length}</span>
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    {/* Campaign 1: Pela Design */}
-                    <div className="flex-1 bg-[#151518]/80 rounded-xl p-3 border border-white/5 relative overflow-hidden group hover:border-white/10 transition">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]"></div>
-                        <IconDotsVertical size={12} className="text-zinc-600 cursor-pointer" />
+                    {dashboardData.conversionsByOffer.slice(0, 2).map((offer, index) => (
+                      <div key={index} className="flex-1 bg-[#151518]/80 rounded-xl p-3 border border-white/5 relative overflow-hidden group hover:border-white/10 transition">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px]`} style={{ backgroundColor: getColorForSegment(offer.name, index, chartColors), boxShadow: `0 0 8px ${getColorForSegment(offer.name, index, chartColors)}` }}></div>
+                          <IconDotsVertical size={12} className="text-zinc-600 cursor-pointer" />
+                        </div>
+                        <h4 className="text-xs font-bold text-white mb-1 truncate" title={offer.name}>{offer.name}</h4>
+                        <div className="text-[10px] text-zinc-500 mb-2">Conversions: {offer.value}</div>
+                        <div className="text-[10px] text-blue-400 font-bold mb-3">&nbsp;</div> {/* Spacer */}
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] text-zinc-600">Verified</span>
+                        </div>
                       </div>
-                      <h4 className="text-xs font-bold text-white mb-1">Pela Design</h4>
-                      <div className="text-[10px] text-zinc-500 mb-2"># 3,074 Followers</div>
-                      <div className="text-[10px] text-blue-400 font-bold mb-3">+ 9.23 %</div>
-                      <div className="flex justify-between items-center">
-                        <Avatar.Group spacing="sm">
-                          <Avatar src="https://i.pravatar.cc/150?u=20" size="xs" radius="xl" />
-                          <Avatar src="https://i.pravatar.cc/150?u=21" size="xs" radius="xl" />
-                          <Avatar size="xs" radius="xl" color="dark" className="text-[8px]">+99</Avatar>
-                        </Avatar.Group>
-                        <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-bold text-xs cursor-pointer hover:scale-105 transition">+</div>
-                      </div>
-                    </div>
-                    {/* Campaign 2: Elexir Ads */}
-                    <div className="flex-1 bg-[#151518]/80 rounded-xl p-3 border border-white/5 relative overflow-hidden group hover:border-white/10 transition">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
-                        <IconDotsVertical size={12} className="text-zinc-600 cursor-pointer" />
-                      </div>
-                      <h4 className="text-xs font-bold text-white mb-1">Elexir Ads</h4>
-                      <div className="text-[10px] text-zinc-500 mb-2"># 2,931 Followers</div>
-                      <div className="text-[10px] text-green-400 font-bold mb-3">+ 7.59 %</div>
-                      <div className="flex justify-between items-center">
-                        <Avatar.Group spacing="sm">
-                          <Avatar src="https://i.pravatar.cc/150?u=25" size="xs" radius="xl" />
-                          <Avatar src="https://i.pravatar.cc/150?u=26" size="xs" radius="xl" />
-                          <Avatar size="xs" radius="xl" color="dark" className="text-[8px]">+99</Avatar>
-                        </Avatar.Group>
-                        <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-bold text-xs cursor-pointer hover:scale-105 transition">+</div>
-                      </div>
-                    </div>
+                    ))}
+                    {dashboardData.conversionsByOffer.length === 0 && (
+                      <div className="w-full text-center text-zinc-500 text-xs py-8">No campaigns yet.</div>
+                    )}
                   </div>
                 </NeoCard>
               </div>
@@ -541,10 +518,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             {/* Right Column (Span 8) */}
             <Grid.Col span={8}>
               <div className="flex flex-col gap-6 h-full">
-                {/* Row 1: nested Grid for Balance (7) + Ads (5) */}
+                {/* Row 1: Balance (Full Width now that Ads is gone) */}
                 <div className="grid grid-cols-12 gap-6">
                   {/* Total Balance */}
-                  <div className="col-span-7">
+                  <div className="col-span-12">
                     <div className="flex flex-col h-full">
                       {/* External Header */}
                       <div className="mb-4 pl-1">
@@ -562,7 +539,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           </Badge>
                         </div>
                         <p className="text-xs text-zinc-500">
-                          The sum of all amounts on <span className="text-zinc-400">my wallet</span>
+                          The sum of filtered commissions.
                         </p>
                       </div>
 
@@ -581,9 +558,9 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                               </span>
                             </div>
                             <div className="text-right">
-                              <div className="text-[10px] text-zinc-400 mb-1">Compared to last month</div>
-                              <div className="text-xs font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded inline-block">
-                                - 37.16 %
+                              <div className="text-[10px] text-zinc-400 mb-1">vs last month</div>
+                              <div className={`text-xs font-bold px-1.5 py-0.5 rounded inline-block ${isCommissionPositive ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'}`}>
+                                {isCommissionPositive ? '+' : ''} {commissionPercentageChange} %
                               </div>
                             </div>
                           </div>
@@ -591,91 +568,41 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           {/* Sub Stats Row */}
                           <div className="flex justify-between items-center mb-6">
                             <div className="text-[11px] text-zinc-400 flex items-center">
-                              Yearly avg: <span className="text-white ml-1 font-medium">$ 34,502.19</span>
-                              <span className="text-blue-500 ml-1">↗</span>
-                            </div>
-                            <div className="flex items-center text-[11px] text-zinc-400 cursor-pointer hover:text-white">
-                              <IconHelpCircle size={14} className="mr-1" />
-                              How it works?
+                              This month: <span className="text-white ml-1 font-medium">$ {dashboardData.commissionThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                           </div>
 
-                          {/* Ai Assistant Section */}
-                          <div className="flex-1 bg-[#09090B] rounded-2xl relative overflow-hidden border border-white/5 flex flex-col items-center justify-end pb-0">
-                            {/* Background Stars/Dots */}
-                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-
-                            {/* Ai Text Content */}
-                            <div className="relative z-20 text-center mb-4 mt-6 w-full px-4">
-                              <h4 className="text-sm font-medium text-white mb-2">Ai Assistant</h4>
-                              <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400">
-                                <Loader size={10} color="gray" type="oval" />
-                                <span>is updating the balance amount now...</span>
-                              </div>
-                            </div>
-
-                            {/* Orb Visual - Image Asset */}
-                            <div className="relative w-full h-40 mt-auto overflow-hidden">
-                              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[-10%] w-[100%] h-[120%] flex justify-center items-end">
-                                <img
-                                  src="/assets/orb.png"
-                                  alt="Blue Ribbed Orb"
-                                  className="w-full h-full object-contain object-bottom scale-110 opacity-90 mix-blend-screen drop-shadow-[0_0_50px_rgba(59,130,246,0.3)] filter contrast-125 brightness-110"
-                                />
-                              </div>
-                            </div>
+                          {/* Chart Area for Balance/Commissions */}
+                          <div className="flex-1 w-full min-h-[140px] relative mt-4">
+                            <AreaChart
+                              h={200}
+                              data={dashboardData.commissionsOverTime.length > 0 ? dashboardData.commissionsOverTime : emptyCommissions}
+                              dataKey="period"
+                              series={[{ name: 'commission', color: '#42A5F5' }]}
+                              curveType="monotone"
+                              withXAxis={true}
+                              withYAxis={false}
+                              gridAxis="none"
+                              withDots={false}
+                              strokeWidth={3}
+                              fillOpacity={0.2}
+                              tooltipProps={{
+                                content: ({ payload }) => {
+                                  if (!payload || !payload[0]) return null;
+                                  const { period, commission } = payload[0].payload;
+                                  return (
+                                    <Box style={tooltipStyles}>
+                                      <Text fw={600} style={{ color: '#fff' }}>{period}</Text>
+                                      <Text style={{ color: '#fff' }}>Commission: ${formatNumber(commission, true)}</Text>
+                                    </Box>
+                                  );
+                                }
+                              }}
+                            />
                           </div>
                         </div>
                       </NeoCard>
                     </div>
-                  </div>
-
-                  {/* Ads */}
-                  <div className="col-span-5">
-                    <NeoCard
-                      variant="glass"
-                      className="h-full min-h-[340px] backdrop-blur-xl border border-white/20 relative overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
-                      style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
-                    >
-                      {/* Background Glow */}
-                      <div className="absolute bottom-0 right-0 w-64 h-64 bg-yellow-500/10 blur-[80px] rounded-full pointer-events-none" />
-
-                      <div className="p-6 h-full flex flex-col relative z-10">
-                        <div className="flex justify-between items-start mb-6">
-                          <div>
-                            <h3 className="text-md font-medium text-white leading-tight">Ads</h3>
-                            <span className="text-[10px] text-zinc-500">Powered by Carbon</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-zinc-400 cursor-pointer hover:text-white transition">
-                            Next <IconArrowRight size={12} />
-                          </div>
-                        </div>
-
-                        <div className="w-full py-2.5 bg-[#1F2023] text-zinc-300 text-xs font-medium rounded-lg border border-white/5 mb-6 text-center shadow-inner">
-                          Just for today!
-                        </div>
-
-                        <div className="relative mb-2">
-                          <h4 className="text-lg font-bold text-white leading-snug mb-2">
-                            Let's Go Premium with <span className="inline-block bg-[#F59E0B] text-black px-1.5 rounded-md transform -rotate-2 text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-yellow-300/50">40%</span>
-                          </h4>
-                          <p className="text-[10px] text-zinc-400 leading-relaxed max-w-[95%]">
-                            This is your amazing chance! Our premium subscription elevate your experience and unlock a range of benefits tailored to your preferences.
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-1 text-[11px] font-medium text-white cursor-pointer hover:text-blue-400 transition mb-auto">
-                          Learn more <IconArrowRight size={10} />
-                        </div>
-
-                        <div className="mt-6 flex justify-between items-center bg-transparent">
-                          <span className="text-[10px] text-zinc-500 cursor-pointer hover:text-zinc-300 transition">Don't show again</span>
-                          <button className="px-5 py-2 bg-white text-black text-xs font-bold rounded-full shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:bg-zinc-200 transition active:scale-95">
-                            Get started
-                          </button>
-                        </div>
-                      </div>
-                    </NeoCard>
                   </div>
                 </div>
 
@@ -688,76 +615,29 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   >
                     {/* Header */}
                     <div className="px-6 py-5 flex justify-between items-center border-b border-white/5">
-                      <h3 className="text-lg font-bold text-white">Popular Campaigns</h3>
-                      <div className="flex items-center gap-2 bg-[#1A1B1E] rounded-lg p-1 pr-3 border border-white/5 cursor-pointer hover:border-white/10 transition">
-                        <div className="bg-[#2C2D31] text-zinc-400 p-1 px-2 rounded text-[10px] font-mono flex items-center gap-1 shadow-sm">
-                          <span className="text-xs">⌘</span> 2
-                        </div>
-                        <span className="text-xs text-zinc-400 font-medium">as List</span>
-                        <IconChevronDown size={14} className="text-zinc-500" />
-                      </div>
+                      <h3 className="text-lg font-bold text-white">Popular Campaigns (Top Traffic)</h3>
                     </div>
 
                     {/* Table Header */}
                     <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/5 text-[11px] text-zinc-500 font-medium uppercase tracking-wider bg-[#0A0A0C]/30">
                       <div className="col-span-1">Rank</div>
-                      <div className="col-span-2">Name</div>
-                      <div className="col-span-2">Admin</div>
-                      <div className="col-span-2">Date Added</div>
-                      <div className="col-span-2">Business</div>
-                      <div className="col-span-1">Followers</div>
-                      <div className="col-span-1 text-center">Status</div>
-                      <div className="col-span-1 text-center">Operation</div>
+                      <div className="col-span-7">Offer Name</div>
+                      <div className="col-span-4 text-right">Clicks</div>
                     </div>
 
                     {/* Table Body */}
                     <div className="p-2">
-                      {[
-                        { rank: 1, name: "IBO Advert...", admin: "Samuel", img: "https://i.pravatar.cc/150?u=1", date: "02/14/2019", biz: "Advertising", status: "Public" },
-                        { rank: 2, name: "Pela Des...", admin: "Hossein", img: "https://i.pravatar.cc/150?u=2", date: "09/23/2017", biz: "Design Agency", status: "Public" },
-                        { rank: 3, name: "Emma Fa...", admin: "Maria", img: "https://i.pravatar.cc/150?u=3", date: "04/05/2023", biz: "Social Fandom", status: "Private" },
-                        { rank: 4, name: "Anaco Pr...", admin: "Stepha...", img: "https://i.pravatar.cc/150?u=4", date: "11/18/2021", biz: "Programming", status: "Public" },
-                      ].map((item, i) => (
-                        <div key={i} className="grid grid-cols-12 gap-4 px-4 py-4 items-center bg-blue-950/20 hover:bg-blue-900/30 transition rounded-lg my-0.5 group border border-blue-900/10">
-                          <div className="col-span-1 text-zinc-500 font-mono text-sm pl-1">#{item.rank}</div>
-                          <div className="col-span-2 text-white font-medium text-sm truncate">{item.name}</div>
-                          <div className="col-span-2 flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full overflow-hidden bg-zinc-800 ring-2 ring-[#0E0E10]">
-                              <img src={item.img} alt={item.admin} className="w-full h-full object-cover" />
-                            </div>
-                            <span className="text-zinc-300 text-xs">{(item.rank === 2 && !item.name.includes("IBO")) ? `${item.admin} (You)` : item.admin}</span>
+                      {dashboardData.trafficSources.length > 0 ? (
+                        dashboardData.trafficSources.slice(0, 5).map((item, i) => (
+                          <div key={i} className="grid grid-cols-12 gap-4 px-4 py-4 items-center bg-blue-950/20 hover:bg-blue-900/30 transition rounded-lg my-0.5 group border border-blue-900/10">
+                            <div className="col-span-1 text-zinc-500 font-mono text-sm pl-1">#{i + 1}</div>
+                            <div className="col-span-7 text-white font-medium text-sm truncate">{item.name}</div>
+                            <div className="col-span-4 text-white text-sm font-bold text-right">{item.value.toLocaleString()}</div>
                           </div>
-                          <div className="col-span-2 text-zinc-500 text-xs">{item.date}</div>
-                          <div className="col-span-2 text-zinc-400 text-xs">{item.biz}</div>
-                          <div className="col-span-1 flex -space-x-2">
-                            {[1, 2, 3].map(j => (
-                              <div key={j} className="w-6 h-6 rounded-full border-2 border-[#0E0E10] bg-zinc-800 overflow-hidden">
-                                <img src={`https://i.pravatar.cc/150?u=${item.rank * 10 + j}`} className="w-full h-full object-cover" />
-                              </div>
-                            ))}
-                            <div className="w-6 h-6 rounded-full border-2 border-[#0E0E10] bg-zinc-700 flex items-center justify-center text-[8px] text-white">99+</div>
-                          </div>
-                          <div className="col-span-1 flex justify-center">
-                            <div className={cn(
-                              "px-3 py-1 rounded-[6px] text-[10px] font-medium min-w-[60px] text-center border",
-                              item.status === "Public" ? "bg-zinc-800/50 border-transparent text-zinc-400" : "bg-transparent border-zinc-700 text-zinc-500"
-                            )}>
-                              {item.status}
-                            </div>
-                          </div>
-                          <div className="col-span-1 flex justify-center">
-                            {item.status === "Public" ? (
-                              <button className="h-8 px-4 bg-white hover:bg-zinc-200 text-black text-xs font-bold rounded-full shadow-lg transition-transform active:scale-95">
-                                Join
-                              </button>
-                            ) : (
-                              <button className="h-8 px-2 border border-zinc-600 text-zinc-300 hover:bg-zinc-800 text-xs font-medium rounded-full transition-colors active:scale-95">
-                                Requested
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                        ))
+                      ) : (
+                        <div className="p-6 text-center text-zinc-500 text-sm">No traffic data available for this period.</div>
+                      )}
                     </div>
                   </NeoCard>
                 </div>
