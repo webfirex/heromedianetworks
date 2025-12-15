@@ -356,8 +356,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       {/* Stats Rows */}
                       <div className="space-y-4 mb-8">
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-zinc-400">Max records</span>
-                          <span className="text-zinc-200">2 times increase to the last month</span>
+                          {/* <span className="text-zinc-400">Max records</span>
+                          <span className="text-zinc-200">2 times increase to the last month</span> */}
                         </div>
                         <div className="flex justify-between items-center text-xs">
                           <span className="text-zinc-400">Comparative rates</span>
