@@ -43,6 +43,17 @@ const getPercentageOfTarget = (value: number, target: number) => {
   return target > 0 ? ((value / target) * 100).toFixed(1) : '0.0';
 };
 
+// Helper function to format dates for chart display (YYYY-MM-DD -> MMM D)
+const formatChartDate = (dateStr: string): string => {
+  try {
+    const date = new Date(dateStr);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[date.getMonth()]} ${date.getDate()}`;
+  } catch {
+    return dateStr;
+  }
+};
+
 const CLICK_MONTHLY_TARGET = 50;
 const SALES_MONTHLY_TARGET = 10;
 const COMMISSION_MONTHLY_TARGET = 500;
@@ -95,6 +106,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [overviewTab, setOverviewTab] = useState<'24h' | 'Week' | 'Month'>('Month');
 
   const formatApiDate = (date: Date | null): string | null => {
     if (!date) return null;
@@ -172,6 +184,13 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           ...data
         };
         defaultData.weeklyClicks = processWeeklyClicks(defaultData.weeklyClicks);
+        // Format clicksOverTime dates for chart display
+        if (defaultData.clicksOverTime && defaultData.clicksOverTime.length > 0) {
+          defaultData.clicksOverTime = defaultData.clicksOverTime.map((item: ClicksOverTime) => ({
+            ...item,
+            period: formatChartDate(item.period)
+          }));
+        }
         setDashboardData(defaultData);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Failed to load dashboard data. Please try again.';
@@ -219,9 +238,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 withBorder={false}
                 p="md"
                 style={{
-                  background: '#151517',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                  border: '1px solid rgba(255,255,255,0.05)'
+                  background: 'rgba(10, 10, 12, 0.5)',
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)'
                 }}
               >
                 <Skeleton height="2rem" width="60%" mb="xs" />
@@ -238,9 +258,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   withBorder={false}
                   p="md"
                   style={{
-                    background: '#151517',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                    border: '1px solid rgba(255,255,255,0.05)'
+                    background: 'rgba(10, 10, 12, 0.5)',
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)'
                   }}
                 >
                   <Skeleton height="2rem" width="60%" mb="xs" />
@@ -254,9 +275,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             px="md"
             mb="sm"
             style={{
-              background: '#151517',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              border: '1px solid rgba(255,255,255,0.05)',
+              background: 'rgba(10, 10, 12, 0.5)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: '1.3rem'
             }}
           >
@@ -272,9 +294,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 withBorder={false}
                 p="md"
                 style={{
-                  background: '#151517',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                  border: '1px solid rgba(255,255,255,0.05)'
+                  background: 'rgba(10, 10, 12, 0.5)',
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)'
                 }}
               >
                 <Skeleton height="1.75rem" width="40%" mb="xs" />
@@ -287,7 +310,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
         <>
           <Grid gutter="md" mb="xl">
             {/* Left Column (Span 4) */}
-            <Grid.Col span={{ base: 12, md: 4 }}>
+            <Grid.Col span={4}>
               <div className="flex flex-col gap-6 h-full">
                 {/* Card 1: Overview (My Campaigns) */}
                 <div className="flex flex-col h-full">
@@ -313,13 +336,15 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                   <NeoCard
                     variant="glass"
-                    className="w-full min-h-[520px] bg-[#0A0A0C]/70 backdrop-blur-xl border-white/10 active:scale-[0.99] transition-transform duration-300 relative overflow-hidden"
+                    className="w-full min-h-[520px] backdrop-blur-xl border border-white/20 active:scale-[0.99] transition-transform duration-300 relative overflow-hidden"
                     style={{
-                      boxShadow: '-12px -12px 30px rgba(255, 255, 255, 0.02), 12px 12px 30px rgba(59, 130, 246, 0.15)'
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
                     }}
                   >
-                    {/* Subtle Blue ambient glow at bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-blue-900/10 to-transparent pointer-events-none" />
+                    {/* Ambient Glows */}
+                    <div className="absolute top-0 left-0 w-72 h-72 bg-white/20 blur-[120px] rounded-full pointer-events-none" />
+                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/30 blur-[140px] rounded-full pointer-events-none" />
 
                     <div className="flex flex-col h-full p-6 relative z-10">
                       {/* Card Internal Header */}
@@ -336,22 +361,63 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         </div>
                         <div className="flex justify-between items-center text-xs">
                           <span className="text-zinc-400">Comparative rates</span>
-                          <span className="text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded text-[10px]">+ {clicksPercentageChange}%</span>
+                          <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${isClicksPositive ? 'text-blue-400 bg-blue-500/10' : 'text-red-400 bg-red-500/10'}`}>
+                            {Number(clicksPercentageChange) > 0 ? '+' : ''} {clicksPercentageChange}%
+                          </span>
                         </div>
                       </div>
 
                       {/* Tabs */}
                       <div className="bg-[#131416]/50 rounded-xl p-1.5 grid grid-cols-3 gap-1 mb-8 border border-white/5">
-                        <div className="text-center py-2 text-xs text-zinc-400 cursor-pointer hover:text-white hover:bg-white/5 rounded-lg transition font-medium">24h</div>
-                        <div className="text-center py-2 text-xs text-zinc-400 cursor-pointer hover:text-white hover:bg-white/5 rounded-lg transition font-medium">Week</div>
-                        <div className="text-center py-2 text-xs font-semibold text-white bg-[#2C2D31] rounded-lg shadow-md border border-white/10">Month</div>
+                        {['24h', 'Week', 'Month'].map((tab) => (
+                          <div
+                            key={tab}
+                            onClick={() => setOverviewTab(tab as any)}
+                            className={`text-center py-2 text-xs cursor-pointer rounded-lg transition font-medium ${overviewTab === tab
+                              ? 'text-white bg-[#2C2D31] shadow-md border border-white/10'
+                              : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                              }`}
+                          >
+                            {tab}
+                          </div>
+                        ))}
                       </div>
 
                       {/* Chart Area */}
                       <div className="flex-1 w-full min-h-[140px] relative">
+                        <style jsx>{`
+                          :global(.mantine-AreaChart-root) {
+                            background: transparent !important;
+                          }
+                          :global(.recharts-surface) {
+                            background: transparent !important;
+                          }
+                          :global(.recharts-wrapper) {
+                            background: transparent !important;
+                          }
+                          :global(.recharts-area) {
+                            opacity: 1 !important;
+                          }
+                          :global(.recharts-area-area) {
+                            fill: url(#blueGradient) !important;
+                            opacity: 0.4 !important;
+                          }
+                          :global(.recharts-area-curve),
+                          :global(.recharts-line-curve),
+                          :global(path[name="clicks"]) {
+                            stroke: #3B82F6 !important;
+                            stroke-width: 4px !important;
+                            opacity: 1 !important;
+                            fill: none !important;
+                          }
+                        `}</style>
                         <AreaChart
-                          h={140}
-                          data={dashboardData.clicksOverTime.length > 0 ? dashboardData.clicksOverTime : emptyClicksOverTime}
+                          h={150}
+                          data={
+                            overviewTab === 'Month' ? dashboardData.clicksOverTime :
+                              overviewTab === 'Week' ? dashboardData.clicksOverTime.slice(-7) :
+                                dashboardData.clicksOverTime.slice(-24)
+                          }
                           dataKey="period"
                           series={[{ name: 'clicks', color: '#3B82F6' }]}
                           curveType="monotone"
@@ -359,32 +425,59 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           withYAxis={false}
                           gridAxis="none"
                           withDots={false}
-                          fillOpacity={0.1}
-                          strokeWidth={3}
-                          textColor="#52525B"
+                          strokeWidth={3.5}
+                          fillOpacity={0.4}
+                          textColor="#9CA3AF"
+                          xAxisProps={{
+                            tick: { fill: '#9CA3AF', fontSize: 11 },
+                            tickLine: { stroke: '#374151' },
+                            axisLine: { stroke: '#374151' }
+                          }}
+                          tooltipProps={{
+                            content: ({ payload }) => {
+                              if (!payload || !payload[0]) return null;
+                              const { period, clicks } = payload[0].payload;
+                              // Calculate simple % change from previous point if possible, else nice text
+                              const prevIndex = dashboardData.clicksOverTime.findIndex(p => p.period === period) - 1;
+                              const prevValue = prevIndex >= 0 ? dashboardData.clicksOverTime[prevIndex].clicks : clicks;
+                              const change = prevValue > 0 ? ((clicks - prevValue) / prevValue * 100).toFixed(2) : "0.00";
+                              const isUp = Number(change) >= 0;
+
+                              return (
+                                <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="text-[10px] text-zinc-400 mb-1">{period}</div>
+                                    <div className="text-sm font-bold text-white tracking-tight">{formatNumber(clicks)}</div>
+                                    <div className={`text-[10px] font-bold mt-1 ${isUp ? 'text-blue-400' : 'text-red-400'}`}>
+                                      {isUp ? '+' : ''} {change} %
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                          }}
                         />
-                        {/* Floating tooltip mock (Static for visual match) */}
-                        <div className="absolute top-[40%] right-[25%] bg-[#121420]/90 border border-white/5 p-3 rounded-xl shadow-2xl backdrop-blur-md">
-                          <div className="flex flex-col gap-0.5">
-                            <div className="text-[10px] text-zinc-400 mb-1">Mar 29</div>
-                            <div className="text-sm font-bold text-white tracking-tight">$ 5,538.65</div>
-                            <div className="text-[10px] text-blue-400 font-bold mt-1">+ 9.41 %</div>
-                          </div>
-                          {/* Line and Dot indicator */}
-                          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-white/20 border-l border-dashed border-white/30"></div>
-                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#0A0A0C] border-[2px] border-white rounded-full shadow-[0_0_10px_rgba(59,130,246,0.8)] z-10"></div>
-                        </div>
+                        <svg width="0" height="0">
+                          <defs>
+                            <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
+                              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.05" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
                       </div>
 
                       {/* Footer Stats */}
                       <div className="mt-6 flex justify-between items-end">
                         <div className="flex items-center gap-1">
-                          <div className="text-blue-500 text-3xl font-bold mb-1">+</div>
-                          <div className="text-4xl font-bold text-white tracking-tight">{Math.abs(Number(clicksPercentageChange))}.23<span className="text-2xl text-white ml-1">%</span></div>
+                          <div className={`text-3xl font-bold mb-1 ${isClicksPositive ? 'text-blue-500' : 'text-red-500'}`}>{isClicksPositive ? '+' : '-'}</div>
+                          <div className="text-4xl font-bold text-white tracking-tight">{Math.abs(Number(clicksPercentageChange))}<span className="text-2xl text-white ml-1">%</span></div>
                         </div>
                         <div className="text-right">
                           <div className="text-[10px] text-zinc-600">Last updated</div>
-                          <div className="text-[11px] font-medium text-zinc-400">Today, 06:49 AM</div>
+                          <div className="text-[11px] font-medium text-zinc-400">
+                            Today, {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -392,7 +485,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 </div>
 
                 {/* My Top Campaigns (New Mock) */}
-                <NeoCard variant="glass" className="flex-1 min-h-[280px] bg-[#0A0A0C]/70 backdrop-blur-xl border-white/10 p-6">
+                <NeoCard variant="glass" className="flex-1 min-h-[280px] backdrop-blur-xl border border-white/20 p-6" style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}>
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-bold text-white">My Top Campaigns</h3>
                     <div className="flex items-center gap-2 text-zinc-500">
@@ -446,12 +539,12 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             </Grid.Col>
 
             {/* Right Column (Span 8) */}
-            <Grid.Col span={{ base: 12, md: 8 }}>
+            <Grid.Col span={8}>
               <div className="flex flex-col gap-6 h-full">
                 {/* Row 1: nested Grid for Balance (7) + Ads (5) */}
                 <div className="grid grid-cols-12 gap-6">
                   {/* Total Balance */}
-                  <div className="col-span-12 md:col-span-7">
+                  <div className="col-span-7">
                     <div className="flex flex-col h-full">
                       {/* External Header */}
                       <div className="mb-4 pl-1">
@@ -475,7 +568,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                       <NeoCard
                         variant="glass"
-                        className="flex-1 min-h-[384px] bg-[#0E0E10]/70 backdrop-blur-xl border-white/10 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                        className="flex-1 min-h-[384px] backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                        style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                       >
                         <div className="p-6 relative z-10 flex flex-col h-full">
                           {/* Top Stats */}
@@ -537,13 +631,14 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   </div>
 
                   {/* Ads */}
-                  <div className="col-span-12 md:col-span-5">
+                  <div className="col-span-5">
                     <NeoCard
                       variant="glass"
-                      className="h-full min-h-[340px] bg-[#0E0E10]/70 backdrop-blur-xl border-white/10 relative overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                      className="h-full min-h-[340px] backdrop-blur-xl border border-white/20 relative overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                      style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                     >
                       {/* Background Glow */}
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 blur-[80px] rounded-full pointer-events-none" />
+                      <div className="absolute bottom-0 right-0 w-64 h-64 bg-yellow-500/10 blur-[80px] rounded-full pointer-events-none" />
 
                       <div className="p-6 h-full flex flex-col relative z-10">
                         <div className="flex justify-between items-start mb-6">
@@ -588,7 +683,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 <div className="flex-1">
                   <NeoCard
                     variant="glass"
-                    className="w-full p-0 bg-[#0E0E10]/70 backdrop-blur-xl border-white/10 overflow-hidden flex-1"
+                    className="w-full p-0 backdrop-blur-xl border border-white/20 overflow-hidden flex-1"
+                    style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                   >
                     {/* Header */}
                     <div className="px-6 py-5 flex justify-between items-center border-b border-white/5">
@@ -622,7 +718,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         { rank: 3, name: "Emma Fa...", admin: "Maria", img: "https://i.pravatar.cc/150?u=3", date: "04/05/2023", biz: "Social Fandom", status: "Private" },
                         { rank: 4, name: "Anaco Pr...", admin: "Stepha...", img: "https://i.pravatar.cc/150?u=4", date: "11/18/2021", biz: "Programming", status: "Public" },
                       ].map((item, i) => (
-                        <div key={i} className="grid grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-white/5 transition rounded-lg my-0.5 group">
+                        <div key={i} className="grid grid-cols-12 gap-4 px-4 py-4 items-center bg-blue-950/20 hover:bg-blue-900/30 transition rounded-lg my-0.5 group border border-blue-900/10">
                           <div className="col-span-1 text-zinc-500 font-mono text-sm pl-1">#{item.rank}</div>
                           <div className="col-span-2 text-white font-medium text-sm truncate">{item.name}</div>
                           <div className="col-span-2 flex items-center gap-2">
@@ -675,7 +771,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
             <NeoCard
               variant="glass"
-              className="p-6 bg-zinc-900/40"
+              className="p-6 backdrop-blur-xl border border-white/20"
+              style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
             >
               <Title
                 order={4}
@@ -729,7 +826,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             </NeoCard>
             <NeoCard
               variant="glass"
-              className="p-6 bg-zinc-900/40"
+              className="p-6 backdrop-blur-xl border border-white/10"
+              style={{ background: 'rgba(255, 255, 255, 0.02)' }}
             >
               <Title
                 order={4}
@@ -767,7 +865,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             </NeoCard>
             <NeoCard
               variant="glass"
-              className="p-6 bg-zinc-900/40"
+              className="p-6 backdrop-blur-xl border border-white/10"
+              style={{ background: 'rgba(255, 255, 255, 0.02)' }}
             >
               <Title
                 order={4}
@@ -805,7 +904,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             </NeoCard>
             <NeoCard
               variant="glass"
-              className="p-6 bg-zinc-900/40"
+              className="p-6 backdrop-blur-xl border border-white/10"
+              style={{ background: 'rgba(255, 255, 255, 0.02)' }}
             >
               <Title
                 order={4}

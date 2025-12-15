@@ -4,12 +4,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { signOut } from 'next-auth/react';
 import {
-  LayoutDashboard,
-  Gift,
-  Rocket,
-  FileText,
+  Home,
+  Tag,
+  Webhook,
+  Ticket,
   GraduationCap,
-  Upload,
+  Database,
+  Compass,
+  Settings,
   LogOut,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -24,12 +26,12 @@ interface DashboardSidebarProps {
 }
 
 const navigationItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'top-offers', label: 'My Offers', icon: Gift },
-  { id: 'postback', label: 'Postback', icon: Rocket },
-  { id: 'coupons', label: 'Coupons', icon: FileText },
-  { id: 'product-feed', label: 'Product Feed', icon: Upload },
-  { id: 'search-browse', label: 'Browse', icon: GraduationCap },
+  { id: 'dashboard', label: 'Dashboard', icon: Home },
+  { id: 'top-offers', label: 'My Offers', icon: Tag },
+  { id: 'postback', label: 'Postback', icon: Webhook },
+  { id: 'coupons', label: 'Coupons', icon: Ticket },
+  { id: 'product-feed', label: 'Product Feed', icon: Database },
+  { id: 'search-browse', label: 'Browse', icon: Compass },
 ];
 
 export default function DashboardSidebar({
@@ -96,29 +98,24 @@ export default function DashboardSidebar({
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                       'group relative',
-                      // Default state - muted text
                       'text-sidebar-foreground/70',
-                      // Hover state - full foreground, subtle background
-                      'hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
-                      // Active state - primary color icon, background, and left border
-                      isActive && 'bg-sidebar-accent text-sidebar-primary border-l-2 border-sidebar-primary',
                       collapsed && 'justify-center px-2'
                     )}
                   >
                     {/* Icon container with rounded background on hover/active */}
                     <div
                       className={cn(
-                        'flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200',
-                        isActive && 'bg-sidebar-primary/20',
-                        !isActive && 'group-hover:bg-sidebar-accent/30'
+                        'flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200',
+                        isActive && 'bg-white/10',
+                        !isActive && 'group-hover:bg-white/5'
                       )}
                     >
                       <Icon
-                        size={20}
+                        size={18}
                         className={cn(
-                          'flex-shrink-0 transition-colors duration-200',
-                          isActive && 'text-sidebar-primary',
-                          !isActive && 'text-sidebar-foreground/70 group-hover:text-sidebar-foreground'
+                          'flex-shrink-0 transition-colors duration-200 stroke-[1.5]',
+                          isActive && 'text-white',
+                          !isActive && 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground/90'
                         )}
                       />
                     </div>
@@ -129,8 +126,8 @@ export default function DashboardSidebar({
                         exit={{ opacity: 0 }}
                         className={cn(
                           'text-sm font-medium whitespace-nowrap transition-colors duration-200',
-                          isActive && 'text-sidebar-primary',
-                          !isActive && 'text-sidebar-foreground/70 group-hover:text-sidebar-foreground'
+                          isActive && 'text-white',
+                          !isActive && 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground/90'
                         )}
                       >
                         {item.label}
@@ -158,19 +155,19 @@ export default function DashboardSidebar({
                 onClick={() => signOut()}
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
-                  'group text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
+                  'group text-sidebar-foreground/60',
                   collapsed && 'justify-center px-2'
                 )}
               >
-                <div className="flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 group-hover:bg-sidebar-accent/30">
-                  <LogOut size={20} className="flex-shrink-0 text-sidebar-foreground/70 group-hover:text-sidebar-foreground transition-colors duration-200" />
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 group-hover:bg-white/5">
+                  <LogOut size={18} className="flex-shrink-0 text-sidebar-foreground/60 group-hover:text-sidebar-foreground/90 transition-colors duration-200 stroke-[1.5]" />
                 </div>
                 {!collapsed && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-sm font-medium whitespace-nowrap"
+                    className="text-sm font-medium whitespace-nowrap text-sidebar-foreground/60 group-hover:text-sidebar-foreground/90 transition-colors duration-200"
                   >
                     Logout
                   </motion.span>
