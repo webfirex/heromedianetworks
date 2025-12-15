@@ -63,7 +63,7 @@
     --shadow-blur: 0px;
     --shadow-spread: 0px;
     --shadow-opacity: 0;
-    --shadow-color: rgba(29,161,242,0.15);
+    --shadow-color: rgba(29, 161, 242, 0.15);
     --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
     --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
     --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
@@ -75,7 +75,7 @@
     --tracking-normal: 0em;
     --spacing: 0.25rem;
   }
-  
+
   .dark {
     --background: oklch(0 0 0);
     --foreground: oklch(0.9328 0.0025 228.7857);
@@ -118,7 +118,7 @@
     --shadow-blur: 0px;
     --shadow-spread: 0px;
     --shadow-opacity: 0;
-    --shadow-color: rgba(29,161,242,0.25);
+    --shadow-color: rgba(29, 161, 242, 0.25);
     --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
     --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
     --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
@@ -181,11 +181,26 @@
     --shadow-xl: var(--shadow-xl);
     --shadow-2xl: var(--shadow-2xl);
   }
-  
+
   body {
-    background-color: var(--background);
+    background-color: #000000;
     color: var(--foreground);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-}
 
+  /* iOS-style Fluid Glassmorphism */
+  .backdrop-blur-xl {
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+  }
+
+  .backdrop-blur-lg {
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+  }
+
+  .backdrop-blur-md {
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+}
