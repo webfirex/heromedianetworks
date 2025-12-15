@@ -29,9 +29,6 @@ const navigationItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'top-offers', label: 'My Offers', icon: Tag },
   { id: 'postback', label: 'Postback', icon: Webhook },
-  { id: 'coupons', label: 'Coupons', icon: Ticket },
-  { id: 'product-feed', label: 'Product Feed', icon: Database },
-  { id: 'search-browse', label: 'Browse', icon: Compass },
 ];
 
 export default function DashboardSidebar({
@@ -98,7 +95,7 @@ export default function DashboardSidebar({
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                       'group relative',
-                      'text-sidebar-foreground/70',
+                      'text-zinc-400',
                       collapsed && 'justify-center px-2'
                     )}
                   >
@@ -115,7 +112,7 @@ export default function DashboardSidebar({
                         className={cn(
                           'flex-shrink-0 transition-colors duration-200 stroke-[1.5]',
                           isActive && 'text-white',
-                          !isActive && 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground/90'
+                          !isActive && 'text-zinc-400 group-hover:text-white'
                         )}
                       />
                     </div>
@@ -127,7 +124,7 @@ export default function DashboardSidebar({
                         className={cn(
                           'text-sm font-medium whitespace-nowrap transition-colors duration-200',
                           isActive && 'text-white',
-                          !isActive && 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground/90'
+                          !isActive && 'text-zinc-400 group-hover:text-white'
                         )}
                       >
                         {item.label}
@@ -144,43 +141,6 @@ export default function DashboardSidebar({
             );
           })}
         </nav>
-
-        {/* Footer - Logout */}
-        <div className="p-3">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => signOut()}
-                className={cn(
-                  'w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
-                  'group text-sidebar-foreground/60',
-                  collapsed && 'justify-center px-2'
-                )}
-              >
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 group-hover:bg-white/5">
-                  <LogOut size={18} className="flex-shrink-0 text-sidebar-foreground/60 group-hover:text-sidebar-foreground/90 transition-colors duration-200 stroke-[1.5]" />
-                </div>
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-sm font-medium whitespace-nowrap text-sidebar-foreground/60 group-hover:text-sidebar-foreground/90 transition-colors duration-200"
-                  >
-                    Logout
-                  </motion.span>
-                )}
-              </motion.button>
-            </TooltipTrigger>
-            {collapsed && (
-              <TooltipContent side="right" className="bg-sidebar border border-sidebar-border text-sidebar-foreground">
-                <p>Logout</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </div>
       </motion.aside>
     </TooltipProvider>
   );

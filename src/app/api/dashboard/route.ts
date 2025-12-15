@@ -34,364 +34,249 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Missing publisher_id' }, { status: 400 });
     }
 
-    const dashboardData: DashboardData = {
-      totalClicks: 0,
-      totalConversions: 0,
-      totalEarning: 0,
-      clicksThisMonth: 0,
-      clicksPreviousMonth: 0,
-      salesThisMonth: 0,
-      salesPreviousMonth: 0,
-      commissionThisMonth: 0,
-      commissionPreviousMonth: 0,
-      weeklyClicks: [],
-      trafficSources: [],
-      clicksOverTime: [],
-      conversionTrend: [],
-      commissionsOverTime: [],
-      conversionsByOffer: [],
-      rawTotalConversions: 0,
-      conversionsDifference: 0,
-      avgCommissionCut: 0,
-    };
-
-    // Define date ranges for this month and previous month
+    // Define date ranges
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     const firstDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-    // Build date filter for optional date range (using created_at for clicks, created_at for conversions)
+    // Filters
     const clicksDateFilter = startDate && endDate
       ? {
-          timestamp: {
-            gte: new Date(startDate),
-            lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000), // Add 1 day
-          },
-        }
+        timestamp: {
+          gte: new Date(startDate),
+          lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000),
+        },
+      }
       : {};
-    
+
     const conversionsDateFilter = startDate && endDate
       ? {
-          created_at: {
-            gte: new Date(startDate),
-            lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000), // Add 1 day
-          },
-        }
+        created_at: {
+          gte: new Date(startDate),
+          lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000),
+        },
+      }
       : {};
 
-    // Total Clicks
-    const totalClicksWhere: Prisma.ClickWhereInput = {
-      pub_id: publisher_id,
-      ...(startDate && endDate ? clicksDateFilter : {}),
+    // 1. Fetch all OfferPublisher configs for this publisher once (small dataset)
+    const offerPublishers = await prisma.offerPublisher.findMany({
+      where: { publisher_id },
+      select: { offer_id: true, commission_cut: true },
+    });
+    const cutMap = new Map(offerPublishers.map(op => [op.offer_id, Number(op.commission_cut || 0)]));
+
+    // Helper to calculate shaved counts based on cuts
+    const calculateShavedCount = (offerCounts: { offer_id: number; _count: { id: number } }[]) => {
+      let rawTotal = 0;
+      let shavedTotal = 0;
+      let weightedCutSum = 0;
+
+      for (const item of offerCounts) {
+        const count = item._count.id;
+        const cut = cutMap.get(item.offer_id) || 0;
+
+        rawTotal += count;
+        shavedTotal += count * (1 - cut / 100);
+        weightedCutSum += count * cut;
+      }
+
+      return {
+        raw: rawTotal,
+        shaved: Math.round(shavedTotal),
+        avgCut: rawTotal > 0 ? weightedCutSum / rawTotal : 0
+      };
     };
-    dashboardData.totalClicks = await prisma.click.count({
-      where: totalClicksWhere,
-    });
 
-    // Total Conversions with commission calculation
-    const conversions = await prisma.conversion.findMany({
-      where: {
-        pub_id: publisher_id,
-        ...(startDate && endDate ? conversionsDateFilter : {}),
-      },
-      include: {
-        offer: {
-          include: {
-            offerPublishers: {
-              where: { publisher_id },
-              select: { commission_cut: true },
-            },
-          },
+    // Determine chart date range: Use user input if provided, otherwise default to current month
+    const queryStartDate = startDate ? new Date(startDate) : firstDayOfMonth;
+    const queryEndDate = endDate ? new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000) : lastDayOfMonth;
+
+    // Parallelize all independent queries with combined SQL for performance
+    const [
+      clicksStats,
+      conversionsStats,
+      weeklyClicksResult,
+      trafficSourcesData,
+      clicksOverTimeResult,
+      conversionTrendResult,
+      commissionsOverTimeResult,
+      conversionsByOfferData
+    ] = await Promise.all([
+
+      // 1. Combined Click Stats (Total, This Month, Prev Month)
+      prisma.$queryRaw<Array<{ metric: string, count: bigint }>>`
+        SELECT 'total' as metric, COUNT(*) as count FROM clicks WHERE pub_id = ${publisher_id}::uuid
+        UNION ALL
+        SELECT 'this_month' as metric, COUNT(*) as count FROM clicks WHERE pub_id = ${publisher_id}::uuid AND timestamp BETWEEN ${firstDayOfMonth} AND ${lastDayOfMonth}
+        UNION ALL
+        SELECT 'prev_month' as metric, COUNT(*) as count FROM clicks WHERE pub_id = ${publisher_id}::uuid AND timestamp BETWEEN ${firstDayOfPreviousMonth} AND ${lastDayOfPreviousMonth}
+      `,
+
+      // 2. Combined Conversion Stats (Total, This Month, Prev Month)
+      prisma.$queryRaw<Array<{ metric: string, count: bigint, sum_commission: number, offer_id: number }>>`
+        -- Global
+        SELECT 'global' as metric, COUNT(*) as count, COALESCE(SUM(commission_amount), 0)::float as sum_commission, offer_id 
+        FROM conversions 
+        WHERE pub_id = ${publisher_id}::uuid
+        GROUP BY offer_id
+        
+        UNION ALL
+        
+        -- This Month
+        SELECT 'this_month' as metric, COUNT(*) as count, COALESCE(SUM(commission_amount), 0)::float as sum_commission, offer_id 
+        FROM conversions 
+        WHERE pub_id = ${publisher_id}::uuid AND created_at BETWEEN ${firstDayOfMonth} AND ${lastDayOfMonth}
+        GROUP BY offer_id
+        
+        UNION ALL
+        
+        -- Prev Month
+        SELECT 'prev_month' as metric, COUNT(*) as count, COALESCE(SUM(commission_amount), 0)::float as sum_commission, offer_id 
+        FROM conversions 
+        WHERE pub_id = ${publisher_id}::uuid AND created_at BETWEEN ${firstDayOfPreviousMonth} AND ${lastDayOfPreviousMonth}
+        GROUP BY offer_id
+      `,
+
+      // 3. Weekly Clicks (Always current week for specific card)
+      prisma.$queryRaw<Array<{ day: string; date: string; clicks: bigint }>>`
+        SELECT 
+          TO_CHAR(timestamp::date, 'Dy') AS day,
+          TO_CHAR(timestamp::date, 'YYYY-MM-DD') AS date,
+          COUNT(*)::bigint as clicks
+        FROM clicks
+        WHERE pub_id = ${publisher_id}::uuid
+          AND timestamp >= date_trunc('week', CURRENT_DATE)
+        GROUP BY date, day
+        ORDER BY date
+      `,
+
+      // 4. Traffic Sources (Geo)
+      prisma.click.groupBy({
+        by: ['geo'],
+        where: {
+          pub_id: publisher_id,
+          timestamp: { gte: queryStartDate, lt: queryEndDate }
         },
-      },
-    });
-
-    dashboardData.rawTotalConversions = conversions.length;
-    
-    // Calculate average commission cut
-    const commissionCuts = conversions
-      .map((conv) => conv.offer.offerPublishers[0]?.commission_cut)
-      .filter((cut) => cut !== null && cut !== undefined)
-      .map((cut) => Number(cut));
-    
-    dashboardData.avgCommissionCut = commissionCuts.length > 0
-      ? commissionCuts.reduce((sum, cut) => sum + cut, 0) / commissionCuts.length
-      : 0;
-
-    dashboardData.totalConversions = Math.round(
-      dashboardData.rawTotalConversions * (1 - dashboardData.avgCommissionCut / 100)
-    );
-    dashboardData.conversionsDifference = dashboardData.rawTotalConversions - dashboardData.totalConversions;
-
-    // Total Earnings (commission_amount from conversions)
-    const totalEarningsResult = await prisma.conversion.aggregate({
-      where: {
-        pub_id: publisher_id,
-        ...(startDate && endDate ? conversionsDateFilter : {}),
-      },
-      _sum: {
-        commission_amount: true,
-      },
-    });
-    dashboardData.totalEarning = Number(totalEarningsResult._sum.commission_amount || 0);
-
-    // Clicks This Month
-    dashboardData.clicksThisMonth = await prisma.click.count({
-      where: {
-        pub_id: publisher_id,
-        timestamp: {
-          gte: firstDayOfMonth,
-          lte: lastDayOfMonth,
+        _count: { id: true },
+        orderBy: {
+          _count: { id: 'desc' }
         },
-      },
-    });
+        take: 5
+      }),
 
-    // Clicks Previous Month
-    dashboardData.clicksPreviousMonth = await prisma.click.count({
-      where: {
-        pub_id: publisher_id,
-        timestamp: {
-          gte: firstDayOfPreviousMonth,
-          lte: lastDayOfPreviousMonth,
+      // 5. Clicks Over Time (Daily - Use selected range)
+      prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
+        SELECT 
+          TO_CHAR(timestamp, 'YYYY-MM-DD') as period, 
+          COUNT(*)::bigint as clicks
+        FROM clicks
+        WHERE pub_id = ${publisher_id}::uuid
+          AND timestamp >= ${queryStartDate}
+          AND timestamp < ${queryEndDate}
+        GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD')
+        ORDER BY TO_CHAR(timestamp, 'YYYY-MM-DD')
+      `,
+
+      // 6. Conversion Trend (Daily - Use selected range)
+      prisma.$queryRaw<Array<{ period: string; conversions: bigint }>>`
+        SELECT 
+          TO_CHAR(created_at, 'YYYY-MM-DD') as period, 
+          COUNT(*)::bigint as conversions
+        FROM conversions
+        WHERE pub_id = ${publisher_id}::uuid
+          AND created_at >= ${queryStartDate}
+          AND created_at < ${queryEndDate}
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
+        ORDER BY TO_CHAR(created_at, 'YYYY-MM-DD')
+      `,
+
+      // 7. Commissions Over Time (Daily - Use selected range)
+      prisma.$queryRaw<Array<{ period: string; commission: number }>>`
+        SELECT 
+          TO_CHAR(created_at, 'YYYY-MM-DD') as period, 
+          COALESCE(SUM(commission_amount), 0)::float as commission
+        FROM conversions
+        WHERE pub_id = ${publisher_id}::uuid
+          AND created_at >= ${queryStartDate}
+          AND created_at < ${queryEndDate}
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
+        ORDER BY TO_CHAR(created_at, 'YYYY-MM-DD')
+      `,
+
+      // 8. Conversions By Offer (for list)
+      prisma.conversion.groupBy({
+        by: ['offer_id'],
+        where: {
+          pub_id: publisher_id,
+          created_at: { gte: queryStartDate, lt: queryEndDate }
         },
-      },
-    });
+        _count: { id: true },
+      }),
+    ]);
 
-    // Sales This Month (with commission calculation)
-    const salesThisMonthConversions = await prisma.conversion.findMany({
-      where: {
-        pub_id: publisher_id,
-        created_at: {
-          gte: firstDayOfMonth,
-          lte: lastDayOfMonth,
-        },
-      },
-      include: {
-        offer: {
-          include: {
-            offerPublishers: {
-              where: { publisher_id },
-              select: { commission_cut: true },
-            },
-          },
-        },
-      },
-    });
+    console.log('[DEBUG] Weekly Clicks Raw from DB:', weeklyClicksResult);
+    console.log('[DEBUG] Publisher ID:', publisher_id);
 
-    const salesThisMonthCommissionCuts = salesThisMonthConversions
-      .map((conv) => conv.offer.offerPublishers[0]?.commission_cut)
-      .filter((cut) => cut !== null && cut !== undefined)
-      .map((cut) => Number(cut));
-    
-    const salesThisMonthCommission = salesThisMonthCommissionCuts.length > 0
-      ? salesThisMonthCommissionCuts.reduce((sum, cut) => sum + cut, 0) / salesThisMonthCommissionCuts.length
-      : 0;
-    
-    dashboardData.salesThisMonth = Math.round(
-      salesThisMonthConversions.length * (1 - salesThisMonthCommission / 100)
-    );
+    // Parse Click Stats
+    const totalClicks = Number(clicksStats.find(s => s.metric === 'total')?.count || 0);
+    const clicksThisMonth = Number(clicksStats.find(s => s.metric === 'this_month')?.count || 0);
+    const clicksPreviousMonth = Number(clicksStats.find(s => s.metric === 'prev_month')?.count || 0);
 
-    // Sales Previous Month
-    const salesPreviousMonthConversions = await prisma.conversion.findMany({
-      where: {
-        pub_id: publisher_id,
-        created_at: {
-          gte: firstDayOfPreviousMonth,
-          lte: lastDayOfPreviousMonth,
-        },
-      },
-      include: {
-        offer: {
-          include: {
-            offerPublishers: {
-              where: { publisher_id },
-              select: { commission_cut: true },
-            },
-          },
-        },
-      },
-    });
+    // Parse Conversion Stats (grouped by offer)
+    const globalConversions = conversionsStats.filter(s => s.metric === 'global').map(s => ({ offer_id: s.offer_id, _count: { id: Number(s.count) } }));
+    const thisMonthConversions = conversionsStats.filter(s => s.metric === 'this_month').map(s => ({ offer_id: s.offer_id, _count: { id: Number(s.count) } }));
+    const prevMonthConversions = conversionsStats.filter(s => s.metric === 'prev_month').map(s => ({ offer_id: s.offer_id, _count: { id: Number(s.count) } }));
 
-    const salesPreviousMonthCommissionCuts = salesPreviousMonthConversions
-      .map((conv) => conv.offer.offerPublishers[0]?.commission_cut)
-      .filter((cut) => cut !== null && cut !== undefined)
-      .map((cut) => Number(cut));
-    
-    const salesPreviousMonthCommission = salesPreviousMonthCommissionCuts.length > 0
-      ? salesPreviousMonthCommissionCuts.reduce((sum, cut) => sum + cut, 0) / salesPreviousMonthCommissionCuts.length
-      : 0;
-    
-    dashboardData.salesPreviousMonth = Math.round(
-      salesPreviousMonthConversions.length * (1 - salesPreviousMonthCommission / 100)
-    );
+    // Sum earnings directly from the DB results
+    const totalEarnings = conversionsStats.filter(s => s.metric === 'global').reduce((sum, s) => sum + (s.sum_commission || 0), 0);
+    const commissionThisMonth = conversionsStats.filter(s => s.metric === 'this_month').reduce((sum, s) => sum + (s.sum_commission || 0), 0);
+    const commissionPreviousMonth = conversionsStats.filter(s => s.metric === 'prev_month').reduce((sum, s) => sum + (s.sum_commission || 0), 0);
 
-    // Commission This Month
-    const commissionThisMonthResult = await prisma.conversion.aggregate({
-      where: {
-        pub_id: publisher_id,
-        created_at: {
-          gte: firstDayOfMonth,
-          lte: lastDayOfMonth,
-        },
-      },
-      _sum: {
-        commission_amount: true,
-      },
-    });
-    dashboardData.commissionThisMonth = Number(commissionThisMonthResult._sum.commission_amount || 0);
+    // Process calculated stats
+    const globalStats = calculateShavedCount(globalConversions);
+    const thisMonthStats = calculateShavedCount(thisMonthConversions);
+    const prevMonthStats = calculateShavedCount(prevMonthConversions);
 
-    // Commission Previous Month
-    const commissionPreviousMonthResult = await prisma.conversion.aggregate({
-      where: {
-        pub_id: publisher_id,
-        created_at: {
-          gte: firstDayOfPreviousMonth,
-          lte: lastDayOfPreviousMonth,
-        },
-      },
-      _sum: {
-        commission_amount: true,
-      },
-    });
-    dashboardData.commissionPreviousMonth = Number(commissionPreviousMonthResult._sum.commission_amount || 0);
+    // Fetch Offer Names for IDs
+    const allOfferIds = new Set([
+      ...conversionsByOfferData.map(d => d.offer_id)
+    ]);
 
-    // Weekly Clicks (Current Week: Monday to Today) - Using raw query for date formatting
-    const weeklyClicksResult = await prisma.$queryRaw<Array<{ day: string; date: string; clicks: bigint }>>`
-      SELECT 
-        TO_CHAR(timestamp::date, 'Dy') AS day,
-        TO_CHAR(timestamp::date, 'YYYY-MM-DD') AS date,
-        COUNT(*)::bigint as clicks
-      FROM clicks
-      WHERE pub_id = ${publisher_id}::uuid
-        AND timestamp::date >= date_trunc('week', CURRENT_DATE)
-        AND timestamp::date <= CURRENT_DATE
-      GROUP BY date, day
-      ORDER BY date
-    `;
-
-    dashboardData.weeklyClicks = weeklyClicksResult.map((row) => ({
-      day: row.day,
-      clicks: Number(row.clicks),
-    }));
-
-    // Traffic Sources (Clicks by Offer Name)
-    const trafficSourcesData = await prisma.click.groupBy({
-      by: ['offer_id'],
-      where: {
-        pub_id: publisher_id,
-        ...(startDate && endDate
-          ? {
-              timestamp: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-              },
-            }
-          : {}),
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    const offerIds = trafficSourcesData.map((item) => item.offer_id);
     const offers = await prisma.offer.findMany({
-      where: { id: { in: offerIds } },
+      where: { id: { in: Array.from(allOfferIds) } },
       select: { id: true, name: true },
     });
+    const offerMap = new Map(offers.map(o => [o.id, o.name]));
 
-    const offerMap = new Map(offers.map((o) => [o.id, o.name]));
-    dashboardData.trafficSources = trafficSourcesData
-      .map((item) => ({
-        name: offerMap.get(item.offer_id) || 'Unknown',
-        value: item._count.id,
-      }))
-      .sort((a, b) => b.value - a.value);
-
-    // Clicks Over Time (Daily for This Month) - Using raw query for date formatting
-    const clicksOverTimeResult = await prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
-      SELECT 
-        TO_CHAR(timestamp, 'YYYY-MM-DD') as period, 
-        COUNT(*)::bigint as clicks
-      FROM clicks
-      WHERE pub_id = ${publisher_id}::uuid
-        AND timestamp BETWEEN ${firstDayOfMonth} AND ${lastDayOfMonth}
-      GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD')
-      ORDER BY TO_CHAR(timestamp, 'YYYY-MM-DD')
-    `;
-
-    dashboardData.clicksOverTime = clicksOverTimeResult.map((row) => ({
-      period: row.period,
-      clicks: Number(row.clicks),
-    }));
-
-    // Conversion Trend (Daily for This Month) - Using raw query for date formatting
-    const conversionTrendResult = await prisma.$queryRaw<Array<{ period: string; conversions: bigint }>>`
-      SELECT 
-        TO_CHAR(created_at, 'YYYY-MM-DD') as period, 
-        COUNT(*)::bigint as conversions
-      FROM conversions
-      WHERE pub_id = ${publisher_id}::uuid
-        AND created_at BETWEEN ${firstDayOfMonth} AND ${lastDayOfMonth}
-      GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
-      ORDER BY TO_CHAR(created_at, 'YYYY-MM-DD')
-    `;
-
-    dashboardData.conversionTrend = conversionTrendResult.map((row) => ({
-      period: row.period,
-      conversions: Number(row.conversions),
-    }));
-
-    // Commissions Over Time (Daily for This Month) - Using raw query for date formatting
-    const commissionsOverTimeResult = await prisma.$queryRaw<Array<{ period: string; commission: number }>>`
-      SELECT 
-        TO_CHAR(created_at, 'YYYY-MM-DD') as period, 
-        COALESCE(SUM(commission_amount), 0)::float as commission
-      FROM conversions
-      WHERE pub_id = ${publisher_id}::uuid
-        AND created_at BETWEEN ${firstDayOfMonth} AND ${lastDayOfMonth}
-      GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
-      ORDER BY TO_CHAR(created_at, 'YYYY-MM-DD')
-    `;
-
-    dashboardData.commissionsOverTime = commissionsOverTimeResult.map((row) => ({
-      period: row.period,
-      commission: Number(row.commission),
-    }));
-
-    // Conversions By Offer
-    const conversionsByOfferData = await prisma.conversion.groupBy({
-      by: ['offer_id'],
-      where: {
-        pub_id: publisher_id,
-        ...(startDate && endDate
-          ? {
-              created_at: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-              },
-            }
-          : {}),
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    const conversionOfferIds = conversionsByOfferData.map((item) => item.offer_id);
-    const conversionOffers = await prisma.offer.findMany({
-      where: { id: { in: conversionOfferIds } },
-      select: { id: true, name: true },
-    });
-
-    const conversionOfferMap = new Map(conversionOffers.map((o) => [o.id, o.name]));
-    dashboardData.conversionsByOffer = conversionsByOfferData
-      .map((item) => ({
-        name: conversionOfferMap.get(item.offer_id) || 'Unknown',
-        value: item._count.id,
-      }))
-      .sort((a, b) => b.value - a.value);
+    const dashboardData: DashboardData = {
+      totalClicks,
+      totalConversions: globalStats.shaved, // Shaved count
+      totalEarning: totalEarnings,
+      clicksThisMonth,
+      clicksPreviousMonth,
+      salesThisMonth: thisMonthStats.shaved,
+      salesPreviousMonth: prevMonthStats.shaved,
+      commissionThisMonth,
+      commissionPreviousMonth,
+      weeklyClicks: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+        const found = weeklyClicksResult.find(r => r.day.trim() === day); // trim just in case of padding
+        return { day, clicks: found ? Number(found.clicks) : 0 };
+      }),
+      trafficSources: trafficSourcesData
+        .map(item => ({ name: item.geo || 'Unknown', value: item._count.id }))
+        .sort((a, b) => b.value - a.value),
+      clicksOverTime: clicksOverTimeResult.map(row => ({ period: row.period, clicks: Number(row.clicks) })),
+      conversionTrend: conversionTrendResult.map(row => ({ period: row.period, conversions: Number(row.conversions) })),
+      commissionsOverTime: commissionsOverTimeResult.map(row => ({ period: row.period, commission: Number(row.commission) })),
+      conversionsByOffer: conversionsByOfferData
+        .map(item => ({ name: offerMap.get(item.offer_id) || 'Unknown', value: item._count.id }))
+        .sort((a, b) => b.value - a.value),
+      rawTotalConversions: globalStats.raw,
+      conversionsDifference: globalStats.raw - globalStats.shaved,
+      avgCommissionCut: globalStats.avgCut,
+    };
 
     return NextResponse.json(dashboardData);
   } catch (error) {

@@ -36,6 +36,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
+import { DatePickerInput } from '@mantine/dates';
 
 interface DashboardTopbarProps {
   activeTab: string;
@@ -68,11 +69,11 @@ export default function DashboardTopbar({
 
   const handleDateNavigation = (direction: 'prev' | 'next') => {
     if (!dateRange[0] || !dateRange[1]) return;
-    
+
     const daysDiff = Math.ceil(
       (dateRange[1].getTime() - dateRange[0].getTime()) / (1000 * 60 * 60 * 24)
     );
-    
+
     if (direction === 'prev') {
       onDateRangeChange([
         subDays(dateRange[0], daysDiff + 1),
@@ -89,8 +90,8 @@ export default function DashboardTopbar({
   const userInitial = session?.user?.name
     ? session.user.name.charAt(0).toUpperCase()
     : session?.user?.email
-    ? session.user.email.charAt(0).toUpperCase()
-    : 'U';
+      ? session.user.email.charAt(0).toUpperCase()
+      : 'U';
 
   return (
     <motion.header
@@ -212,30 +213,33 @@ export default function DashboardTopbar({
 
           {/* Date Picker - AFTER notifications */}
           {activeTab === 'dashboard' && (
-            <div className="flex items-center gap-1 h-9 px-3 rounded-full bg-card border border-border">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDateNavigation('prev')}
-                className="h-6 w-6 rounded-full text-foreground hover:bg-muted p-0"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </Button>
-              <span className="text-sm font-medium text-foreground px-2 whitespace-nowrap">
-                {dateRange[0] && dateRange[1] && dateRange[0].getTime() === dateRange[1].getTime()
-                  ? `Today, ${format(dateRange[0], 'MMM d')}`
-                  : dateRange[0] && dateRange[1]
-                  ? `${format(dateRange[0], 'MMM d')} - ${format(dateRange[1], 'MMM d')}`
-                  : `Today, ${format(startOfToday(), 'MMM d')}`}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDateNavigation('next')}
-                className="h-6 w-6 rounded-full text-foreground hover:bg-muted p-0"
-              >
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
+            <div className="flex items-center gap-1 h-9 bg-card border border-border rounded-lg relative z-[60]">
+              <DatePickerInput
+                type="range"
+                placeholder="Pick dates range"
+                value={dateRange}
+                onChange={(value) => onDateRangeChange(value as unknown as [Date | null, Date | null])}
+                clearable={false}
+                numberOfColumns={2}
+                styles={{
+                  input: {
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#e4e4e7', // zinc-200
+                    height: '100%',
+                    paddingLeft: '40px',
+                    paddingRight: '12px',
+                    width: '240px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                  },
+                  placeholder: {
+                    color: '#a1a1aa' // zinc-400
+                  }
+                }}
+                leftSection={<Calendar size={14} />}
+                leftSectionPointerEvents="none"
+              />
             </div>
           )}
 
