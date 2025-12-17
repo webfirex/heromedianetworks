@@ -188,6 +188,119 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Mantine DatePickerInput - force dark calendar in publisher header */
+  /* Target the Popover dropdown container - multiple selectors for maximum coverage */
+  div[data-dates-dropdown="true"],
+  div[data-dates-dropdown="true"].mantine-Popover-dropdown,
+  div[id*="dropdown"].mantine-Popover-dropdown[data-dates-dropdown="true"],
+  .mantine-Popover-dropdown[data-dates-dropdown="true"],
+  [role="dialog"][data-dates-dropdown="true"],
+  div[role="dialog"][id*="dropdown"][data-dates-dropdown="true"] {
+    background-color: #020617 !important; /* slate-950 */
+    background: #020617 !important; /* slate-950 */
+    color: #e4e4e7 !important; /* zinc-200 */
+    border-color: #27272a !important; /* zinc-800 */
+    border: 1px solid #27272a !important;
+  }
+
+  /* Target all children inside the date picker dropdown - but exclude interactive elements that need specific colors */
+  div[data-dates-dropdown="true"] > *,
+  div[id*="dropdown"][data-dates-dropdown="true"] > * {
+    background-color: #020617 !important;
+    color: #e4e4e7 !important;
+  }
+
+  /* Ensure text elements are dark */
+  div[data-dates-dropdown="true"] p,
+  div[data-dates-dropdown="true"] span,
+  div[data-dates-dropdown="true"] div:not([class*="day"]):not([class*="selected"]):not([class*="range"]) {
+    color: #e4e4e7 !important;
+  }
+
+  /* Calendar root and month containers */
+  .mantine-Calendar-root,
+  .mantine-Calendar-calendar,
+  .mantine-Calendar-month,
+  .mantine-Calendar-monthCell {
+    background-color: #020617 !important;
+    color: #e4e4e7 !important;
+  }
+
+  /* Calendar header (month/year) */
+  .mantine-Calendar-calendarHeader,
+  .mantine-Calendar-calendarHeaderLevel,
+  .mantine-Calendar-calendarHeaderControl {
+    background-color: #020617 !important;
+    color: #e4e4e7 !important;
+  }
+
+  /* Weekday labels */
+  .mantine-Calendar-weekday {
+    color: #71717a !important; /* zinc-500 */
+    background-color: transparent !important;
+  }
+
+  /* Day cells - default state */
+  .mantine-Calendar-day {
+    background-color: transparent !important;
+    color: #e4e4e7 !important;
+  }
+
+  /* Day cells - outside current month */
+  .mantine-Calendar-day[data-outside],
+  .mantine-Calendar-day[data-outside="true"] {
+    color: #3f3f46 !important; /* zinc-700 */
+    background-color: transparent !important;
+  }
+
+  /* Day cells - selected */
+  .mantine-Calendar-day[data-selected],
+  .mantine-Calendar-day[data-selected="true"],
+  .mantine-Calendar-day[data-in-range-boundary] {
+    background-color: #3b82f6 !important; /* primary blue */
+    color: #0b1220 !important;
+  }
+
+  /* Day cells - in range */
+  .mantine-Calendar-day[data-in-range],
+  .mantine-Calendar-day[data-in-range="true"] {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    color: #e4e4e7 !important;
+  }
+
+  /* Calendar header controls (prev/next buttons) */
+  .mantine-Calendar-calendarHeaderControl {
+    background-color: #18181b !important;
+    color: #e4e4e7 !important;
+  }
+
+  .mantine-Calendar-calendarHeaderControl:hover {
+    background-color: #27272a !important;
+  }
+
+  /* Month/Year text in header - ensure it's visible */
+  div[data-dates-dropdown="true"] .mantine-Calendar-calendarHeaderLevel,
+  div[data-dates-dropdown="true"] [class*="calendarHeaderLevel"],
+  div[data-dates-dropdown="true"] button[class*="calendarHeaderLevel"] {
+    color: #e4e4e7 !important;
+    background-color: transparent !important;
+  }
+
+  /* Ensure all text inside the dropdown is dark */
+  div[data-dates-dropdown="true"] {
+    --mantine-color-text: #e4e4e7 !important;
+  }
+
+  /* Override any white backgrounds that might be set by Mantine defaults */
+  div[data-dates-dropdown="true"] .mantine-Calendar-root,
+  div[data-dates-dropdown="true"] .mantine-Calendar-calendar,
+  div[data-dates-dropdown="true"] .mantine-Calendar-month,
+  div[data-dates-dropdown="true"] .mantine-Calendar-monthCell,
+  div[data-dates-dropdown="true"] .mantine-Calendar-monthRow {
+    background: #020617 !important;
+    background-color: #020617 !important;
+  }
+
   /* iOS-style Fluid Glassmorphism */
   .backdrop-blur-xl {
     backdrop-filter: blur(40px) saturate(180%);
@@ -202,5 +315,124 @@
   .backdrop-blur-md {
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  /* Remove all padding from Recharts/Mantine charts - charts should extend to edges */
+  .recharts-wrapper,
+  .recharts-surface,
+  .mantine-AreaChart-root,
+  .mantine-LineChart-root,
+  .mantine-BarChart-root,
+  .mantine-AreaChart-container,
+  .mantine-LineChart-container,
+  .mantine-BarChart-container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Remove padding from chart containers */
+  .recharts-responsive-container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Remove left and bottom padding from Recharts chart area */
+  .recharts-cartesian-axis,
+  .recharts-cartesian-grid {
+    padding-left: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Ensure charts extend to edges - override Recharts default margins */
+  .recharts-wrapper svg {
+    overflow: visible !important;
+  }
+
+  /* Remove default margins from Recharts Cartesian components */
+  .recharts-cartesian-axis-tick {
+    margin: 0 !important;
+  }
+
+  /* Force Recharts to use minimal margins */
+  .recharts-cartesian-axis {
+    margin: 0 !important;
+  }
+
+  /* Chart bottom alignment - minimal styles */
+  .chart-bottom-align {
+    overflow: visible !important;
+  }
+
+  .chart-bottom-align .mantine-AreaChart-root {
+    margin-bottom: 16px !important;
+  }
+
+  /* Dark Date Picker Styles */
+  .dark-date-picker-wrapper .mantine-DatePickerInput-calendar {
+    background-color: #020617;
+    border-radius: 12px;
+    border: 1px solid #27272a;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-calendarHeader {
+    color: #e4e4e7;
+    border-bottom: 1px solid #18181b;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-calendarHeaderControl {
+    border-radius: 9999px;
+    background-color: #18181b;
+    color: #e4e4e7;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-calendarHeaderLevel {
+    color: #e4e4e7;
+    border-radius: 9999px;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-calendarHeaderLevel:hover {
+    background-color: #18181b;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-weekday {
+    color: #71717a;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day {
+    color: #e4e4e7;
+    border-radius: 9999px;
+    background-color: transparent;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-outside] {
+    color: #3f3f46;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-selected] {
+    background-color: #3b82f6;
+    color: #0b1220;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-in-range] {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #e4e4e7;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-first-in-range],
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-last-in-range] {
+    background-color: #3b82f6;
+    color: #0b1220;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-month {
+    background-color: transparent;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-monthRow {
+    background-color: transparent;
+  }
+
+  .dark-date-picker-wrapper .mantine-DatePickerInput-monthCell {
+    background-color: transparent;
   }
 }

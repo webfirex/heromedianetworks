@@ -56,7 +56,7 @@ export default function NeoCard({
             )}
 
             {children ? (
-                <div className="relative z-10 h-full w-full">
+                <div className="relative z-10 h-full w-full flex flex-col">
                     {children}
                 </div>
             ) : (

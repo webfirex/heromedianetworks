@@ -3,8 +3,8 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react'; // Import useSession
 import {
-  Container, Text, Table, Group, TextInput, Pagination, Paper,
-  Flex, Skeleton, Modal, Button, ScrollArea, Stack, Divider, Tooltip, CopyButton
+  Text, Table, Group, TextInput, Pagination,
+  Flex, Modal, Button, ScrollArea, Stack, Divider, Tooltip, CopyButton
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
@@ -223,7 +223,7 @@ const PublisherPostback: React.FC = () => {
   if (status === 'loading' || loading) {
     {/* Loading Skeleton */ }
     return (
-      <Container size="xl">
+      <div className="w-full">
         <div className="w-full flex-1 min-h-[400px] backdrop-blur-xl border border-white/10 rounded-xl relative overflow-hidden flex flex-col p-6" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
           <div className="flex justify-between items-center mb-6">
             <div className="h-10 w-64 bg-white/5 rounded-lg border border-white/5 animate-pulse" />
@@ -234,12 +234,12 @@ const PublisherPostback: React.FC = () => {
             ))}
           </div>
         </div>
-      </Container>
+      </div>
     );
   }
 
   return (
-    <Container size="xl">
+    <div className="w-full">
       <div
         className="backdrop-blur-xl border border-white/10 rounded-xl p-6"
         style={{ background: 'rgba(255, 255, 255, 0.03)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)' }}
@@ -468,7 +468,7 @@ const PublisherPostback: React.FC = () => {
           </Stack>
         )}
       </Modal>
-    </Container>
+    </div>
   );
 };
 
