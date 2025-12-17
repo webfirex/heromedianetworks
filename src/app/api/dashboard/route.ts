@@ -18,6 +18,11 @@ interface DashboardData {
   conversionTrend: { period: string; conversions: number }[];
   commissionsOverTime: { period: string; commission: number }[];
   conversionsByOffer: { name: string; value: number }[];
+  overviewClicks?: {
+    last24h: { period: string; clicks: number }[];
+    last7d: { period: string; clicks: number }[];
+    last30d: { period: string; clicks: number }[];
+  };
   rawTotalConversions: number;
   conversionsDifference: number;
   avgCommissionCut: number;
@@ -102,7 +107,10 @@ export async function GET(req: NextRequest) {
       clicksOverTimeResult,
       conversionTrendResult,
       commissionsOverTimeResult,
-      conversionsByOfferData
+      conversionsByOfferData,
+      overviewClicksLast24h,
+      overviewClicksLast7d,
+      overviewClicksLast30d,
     ] = await Promise.all([
 
       // 1. Combined Click Stats (Total, This Month, Prev Month)
@@ -214,6 +222,69 @@ export async function GET(req: NextRequest) {
         },
         _count: { id: true },
       }),
+
+      // 9. Overview Clicks - Last 24 hours (hourly buckets, zero-filled)
+      prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
+        WITH hours AS (
+          SELECT generate_series(
+            date_trunc('hour', NOW() - interval '23 hour'),
+            date_trunc('hour', NOW()),
+            interval '1 hour'
+          ) AS bucket
+        )
+        SELECT
+          TO_CHAR(hours.bucket, 'HH24:00') AS period,
+          COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
+        FROM hours
+        LEFT JOIN clicks
+          ON clicks.pub_id = ${publisher_id}::uuid
+          AND clicks.timestamp >= hours.bucket
+          AND clicks.timestamp < (hours.bucket + interval '1 hour')
+        GROUP BY hours.bucket
+        ORDER BY hours.bucket
+      `,
+
+      // 10. Overview Clicks - Last 7 days (daily buckets, zero-filled)
+      prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
+        WITH days AS (
+          SELECT generate_series(
+            date_trunc('day', CURRENT_DATE - interval '6 day'),
+            date_trunc('day', CURRENT_DATE),
+            interval '1 day'
+          ) AS bucket
+        )
+        SELECT
+          TO_CHAR(days.bucket, 'YYYY-MM-DD') AS period,
+          COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
+        FROM days
+        LEFT JOIN clicks
+          ON clicks.pub_id = ${publisher_id}::uuid
+          AND clicks.timestamp >= days.bucket
+          AND clicks.timestamp < (days.bucket + interval '1 day')
+        GROUP BY days.bucket
+        ORDER BY days.bucket
+      `,
+
+      // 11. Overview Clicks - Last 30 days (daily buckets, zero-filled)
+      prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
+        WITH days AS (
+          SELECT generate_series(
+            date_trunc('day', CURRENT_DATE - interval '29 day'),
+            date_trunc('day', CURRENT_DATE),
+            interval '1 day'
+          ) AS bucket
+        )
+        SELECT
+          TO_CHAR(days.bucket, 'YYYY-MM-DD') AS period,
+          COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
+        FROM days
+        LEFT JOIN clicks
+          ON clicks.pub_id = ${publisher_id}::uuid
+          AND clicks.timestamp >= days.bucket
+          AND clicks.timestamp < (days.bucket + interval '1 day')
+        GROUP BY days.bucket
+        ORDER BY days.bucket
+      `,
     ]);
 
     console.log('[DEBUG] Weekly Clicks Raw from DB:', weeklyClicksResult);
@@ -273,6 +344,11 @@ export async function GET(req: NextRequest) {
       conversionsByOffer: conversionsByOfferData
         .map(item => ({ name: offerMap.get(item.offer_id) || 'Unknown', value: item._count.id }))
         .sort((a, b) => b.value - a.value),
+      overviewClicks: {
+        last24h: overviewClicksLast24h.map(r => ({ period: r.period, clicks: Number(r.clicks) })),
+        last7d: overviewClicksLast7d.map(r => ({ period: r.period, clicks: Number(r.clicks) })),
+        last30d: overviewClicksLast30d.map(r => ({ period: r.period, clicks: Number(r.clicks) })),
+      },
       rawTotalConversions: globalStats.raw,
       conversionsDifference: globalStats.raw - globalStats.shaved,
       avgCommissionCut: globalStats.avgCut,

@@ -86,15 +86,20 @@ export default function PublisherTrackPage() {
   );
 
   return (
-    <Card
-      shadow="md"
-      radius="md"
-      withBorder
-      style={{
-        padding: isVerySmall ? 8 : isMobile ? 12 : 24,
-        overflow: 'visible', // Prevent clipping on smaller screens
-      }}
-    >
+    <div className="w-full">
+      <Card
+        shadow="md"
+        radius="xl"
+        withBorder={false}
+        style={{
+          padding: isVerySmall ? 16 : isMobile ? 20 : 24,
+          overflow: 'visible',
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
       {loading ? (
         <Card p={isVerySmall ? 'xs' : isMobile ? 'sm' : 'lg'} shadow="md" radius="md" withBorder>
           <Skeleton height={32} width="40%" mb="md" />
@@ -234,6 +239,7 @@ export default function PublisherTrackPage() {
           </Table>
         </ScrollArea>
       )}
-    </Card>
+      </Card>
+    </div>
   );
 }

@@ -68,14 +68,12 @@ export default function PublisherOffersPage() {
   };
 
   return (
-    <div className=" items-center justify-center">
+    <div className="w-full">
       <Card
         shadow=""
-        radius="26px"
+        radius="xl"
         withBorder={false}
         p="lg"
-        ml={23}
-        mr={34}
         style={{
           display: 'flex',
           flexDirection: 'column',

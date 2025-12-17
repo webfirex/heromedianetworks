@@ -19,6 +19,7 @@ type ClicksOverTime = { period: string; clicks: number };
 type ConversionTrend = { period?: string; week?: string; conversions: number };
 type CommissionOverTime = { period: string; commission: number };
 type ConversionByOffer = { name: string; value: number; color?: string };
+type OverviewClicks = { period: string; clicks: number };
 
 const tooltipStyles = {
   background: 'linear-gradient(135deg, #0B0F16 0%, #141C2A 100%)',
@@ -87,6 +88,11 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
     conversionTrend: ConversionTrend[];
     commissionsOverTime: CommissionOverTime[];
     conversionsByOffer: ConversionByOffer[];
+    overviewClicks?: {
+      last24h: OverviewClicks[];
+      last7d: OverviewClicks[];
+      last30d: OverviewClicks[];
+    };
   }>({
     totalClicks: 0,
     totalConversions: 0,
@@ -103,6 +109,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
     conversionTrend: [],
     commissionsOverTime: [],
     conversionsByOffer: [],
+    overviewClicks: undefined,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -186,6 +193,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           conversionTrend: [],
           commissionsOverTime: [],
           conversionsByOffer: [],
+          overviewClicks: undefined,
           ...data
         };
         // Format clicksOverTime dates for chart display
@@ -193,6 +201,19 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           defaultData.clicksOverTime = defaultData.clicksOverTime.map((item: ClicksOverTime) => ({
             ...item,
             period: formatChartDate(item.period)
+          }));
+        }
+        // Format overview last7d/last30d (leave last24h as HH:00)
+        if (defaultData.overviewClicks?.last7d?.length) {
+          defaultData.overviewClicks.last7d = defaultData.overviewClicks.last7d.map((item: OverviewClicks) => ({
+            ...item,
+            period: formatChartDate(item.period),
+          }));
+        }
+        if (defaultData.overviewClicks?.last30d?.length) {
+          defaultData.overviewClicks.last30d = defaultData.overviewClicks.last30d.map((item: OverviewClicks) => ({
+            ...item,
+            period: formatChartDate(item.period),
           }));
         }
         setDashboardData(defaultData);
@@ -229,6 +250,22 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
   const isCommissionPositive = parseFloat(commissionPercentageChange) > 0;
   const commissionTrendColor = isCommissionPositive ? 'green' : 'red';
 
+  const overviewClicksSeries: OverviewClicks[] =
+    overviewTab === 'Month'
+      ? (dashboardData.overviewClicks?.last30d ?? [])
+      : overviewTab === 'Week'
+        ? (dashboardData.overviewClicks?.last7d ?? [])
+        : (dashboardData.overviewClicks?.last24h ?? []);
+
+  const overviewFallbackSeries: OverviewClicks[] =
+    overviewTab === 'Month'
+      ? (dashboardData.clicksOverTime ?? [])
+      : overviewTab === 'Week'
+        ? (dashboardData.clicksOverTime ?? []).slice(-7)
+        : (dashboardData.clicksOverTime ?? []).slice(-1);
+
+  const activeOverviewSeries = overviewClicksSeries.length > 0 ? overviewClicksSeries : overviewFallbackSeries;
+
   return (
     <Box p="0.5rem">
       {loading ? (
@@ -252,7 +289,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           </SimpleGrid>
 
           {/* 2. Main Grid Skeleton */}
-          <Grid gutter="md" mb="xl">
+          <Grid gutter="md" mb="md">
             {/* Left Column (Span 4) */}
             <Grid.Col span={4}>
               <div className="flex flex-col gap-4">
@@ -280,7 +317,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
             {/* Right Column (Span 8) */}
             <Grid.Col span={8}>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4">
                 {/* Balance Card Skeleton */}
                 <div className="w-full h-[384px] rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md p-6 relative overflow-hidden flex flex-col">
                   <div className="flex justify-between items-start mb-6">
@@ -307,7 +344,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           </Grid>
 
           {/* 3. Bottom Charts Skeleton (2 Cols) */}
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
             {[...Array(2)].map((_, i) => (
               <div
                 key={i}
@@ -360,10 +397,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             </NeoCard>
           </SimpleGrid>
 
-          <Grid gutter="md" mb="xl">
+          <Grid gutter="md" mb="md">
             {/* Left Column (Span 4) */}
             <Grid.Col span={4}>
-              <div className="flex flex-col gap-6 h-full">
+              <div className="flex flex-col gap-4 h-full">
                 {/* Card 1: Overview (My Campaigns) */}
                 <div className="flex flex-col">
                   {/* External Header */}
@@ -396,19 +433,32 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       </div>
 
                       {/* Tabs */}
-                      <div className="bg-[#131416]/50 rounded-xl p-1.5 grid grid-cols-3 gap-1 mb-3 border border-white/5">
-                        {['24h', 'Week', 'Month'].map((tab) => (
-                          <div
-                            key={tab}
-                            onClick={() => setOverviewTab(tab as any)}
-                            className={`text-center py-2 text-xs cursor-pointer rounded-lg transition font-medium ${overviewTab === tab
-                              ? 'text-white bg-[#2C2D31] shadow-md border border-white/10'
-                              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                              }`}
-                          >
-                            {tab}
-                          </div>
-                        ))}
+                      <div
+                        className="bg-[#131416]/50 rounded-xl p-1.5 grid grid-cols-3 gap-1 mb-3 border border-white/5"
+                        role="tablist"
+                        aria-label="Overview range"
+                      >
+                        {(['24h', 'Week', 'Month'] as const).map((tab) => {
+                          const isActive = overviewTab === tab;
+                          return (
+                            <button
+                              key={tab}
+                              type="button"
+                              role="tab"
+                              aria-selected={isActive}
+                              onClick={() => setOverviewTab(tab)}
+                              className={cn(
+                                'text-center py-2 text-xs rounded-lg transition font-medium outline-none',
+                                'focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0C]',
+                                isActive
+                                  ? 'text-white bg-[#2C2D31] shadow-md border border-white/10'
+                                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                              )}
+                            >
+                              {tab === '24h' ? '24H' : tab}
+                            </button>
+                          );
+                        })}
                       </div>
 
                       {/* Quick Stats Row */}
@@ -428,16 +478,22 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       </div>
 
                       {/* Chart Area */}
-                      <div className="flex-1 w-full min-h-[140px] relative overview-chart-area">
+                      <div className="flex-1 w-full min-h-[140px] relative overview-chart-area" style={{ marginLeft: '-24px', marginRight: '-24px', marginBottom: '-24px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 48px)' }}>
                         <style jsx>{`
                           :global(.overview-chart-area .mantine-AreaChart-root) {
                             background: transparent !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
                           }
                           :global(.overview-chart-area .recharts-surface) {
                             background: transparent !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
                           }
                           :global(.overview-chart-area .recharts-wrapper) {
                             background: transparent !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
                           }
                           :global(.overview-chart-area .recharts-area) {
                             opacity: 1 !important;
@@ -457,11 +513,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         `}</style>
                         <AreaChart
                           h={150}
-                          data={
-                            overviewTab === 'Month' ? dashboardData.clicksOverTime :
-                              overviewTab === 'Week' ? dashboardData.clicksOverTime.slice(-7) :
-                                dashboardData.clicksOverTime.slice(-24)
-                          }
+                          data={activeOverviewSeries}
                           dataKey="period"
                           series={[{ name: 'clicks', color: '#3B82F6' }]}
                           curveType="monotone"
@@ -481,9 +533,9 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                             content: ({ payload }) => {
                               if (!payload || !payload[0]) return null;
                               const { period, clicks } = payload[0].payload;
-                              // Calculate simple % change from previous point if possible, else nice text
-                              const prevIndex = dashboardData.clicksOverTime.findIndex(p => p.period === period) - 1;
-                              const prevValue = prevIndex >= 0 ? dashboardData.clicksOverTime[prevIndex].clicks : clicks;
+                              // % change vs previous point in the ACTIVE series
+                              const idx = activeOverviewSeries.findIndex(p => p.period === period);
+                              const prevValue = idx > 0 ? activeOverviewSeries[idx - 1]?.clicks ?? clicks : clicks;
                               const change = prevValue > 0 ? ((clicks - prevValue) / prevValue * 100).toFixed(2) : "0.00";
                               const isUp = Number(change) >= 0;
 
@@ -531,7 +583,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 {/* Current Week Clicks (Moved Here) */}
                 <NeoCard
                   variant="glass"
-                  className="w-full flex-1 min-h-[250px] backdrop-blur-xl border border-white/20 p-5 flex flex-col"
+                  className="w-full min-h-[300px] backdrop-blur-xl border border-white/20 pt-5 px-5 pb-0 flex flex-col overflow-hidden"
                   style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                 >
                   <div className="flex justify-between items-center mb-1">
@@ -540,9 +592,9 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   <div className="text-3xl font-bold text-white mb-6">
                     {formatNumber(dashboardData.clicksOverTime.reduce((acc, curr) => acc + curr.clicks, 0))}
                   </div>
-                  <div className="flex-1 w-full min-h-[200px] relative">
+                  <div className="mt-auto w-full h-[250px] relative" style={{ marginLeft: '-20px', marginRight: '-20px', marginBottom: 0, paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 40px)' }}>
                     <BarChart
-                      h={200}
+                      h={250}
                       data={dashboardData.clicksOverTime.map(d => ({
                         period: formatChartDate(d.period),
                         daily_clicks: d.clicks
@@ -559,7 +611,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       yAxisProps={{
                         tick: { fill: '#9CA3AF', fontSize: 11 },
                         tickLine: { stroke: '#374151' },
-                        axisLine: { stroke: '#374151' }
+                        axisLine: { stroke: '#374151' },
+                        width: 30
                       }}
                       tooltipProps={{
                         content: ({ payload }) => {
@@ -583,9 +636,9 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
             {/* Right Column (Span 8) */}
             <Grid.Col span={8}>
-              <div className="flex flex-col gap-6 h-full">
+              <div className="flex flex-col gap-4 h-full">
                 {/* Row 1: Balance (Full Width now that Ads is gone) */}
-                <div className="grid grid-cols-12 gap-6">
+                <div className="grid grid-cols-12 gap-4">
                   {/* Total Balance */}
                   <div className="col-span-12">
                     <div className="flex flex-col h-full">
@@ -611,10 +664,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                       <NeoCard
                         variant="glass"
-                        className="flex-1 min-h-[384px] backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                        className="min-h-[384px] backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
                         style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                       >
-                        <div className="p-6 relative z-10 flex flex-col h-full">
+                        <div className="pt-6 px-6 pb-0 relative z-10 flex flex-col h-full">
                           {/* Top Stats */}
                           <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center">
@@ -639,7 +692,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           </div>
 
                           {/* Chart Area for Balance/Commissions */}
-                          <div className="flex-1 w-full min-h-[140px] relative mt-4">
+                          <div className="mt-auto w-full h-[200px] relative mt-4" style={{ marginLeft: '-24px', marginRight: '-24px', marginBottom: 0, paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 48px)' }}>
                             <AreaChart
                               h={200}
                               data={dashboardData.commissionsOverTime.length > 0 ? dashboardData.commissionsOverTime : emptyCommissions}
@@ -678,38 +731,83 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   </div>
                 </div>
 
-                {/* Row 2: Traffic Sources (Geo) */}
+                {/* Row 2: Clicks Over Time (replacing Traffic Sources card, dimension kept in data) */}
                 <div className="flex-1">
                   <NeoCard
                     variant="glass"
-                    className="w-full p-0 backdrop-blur-xl border border-white/20 overflow-hidden flex-1"
+                    className="w-full flex-1 min-h-[401px] backdrop-blur-xl border border-white/20 p-6 flex flex-col overflow-hidden"
                     style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                   >
-                    {/* Header */}
-                    <div className="px-6 py-5 flex justify-between items-center border-b border-white/5">
-                      <h3 className="text-lg font-bold text-white">Traffic Sources (Geo)</h3>
-                    </div>
-
-                    {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/5 text-[11px] text-zinc-500 font-medium uppercase tracking-wider bg-[#0A0A0C]/30">
-                      <div className="col-span-1">Rank</div>
-                      <div className="col-span-7">Location</div>
-                      <div className="col-span-4 text-right">Clicks</div>
-                    </div>
-
-                    {/* Table Body */}
-                    <div className="p-2">
-                      {dashboardData.trafficSources.length > 0 ? (
-                        dashboardData.trafficSources.slice(0, 5).map((item, i) => (
-                          <div key={i} className="grid grid-cols-12 gap-4 px-4 py-4 items-center bg-blue-950/20 hover:bg-blue-900/30 transition rounded-lg my-0.5 group border border-blue-900/10">
-                            <div className="col-span-1 text-zinc-500 font-mono text-sm pl-1">#{i + 1}</div>
-                            <div className="col-span-7 text-white font-medium text-sm truncate">{item.name}</div>
-                            <div className="col-span-4 text-white text-sm font-bold text-right">{item.value.toLocaleString()}</div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-6 text-center text-zinc-500 text-sm">No traffic data available for this period.</div>
-                      )}
+                    <Title
+                      order={4}
+                      style={{
+                        color: '#E6EAF0',
+                        fontWeight: 500,
+                        fontSize: 'clamp(1rem, 3vw, 1.125rem)',
+                        marginBottom: '12px'
+                      }}
+                      mb="sm"
+                    >
+                      Clicks Over Time
+                      <Text
+                        size="xs"
+                        style={{
+                          display: 'block',
+                          marginTop: '4px',
+                          color: '#3B82F6',
+                          fontWeight: 600
+                        }}
+                      >
+                        ▲ 12% (vs. previous month)
+                      </Text>
+                    </Title>
+                    <div className="flex-1 w-full min-h-[350px] relative" style={{ marginLeft: '-24px', marginRight: '-24px', marginBottom: '-24px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 48px)' }}>
+                      <LineChart
+                        h={350}
+                        data={dashboardData.clicksOverTime.length > 0 ? dashboardData.clicksOverTime : emptyClicksOverTime}
+                        dataKey="period"
+                        series={[{ name: 'clicks', color: primary }]}
+                        curveType="monotone"
+                        withTooltip
+                        textColor="#9CA3AF"
+                        xAxisProps={{
+                          tick: { fill: '#9CA3AF', fontSize: 11 },
+                          tickLine: { stroke: '#374151' },
+                          axisLine: { stroke: '#374151' }
+                        }}
+                        yAxisProps={{
+                          tick: { fill: '#9CA3AF', fontSize: 11 },
+                          tickLine: { stroke: '#374151' },
+                          axisLine: { stroke: '#374151' },
+                          width: 30
+                        }}
+                        referenceLines={[
+                          { values: (CLICK_MONTHLY_TARGET / 4).toString(), label: 'Monthly Avg Target', color: '#ef4444', strokeDasharray: '4 4' },
+                        ]}
+                        tooltipProps={{
+                          content: ({ payload }) => {
+                            if (!payload || !payload[0]) return null;
+                            const { period, clicks } = payload[0].payload;
+                            const weeklyAvgTarget = CLICK_MONTHLY_TARGET / 4;
+                            const targetProgress = getPercentageOfTarget(clicks, weeklyAvgTarget);
+                            return (
+                              <Box style={tooltipStyles}>
+                                <Text fw={600} size="sm" style={{ color: '#fff' }}>{period}</Text>
+                                <Text mt="xs" style={{ color: '#fff' }}>
+                                  Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span>
+                                </Text>
+                                <Text style={{ color: '#fff' }}>
+                                  Target Progress:{' '}
+                                  <span style={{ color: Number(targetProgress) >= 100 ? '#22c55e' : '#f59e0b', fontWeight: 700 }}>
+                                    {targetProgress}%
+                                  </span>{' '}
+                                  of weekly avg target
+                                </Text>
+                              </Box>
+                            );
+                          },
+                        }}
+                      />
                     </div>
                   </NeoCard>
                 </div>
@@ -718,111 +816,49 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
           </Grid>
 
           {/* Charts Grid */}
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
-            {/* Clicks Over Time Note: Duplicate chart? The overview already has it. I'll include it if it was separate, but it seems redundant. I'll include it to be safe, but visually it might be clutter. I'll include 'Clicks Over Time' (LineChart one), 'Conversion Trend', 'Commissions', 'Conversions By Offer' */}
-
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            {/* Top row: Conversion Trend & Conversions By Offer side by side */}
             <NeoCard
               variant="glass"
-              className="p-6 backdrop-blur-xl border border-white/20"
+              className="pt-5 px-5 pb-0 backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col min-h-[300px]"
               style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
             >
-              <Title
-                order={4}
-                style={{
-                  color: '#E6EAF0',
-                  fontWeight: 500,
-                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
-                  marginBottom: '12px'
-                }}
-                mb="sm"
-              >
-                Clicks Over Time (Line)
-                <Text
-                  size="xs"
+              <div className="flex justify-between items-center mb-1">
+                <h3 className="text-lg font-medium text-white">Conversion Trend</h3>
+              </div>
+              <div className="flex-1 flex flex-col justify-end">
+                <div
+                  className="w-full h-[250px] chart-bottom-align"
                   style={{
-                    display: 'block',
-                    marginTop: '4px',
-                    color: '#3B82F6',
-                    fontWeight: 600
+                    marginLeft: '-20px',
+                    marginRight: '-20px',
+                    marginBottom: 0,
+                    paddingLeft: 0,
+                    paddingRight: 0,
+                    paddingBottom: 0,
+                    width: 'calc(100% + 40px)',
                   }}
                 >
-                  ▲ 12% (vs. previous month)
-                </Text>
-              </Title>
-              <LineChart
-                h="clamp(12rem, 40vw, 16rem)"
-                data={dashboardData.clicksOverTime.length > 0 ? dashboardData.clicksOverTime : emptyClicksOverTime}
-                dataKey="period"
-                series={[{ name: 'clicks', color: primary }]}
-                curveType="monotone"
-                withTooltip
-                textColor="#9CA3AF"
-                xAxisProps={{
-                  tick: { fill: '#9CA3AF', fontSize: 11 },
-                  tickLine: { stroke: '#374151' },
-                  axisLine: { stroke: '#374151' }
-                }}
-                yAxisProps={{
-                  tick: { fill: '#9CA3AF', fontSize: 11 },
-                  tickLine: { stroke: '#374151' },
-                  axisLine: { stroke: '#374151' }
-                }}
-                referenceLines={[
-                  { values: (CLICK_MONTHLY_TARGET / 4).toString(), label: 'Monthly Avg Target', color: '#ef4444', strokeDasharray: '4 4' },
-                ]}
-                tooltipProps={{
-                  content: ({ payload }) => {
-                    if (!payload || !payload[0]) return null;
-                    const { period, clicks } = payload[0].payload;
-                    const weeklyAvgTarget = CLICK_MONTHLY_TARGET / 4;
-                    const targetProgress = getPercentageOfTarget(clicks, weeklyAvgTarget);
-                    return (
-                      <Box style={tooltipStyles}>
-                        <Text fw={600} size="sm" style={{ color: '#fff' }}>{period}</Text>
-                        <Text mt="xs" style={{ color: '#fff' }}>Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span></Text>
-                        <Text style={{ color: '#fff' }}>Target Progress: <span style={{ color: Number(targetProgress) >= 100 ? '#22c55e' : '#f59e0b', fontWeight: 700 }}>{targetProgress}%</span> of weekly avg target</Text>
-                      </Box>
-                    );
-                  },
-                }}
-              />
-            </NeoCard>
-            <NeoCard
-              variant="glass"
-              className="p-6 backdrop-blur-xl border border-white/20"
-              style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
-            >
-              <Title
-                order={4}
-                style={{
-                  color: '#E6EAF0',
-                  fontWeight: 500,
-                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
-                  marginBottom: '12px'
-                }}
-                mb="sm"
-              >
-                Conversion Trend
-              </Title>
-              <AreaChart
-                h="clamp(12rem, 40vw, 16rem)"
-                data={dashboardData.conversionTrend.length > 0 ? dashboardData.conversionTrend : emptyConversionTrend}
-                dataKey="period"
-                series={[{ name: 'conversions', color: '#66BB6A' }]}
-                curveType="monotone"
-                withTooltip
-                textColor="#9CA3AF"
-                xAxisProps={{
-                  tick: { fill: '#9CA3AF', fontSize: 11 },
-                  tickLine: { stroke: '#374151' },
-                  axisLine: { stroke: '#374151' }
-                }}
-                yAxisProps={{
-                  tick: { fill: '#9CA3AF', fontSize: 11 },
-                  tickLine: { stroke: '#374151' },
-                  axisLine: { stroke: '#374151' }
-                }}
-                tooltipProps={{
+                <AreaChart
+                  h={250}
+                  data={dashboardData.conversionTrend.length > 0 ? dashboardData.conversionTrend : emptyConversionTrend}
+                  dataKey="period"
+                  series={[{ name: 'conversions', color: '#66BB6A' }]}
+                  curveType="monotone"
+                  withTooltip
+                  textColor="#9CA3AF"
+                  xAxisProps={{
+                    tick: { fill: '#9CA3AF', fontSize: 11 },
+                    tickLine: { stroke: '#374151' },
+                    axisLine: { stroke: '#374151' }
+                  }}
+                  yAxisProps={{
+                    tick: { fill: '#9CA3AF', fontSize: 11 },
+                    tickLine: { stroke: '#374151' },
+                    axisLine: { stroke: '#374151' },
+                    width: 30
+                  }}
+                  tooltipProps={{
                   content: ({ payload }) => {
                     if (!payload || !payload[0]) return null;
                     const { period, conversions } = payload[0].payload;
@@ -840,61 +876,10 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   },
                 }}
               />
+                </div>
+              </div>
             </NeoCard>
-            <NeoCard
-              variant="glass"
-              className="p-6 backdrop-blur-xl border border-white/20"
-              style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
-            >
-              <Title
-                order={4}
-                style={{
-                  color: '#E6EAF0',
-                  fontWeight: 500,
-                  fontSize: 'clamp(1rem, 3vw, 1.125rem)',
-                  marginBottom: '12px'
-                }}
-                mb="sm"
-              >
-                Commissions
-              </Title>
-              <LineChart
-                h="clamp(12rem, 40vw, 16rem)"
-                data={dashboardData.commissionsOverTime.length > 0 ? dashboardData.commissionsOverTime : emptyCommissions}
-                dataKey="period"
-                series={[{ name: 'commission', color: '#42A5F5' }]}
-                curveType="monotone"
-                withTooltip
-                textColor="#9CA3AF"
-                xAxisProps={{
-                  tick: { fill: '#9CA3AF', fontSize: 11 },
-                  tickLine: { stroke: '#374151' },
-                  axisLine: { stroke: '#374151' }
-                }}
-                yAxisProps={{
-                  tick: { fill: '#9CA3AF', fontSize: 11 },
-                  tickLine: { stroke: '#374151' },
-                  axisLine: { stroke: '#374151' }
-                }}
-                tooltipProps={{
-                  content: ({ payload }) => {
-                    if (!payload || !payload[0]) return null;
-                    const { period, commission } = payload[0].payload;
-                    return (
-                      <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
-                        <div className="flex flex-col gap-0.5">
-                          <div className="text-[10px] text-zinc-400 mb-1">{period}</div>
-                          <div className="text-sm font-bold text-white tracking-tight">₹{formatNumber(commission, true)}</div>
-                          <div className="text-[10px] text-zinc-500 mt-1">
-                            Progress: <span className="text-white font-medium">{getPercentageOfTarget(commission, COMMISSION_MONTHLY_TARGET / 4)}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  },
-                }}
-              />
-            </NeoCard>
+
             <NeoCard
               variant="glass"
               className="p-6 backdrop-blur-xl border border-white/20"
@@ -961,6 +946,67 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 </Box>
               )}
             </NeoCard>
+
+            {/* Bottom row: Commissions full width */}
+            <div className="md:col-span-2">
+              <NeoCard
+                variant="glass"
+                className="p-6 backdrop-blur-xl border border-white/20 overflow-hidden"
+                style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
+              >
+                <Title
+                  order={4}
+                  style={{
+                    color: '#E6EAF0',
+                    fontWeight: 500,
+                    fontSize: 'clamp(1rem, 3vw, 1.125rem)',
+                    marginBottom: '12px'
+                  }}
+                  mb="sm"
+                >
+                  Commissions
+                </Title>
+                <div style={{ marginLeft: '-24px', marginRight: '-24px', marginBottom: '-24px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 48px)' }}>
+                  <LineChart
+                    h="clamp(12rem, 40vw, 16rem)"
+                    data={dashboardData.commissionsOverTime.length > 0 ? dashboardData.commissionsOverTime : emptyCommissions}
+                    dataKey="period"
+                    series={[{ name: 'commission', color: '#42A5F5' }]}
+                    curveType="monotone"
+                    withTooltip
+                    textColor="#9CA3AF"
+                    xAxisProps={{
+                      tick: { fill: '#9CA3AF', fontSize: 11 },
+                      tickLine: { stroke: '#374151' },
+                      axisLine: { stroke: '#374151' }
+                    }}
+                    yAxisProps={{
+                      tick: { fill: '#9CA3AF', fontSize: 11 },
+                      tickLine: { stroke: '#374151' },
+                      axisLine: { stroke: '#374151' },
+                      width: 30
+                    }}
+                  tooltipProps={{
+                    content: ({ payload }) => {
+                      if (!payload || !payload[0]) return null;
+                      const { period, commission } = payload[0].payload;
+                      return (
+                        <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="text-[10px] text-zinc-400 mb-1">{period}</div>
+                            <div className="text-sm font-bold text-white tracking-tight">₹{formatNumber(commission, true)}</div>
+                            <div className="text-[10px] text-zinc-500 mt-1">
+                              Progress: <span className="text-white font-medium">{getPercentageOfTarget(commission, COMMISSION_MONTHLY_TARGET / 4)}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    },
+                  }}
+                />
+                </div>
+              </NeoCard>
+            </div>
           </SimpleGrid>
         </>
       )}
