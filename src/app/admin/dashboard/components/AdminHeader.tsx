@@ -282,23 +282,7 @@ useEffect(() => {
                 </Avatar>
               )}
             </Menu.Target>
-            <Menu.Dropdown
-              styles={{
-                dropdown: {
-                  backgroundColor: 'var(--card)',
-                  borderColor: 'var(--border)',
-                },
-                item: {
-                  color: 'var(--foreground)',
-                  '&:hover': {
-                    backgroundColor: 'var(--muted)',
-                  },
-                },
-                divider: {
-                  borderColor: 'var(--border)',
-                },
-              }}
-            >
+            <Menu.Dropdown>
               <Menu.Item leftSection={<IconSettings size={14} />} onClick={() => setSettingsOpened(true)}>User Settings</Menu.Item>
               <Menu.Divider />
               <Menu.Item color="red" leftSection={<IconLogout size={14} />} onClick={() => signOut()}>Logout</Menu.Item>
