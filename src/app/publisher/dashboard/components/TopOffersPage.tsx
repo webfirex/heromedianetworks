@@ -87,7 +87,7 @@ export default function MyOffersPage() {
 
   if (loading) return (
     <div
-      className="backdrop-blur-xl border border-white/10 rounded-3xl p-6"
+      className="backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-6"
       style={{
         background: 'rgba(255, 255, 255, 0.03)',
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
@@ -104,13 +104,13 @@ export default function MyOffersPage() {
 
   return (
     <div
-      className="backdrop-blur-xl border border-white/10 rounded-3xl p-6"
+      className="backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-6"
       style={{
         background: 'rgba(255, 255, 255, 0.03)',
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
       }}
     >
-      <Group mb="md">
+      <Group mb="md" wrap="wrap" gap="sm">
         <TextInput
           placeholder="Search offers by name or description"
           value={search}

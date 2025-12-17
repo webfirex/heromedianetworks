@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { signOut } from 'next-auth/react';
 import {
   Home,
@@ -13,6 +13,7 @@ import {
   Compass,
   Settings,
   LogOut,
+  X,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,8 @@ interface DashboardSidebarProps {
   onTabChange: (tab: string) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const navigationItems = [
@@ -36,25 +39,51 @@ export default function DashboardSidebar({
   onTabChange,
   collapsed = false,
   onToggleCollapse,
+  mobileOpen = false,
+  onMobileClose,
 }: DashboardSidebarProps) {
+  // Handle tab change and close mobile menu
+  const handleTabChange = (tabId: string) => {
+    onTabChange(tabId);
+    if (onMobileClose) onMobileClose();
+  };
+
   return (
     <TooltipProvider delayDuration={0}>
+      {/* Mobile Overlay Backdrop */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={onMobileClose}
+          />
+        )}
+      </AnimatePresence>
+
       <motion.aside
         initial={false}
         animate={{
           width: collapsed ? 70 : 260,
+          x: 0,
         }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={cn(
           'fixed left-0 top-0 z-50 h-screen bg-background border-r border-sidebar-border',
-          'flex flex-col transition-all duration-300'
+          'flex flex-col transition-all duration-300',
+          // Mobile: hidden by default, shown when mobileOpen
+          'max-md:-translate-x-full max-md:w-[280px]',
+          mobileOpen && 'max-md:translate-x-0'
         )}
       >
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-2 min-w-0">
             <div
-              className="cursor-pointer flex-shrink-0"
+              className="cursor-pointer flex-shrink-0 max-md:cursor-default"
               onClick={onToggleCollapse}
             >
               <Image
@@ -70,13 +99,21 @@ export default function DashboardSidebar({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-base font-semibold text-sidebar-foreground whitespace-nowrap cursor-pointer"
+                className="text-base font-semibold text-sidebar-foreground whitespace-nowrap cursor-pointer max-md:cursor-default"
                 onClick={onToggleCollapse}
               >
                 Hero Media Network
               </motion.h2>
             )}
           </div>
+          {/* Mobile Close Button */}
+          <button
+            onClick={onMobileClose}
+            className="md:hidden p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-colors"
+            aria-label="Close menu"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -86,12 +123,12 @@ export default function DashboardSidebar({
             const isActive = activeTab === item.id;
 
             return (
-              <Tooltip key={item.id}>
+                <Tooltip key={item.id}>
                 <TooltipTrigger asChild>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => onTabChange(item.id)}
+                    onClick={() => handleTabChange(item.id)}
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                       'group relative',
@@ -155,7 +192,7 @@ export default function DashboardSidebar({
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => onTabChange('support')}
+                onClick={() => handleTabChange('support')}
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                   'group relative',

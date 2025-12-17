@@ -166,15 +166,15 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#f8f8f8',
+        background: 'var(--card)',
         borderRadius: rem(8),
-        border: `1px dashed #ddd`, // Changed to template literal for rem(8) which was incorrect
-        color: '#888',
+        border: `1px dashed var(--border)`,
+        color: 'var(--muted-foreground)',
         textAlign: 'center',
         padding: rem(20),
       }}
     >
-      <Text size="md" fw={500}>{message}</Text>
+      <Text size="md" fw={500} c="var(--muted-foreground)">{message}</Text>
     </Box>
   );
 
@@ -199,7 +199,7 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
           </SimpleGrid>
         </>
       ) : error ? (
-        <Text color="red">{error}</Text>
+        <Text c="var(--destructive)">{error}</Text>
       ) : (
         <>
           <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="xs" mb="sm">

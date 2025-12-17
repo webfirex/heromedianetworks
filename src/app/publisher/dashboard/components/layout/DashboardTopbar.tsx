@@ -17,6 +17,7 @@ import {
   Lock,
   CalendarDays,
   X,
+  Menu,
 } from 'lucide-react';
 import { format, addDays, subDays, startOfToday } from 'date-fns';
 import { Input } from '@/components/ui/input';
@@ -55,6 +56,7 @@ interface DashboardTopbarProps {
   dateRange: [Date | null, Date | null];
   onDateRangeChange: (range: [Date | null, Date | null]) => void;
   sidebarCollapsed: boolean;
+  onMobileMenuOpen?: () => void;
 }
 
 export default function DashboardTopbar({
@@ -62,6 +64,7 @@ export default function DashboardTopbar({
   dateRange,
   onDateRangeChange,
   sidebarCollapsed,
+  onMobileMenuOpen,
 }: DashboardTopbarProps) {
   const { data: session, status } = useSession();
   const [notificationCount] = useState(3); // Mock notification count
@@ -214,21 +217,27 @@ export default function DashboardTopbar({
         'bg-background backdrop-blur-sm'
       )}
     >
-      <div className="flex h-16 items-center justify-between px-6">
-        {/* Left Section - Simple Dashboard Title (no icon / toggle) */}
-        <div className="flex items-center">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Left Section - Hamburger Menu (mobile) + Dashboard Title */}
+        <div className="flex items-center gap-3">
+          {/* Mobile Hamburger Menu */}
+          <button
+            onClick={onMobileMenuOpen}
+            className="md:hidden p-2 -ml-2 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Open menu"
+          >
+            <Menu size={22} />
+          </button>
           <span className="text-lg font-semibold text-foreground">
             {getTabTitle()}
           </span>
         </div>
 
         {/* Right Section - Date, User */}
-        <div className="flex items-center gap-3">
-          {/* Date Picker - AFTER notifications */}
-
-          {/* Date Picker - AFTER notifications */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Date Picker - responsive */}
           {activeTab === 'dashboard' && (
-            <div className="flex items-center gap-1 h-auto py-1 px-1 bg-card border border-border rounded-full relative z-[60] dark-date-picker-wrapper">
+            <div className="hidden sm:flex items-center gap-1 h-auto py-1 pl-2 pr-1 bg-card border border-border rounded-full relative z-[60] dark-date-picker-wrapper max-w-xs lg:max-w-sm">
               <DatePickerInput
                 type="range"
                 placeholder="Pick dates range"
@@ -252,9 +261,9 @@ export default function DashboardTopbar({
                     border: 'none',
                     color: '#e4e4e7',
                     height: '34px',
-                    paddingLeft: '38px',
-                    paddingRight: '16px',
-                    width: '320px',
+                    paddingLeft: '28px',
+                    paddingRight: '12px',
+                    width: '100%',
                     fontSize: '13px',
                     fontWeight: 500,
                   },
@@ -262,10 +271,65 @@ export default function DashboardTopbar({
                     color: '#a1a1aa',
                   },
                 }}
-                leftSection={<Calendar size={16} className="text-muted-foreground ml-2" />}
+                leftSection={<Calendar size={16} className="text-muted-foreground ml-1" />}
                 leftSectionPointerEvents="none"
               />
             </div>
+          )}
+          
+          {/* Mobile Date Picker - Icon only that opens popover */}
+          {activeTab === 'dashboard' && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="sm:hidden h-9 w-9 p-0 rounded-full border border-border bg-card"
+                >
+                  <Calendar size={18} className="text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3 bg-card border-border" align="end">
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">Select Date Range</p>
+                  <DatePickerInput
+                    type="range"
+                    placeholder="Pick dates"
+                    value={dateRange}
+                    onChange={(value) => onDateRangeChange(value as unknown as [Date | null, Date | null])}
+                    clearable={false}
+                    numberOfColumns={1}
+                    popoverProps={{
+                      styles: {
+                        dropdown: {
+                          backgroundColor: '#020617',
+                          border: '1px solid #27272a',
+                          boxShadow: '0 20px 45px rgba(0,0,0,0.6)',
+                          padding: 8,
+                        },
+                      },
+                    }}
+                    styles={{
+                      input: {
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid #27272a',
+                        borderRadius: '8px',
+                        color: '#e4e4e7',
+                        height: '38px',
+                        paddingLeft: '12px',
+                        paddingRight: '12px',
+                        width: '200px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                      },
+                      placeholder: {
+                        color: '#a1a1aa',
+                      },
+                    }}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
 
           {/* User Menu with Username */}
