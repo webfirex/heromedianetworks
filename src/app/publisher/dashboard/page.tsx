@@ -22,6 +22,7 @@ export default function PublisherDashboard() {
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>(() => {
     const today = new Date();
     const oneWeekFromToday = new Date(today);
@@ -108,32 +109,34 @@ export default function PublisherDashboard() {
 
   const renderDashboardContent = () => (
     <div className="flex h-screen bg-background">
-      {/* New Dark Sidebar */}
+      {/* Mobile-responsive Dark Sidebar */}
       <DashboardSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}
-                />
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
 
-      {/* Main Content Area */}
+      {/* Main Content Area - responsive margins */}
       <div
-        className="flex flex-col flex-1 transition-all duration-300"
-        style={{
-          marginLeft: collapsed ? 70 : 260,
-        }}
+        className={`flex flex-col flex-1 transition-all duration-300 w-full ml-0 md:ml-[260px] ${
+          collapsed ? 'md:ml-[70px]' : 'md:ml-[260px]'
+        }`}
       >
-        {/* New Dark Topbar */}
+        {/* Mobile-responsive Dark Topbar */}
         <DashboardTopbar
           activeTab={activeTab}
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
           sidebarCollapsed={collapsed}
-                />
+          onMobileMenuOpen={() => setMobileMenuOpen(true)}
+        />
 
         {/* Content */}
         <ScrollArea className="flex-1">
-          <div className="p-6">
+          <div className="p-3 md:p-6">
             <ContentPanel activeTab={activeTab} dateRange={dateRange} />
           </div>
         </ScrollArea>

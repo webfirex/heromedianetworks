@@ -435,4 +435,212 @@
   .dark-date-picker-wrapper .mantine-DatePickerInput-monthCell {
     background-color: transparent;
   }
+
+  /* Mobile responsive styles for dashboard */
+  @media (max-width: 767px) {
+    /* Reduce chart heights on mobile */
+    .mantine-AreaChart-root,
+    .mantine-LineChart-root,
+    .mantine-BarChart-root {
+      max-height: 200px !important;
+    }
+
+    /* Reduce x-axis font size on mobile */
+    .recharts-cartesian-axis-tick-value {
+      font-size: 9px !important;
+    }
+
+    /* Make pie chart smaller on mobile */
+    .mantine-PieChart-root {
+      max-height: 180px !important;
+    }
+
+    /* Reduce y-axis width on mobile */
+    .recharts-yAxis {
+      width: 25px !important;
+    }
+
+    /* Better touch targets for mobile */
+    .recharts-tooltip-wrapper {
+      pointer-events: auto !important;
+    }
+  }
+
+  /* Tablet responsive adjustments */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .mantine-AreaChart-root,
+    .mantine-LineChart-root,
+    .mantine-BarChart-root {
+      max-height: 280px !important;
+    }
+  }
+
+  /* Admin Dashboard Dark Mode Styles */
+  .dark .mantine-Paper-root {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+    border-color: var(--border) !important;
+  }
+
+  .dark .mantine-Modal-content,
+  .dark .mantine-Modal-header,
+  .dark .mantine-Modal-body {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+  }
+
+  .dark .mantine-Modal-title {
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Table-root {
+    background-color: var(--card) !important;
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Table-th {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+    border-color: var(--border) !important;
+  }
+
+  .dark .mantine-Table-td {
+    border-color: var(--border) !important;
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Table-tr:hover {
+    background-color: var(--muted) !important;
+  }
+
+  .dark .mantine-TextInput-input,
+  .dark .mantine-Select-input,
+  .dark .mantine-MultiSelect-input {
+    background-color: var(--input) !important;
+    color: var(--foreground) !important;
+    border-color: var(--border) !important;
+  }
+
+  .dark .mantine-TextInput-label,
+  .dark .mantine-Select-label,
+  .dark .mantine-MultiSelect-label {
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Drawer-content,
+  .dark .mantine-Drawer-header,
+  .dark .mantine-Drawer-body {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+  }
+
+  .dark .mantine-Drawer-title {
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Card-root {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+    border-color: var(--border) !important;
+  }
+
+  .dark .mantine-Text-root {
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Title-root {
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Skeleton-root {
+    background-color: var(--muted) !important;
+  }
+
+  .dark .mantine-Menu-dropdown {
+    background-color: var(--card) !important;
+    border-color: var(--border) !important;
+  }
+
+  .dark .mantine-Menu-item {
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Menu-item:hover {
+    background-color: var(--muted) !important;
+  }
+
+  .dark .mantine-Menu-divider {
+    border-color: var(--border) !important;
+  }
+
+  .dark .mantine-Avatar-root {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+  }
+
+  /* Button hover states for dark mode - prevent white backgrounds */
+  .dark .mantine-Button-root[data-variant="light"],
+  .dark button.mantine-Button-root[data-variant="light"] {
+    background-color: transparent !important;
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Button-root[data-variant="light"]:hover,
+  .dark button.mantine-Button-root[data-variant="light"]:hover,
+  .dark .mantine-Button-root[data-variant="light"][data-hovered],
+  .dark button.mantine-Button-root[data-variant="light"][data-hovered],
+  .dark .mantine-Button-root[data-variant="light"]:not([data-disabled]):hover {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Button-root[data-variant="subtle"],
+  .dark button.mantine-Button-root[data-variant="subtle"] {
+    background-color: transparent !important;
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Button-root[data-variant="subtle"]:hover,
+  .dark button.mantine-Button-root[data-variant="subtle"]:hover,
+  .dark .mantine-Button-root[data-variant="subtle"][data-hovered],
+  .dark button.mantine-Button-root[data-variant="subtle"][data-hovered],
+  .dark .mantine-Button-root[data-variant="subtle"]:not([data-disabled]):hover {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-Button-root[data-variant="filled"]:hover {
+    opacity: 0.9 !important;
+  }
+
+  /* ActionIcon hover states */
+  .dark .mantine-ActionIcon-root[data-variant="light"]:hover,
+  .dark .mantine-ActionIcon-root[data-variant="light"][data-hovered],
+  .dark .mantine-ActionIcon-root[data-variant="light"]:not([data-disabled]):hover {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+  }
+
+  .dark .mantine-ActionIcon-root[data-variant="subtle"]:hover,
+  .dark .mantine-ActionIcon-root[data-variant="subtle"][data-hovered],
+  .dark .mantine-ActionIcon-root[data-variant="subtle"]:not([data-disabled]):hover {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+  }
+
+  /* Badge light variant in dark mode */
+  .dark .mantine-Badge-root[data-variant="light"] {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+  }
+
+  /* Override any white/light backgrounds on button hover in dark mode */
+  .dark .mantine-Button-root:hover:not([data-variant="filled"]):not([data-disabled]) {
+    background-color: var(--muted) !important;
+  }
+
+  /* Ensure text color is visible on hover */
+  .dark .mantine-Button-root:hover:not([data-disabled]) {
+    color: var(--foreground) !important;
+  }
 }

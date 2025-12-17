@@ -52,11 +52,11 @@ const AdminDashboard = () => {
         {/* Sidebar for desktop */}
         <Box
           w={collapsed ? 70 : 260}
-          bg="white"
           p="sm"
           className="hide-scrollbar"
           style={{
-            borderRight: '1px solid #eee',
+            backgroundColor: 'var(--sidebar)',
+            borderRight: '1px solid var(--sidebar-border)',
             position: 'fixed',
             height: '100vh',
             overflowY: 'auto',
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
             display: 'flex',
             flexDirection: 'column',
             height: '100vh',
-            backgroundColor: '#f0f2f5',
+            backgroundColor: 'var(--background)',
           }}
         >
           {/* Header */}
@@ -116,10 +116,10 @@ const AdminDashboard = () => {
         {isMobile && (
           <Box
             w={260}
-            bg="white"
             p="sm"
             style={{
-              borderRight: '1px solid #eee',
+              backgroundColor: 'var(--sidebar)',
+              borderRight: '1px solid var(--sidebar-border)',
               position: 'fixed',
               height: '100vh',
               overflowY: 'auto',
@@ -128,7 +128,7 @@ const AdminDashboard = () => {
               flexDirection: 'column',
               left: 0,
               top: 0,
-              boxShadow: '2px 0 8px rgba(0,0,0,0.08)',
+              boxShadow: '2px 0 8px rgba(0,0,0,0.3)',
             }}
           >
             <AdminSidebar

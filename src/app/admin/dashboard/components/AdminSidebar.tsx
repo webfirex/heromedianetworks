@@ -66,7 +66,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           {!collapsed && (
             <Title
               order={4}
-              style={{ color: primary, whiteSpace: 'nowrap', fontSize: '16px', cursor: 'pointer' }}
+              style={{ color: 'var(--sidebar-foreground)', whiteSpace: 'nowrap', fontSize: '16px', cursor: 'pointer' }}
               onClick={() => {
                 if (!isMobile) setCollapsed((c) => !c);
               }}
@@ -96,6 +96,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           leftSection={<IconLayoutDashboard size={18} />}
           active={activeTab === 'dashboard'}
           onClick={() => handleNavLinkClick('dashboard')}
+          styles={{
+            root: {
+              color: 'var(--sidebar-foreground)',
+              '&:hover': {
+                backgroundColor: 'var(--sidebar-accent)',
+                color: 'var(--sidebar-accent-foreground)',
+              },
+              '&[data-active]': {
+                backgroundColor: 'var(--sidebar-primary)',
+                color: 'var(--sidebar-primary-foreground)',
+              },
+            },
+          }}
         />
 
         <NavLink
@@ -103,6 +116,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           leftSection={<IconKey size={18} />}
           active={activeTab === 'access'}
           onClick={() => handleNavLinkClick('access')}
+          styles={{
+            root: {
+              color: 'var(--sidebar-foreground)',
+              '&:hover': {
+                backgroundColor: 'var(--sidebar-accent)',
+                color: 'var(--sidebar-accent-foreground)',
+              },
+              '&[data-active]': {
+                backgroundColor: 'var(--sidebar-primary)',
+                color: 'var(--sidebar-primary-foreground)',
+              },
+            },
+          }}
         />
 
         <NavLink
@@ -110,6 +136,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           leftSection={<IconRefreshDot size={18} />}
           active={activeTab === 'postback'}
           onClick={() => handleNavLinkClick('postback')}
+          styles={{
+            root: {
+              color: 'var(--sidebar-foreground)',
+              '&:hover': {
+                backgroundColor: 'var(--sidebar-accent)',
+                color: 'var(--sidebar-accent-foreground)',
+              },
+              '&[data-active]': {
+                backgroundColor: 'var(--sidebar-primary)',
+                color: 'var(--sidebar-primary-foreground)',
+              },
+            },
+          }}
         />
         {/* <NavLink
           label={collapsed ? null : 'Smartlinks'}
@@ -123,6 +162,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           leftSection={<IconUsers size={18} />}
           active={activeTab === 'approvals'}
           onClick={() => handleNavLinkClick('approvals')}
+          styles={{
+            root: {
+              color: 'var(--sidebar-foreground)',
+              '&:hover': {
+                backgroundColor: 'var(--sidebar-accent)',
+                color: 'var(--sidebar-accent-foreground)',
+              },
+              '&[data-active]': {
+                backgroundColor: 'var(--sidebar-primary)',
+                color: 'var(--sidebar-primary-foreground)',
+              },
+            },
+          }}
         />
 
         <NavLink
@@ -130,6 +182,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           leftSection={<IconMail size={18} />}
           active={activeTab === 'mail'}
           onClick={() => handleNavLinkClick('mail')}
+          styles={{
+            root: {
+              color: 'var(--sidebar-foreground)',
+              '&:hover': {
+                backgroundColor: 'var(--sidebar-accent)',
+                color: 'var(--sidebar-accent-foreground)',
+              },
+              '&[data-active]': {
+                backgroundColor: 'var(--sidebar-primary)',
+                color: 'var(--sidebar-primary-foreground)',
+              },
+            },
+          }}
         />
 
         {/* Offers Section */}
@@ -138,6 +203,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             leftSection={<IconRocket size={18} />}
             label={null}
             onClick={() => setOffersOpen((o) => !o)}
+            styles={{
+              root: {
+                color: 'var(--sidebar-foreground)',
+                '&:hover': {
+                  backgroundColor: 'var(--sidebar-accent)',
+                  color: 'var(--sidebar-accent-foreground)',
+                },
+              },
+            }}
           />
         ) : (
           <>
@@ -146,6 +220,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               leftSection={<IconRocket size={18} />}
               rightSection={offersOpen ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
               onClick={() => setOffersOpen((o) => !o)}
+              styles={{
+                root: {
+                  color: 'var(--sidebar-foreground)',
+                  '&:hover': {
+                    backgroundColor: 'var(--sidebar-accent)',
+                    color: 'var(--sidebar-accent-foreground)',
+                  },
+                },
+              }}
             />
             <Collapse in={offersOpen}>
               <Stack gap={2} pl={24} className="hide-scrollbar" style={{ overflowY: 'auto' }}>
@@ -161,6 +244,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     leftSection={icon}
                     active={activeTab === key}
                     onClick={() => handleNavLinkClick(key)}
+                    styles={{
+                      root: {
+                        color: 'var(--sidebar-foreground)',
+                        '&:hover': {
+                          backgroundColor: 'var(--sidebar-accent)',
+                          color: 'var(--sidebar-accent-foreground)',
+                        },
+                        '&[data-active]': {
+                          backgroundColor: 'var(--sidebar-primary)',
+                          color: 'var(--sidebar-primary-foreground)',
+                        },
+                      },
+                    }}
                   />
                 ))}
               </Stack>
@@ -171,13 +267,21 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       {/* --- CUSTOMER SUPPORT NAVLINK ADDED AT THE BOTTOM --- */}
       {/* Box with margin-top to create visual separation from the main links */}
-      <Box mt="auto" pt="xs" style={{ borderTop: '1px solid var(--mantine-color-gray-2)' }}>
+      <Box mt="auto" pt="xs" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
         <NavLink
           label={collapsed ? null : 'Customer Support'}
           leftSection={<IconHeadset size={18} />}
           active={activeTab === 'customer-support'}
           onClick={() => window.open('mailto:support@heromedianetwork.com', '_blank')}
-          // Optional: Add some styling for the bottom link if needed
+          styles={{
+            root: {
+              color: 'var(--sidebar-foreground)',
+              '&:hover': {
+                backgroundColor: 'var(--sidebar-accent)',
+                color: 'var(--sidebar-accent-foreground)',
+              },
+            },
+          }}
         />
       </Box>
       {/* --- END CUSTOMER SUPPORT NAVLINK --- */}

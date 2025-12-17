@@ -143,8 +143,13 @@ useEffect(() => {
         align="center"
         px="xl"
         py="md"
-        bg="white"
-        style={{ borderBottom: '1px solid #e0e0e0', position: 'sticky', top: 0, zIndex: 10 }}
+        style={{ 
+          backgroundColor: 'var(--card)',
+          borderBottom: '1px solid var(--border)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10
+        }}
       >
         {isMobile ? (
           <Box style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -156,12 +161,12 @@ useEffect(() => {
               style={{ cursor: 'pointer', flexShrink: 0 }}
               onClick={() => setSidebarOpen(true)}
             />
-            <Title order={4} style={{ color: primary, fontSize: '16px', whiteSpace: 'nowrap' }}>
+            <Title order={4} style={{ color: 'var(--foreground)', fontSize: '16px', whiteSpace: 'nowrap' }}>
               {getTabTitle(activeTab)}
             </Title>
           </Box>
         ) : (
-          <Title order={3} style={{ color: primary, marginRight: 24, minWidth: 180 }}>
+          <Title order={3} style={{ color: 'var(--foreground)', marginRight: 24, minWidth: 180 }}>
             {getTabTitle(activeTab)}
           </Title>
         )}
@@ -175,7 +180,21 @@ useEffect(() => {
                   variant="light"
                   color="indigo"
                   size="sm"
-                  style={{ marginRight: 8, padding: 6, minWidth: 0 }}
+                  style={{ 
+                    marginRight: 8, 
+                    padding: 6, 
+                    minWidth: 0,
+                    backgroundColor: 'transparent',
+                    color: 'var(--foreground)',
+                  }}
+                  styles={{
+                    root: {
+                      '&:hover': {
+                        backgroundColor: 'var(--muted) !important',
+                        color: 'var(--foreground) !important',
+                      },
+                    },
+                  }}
                   onClick={() => setAddLinkOpen(true)}
                 >
                   <IconPlus size={20} />
@@ -185,7 +204,21 @@ useEffect(() => {
                 variant="light"
                 color="blue"
                 size="sm"
-                style={{ padding: 6, minWidth: 0, marginRight: 8 }}
+                style={{ 
+                  padding: 6, 
+                  minWidth: 0, 
+                  marginRight: 8,
+                  backgroundColor: 'transparent',
+                  color: 'var(--foreground)',
+                }}
+                styles={{
+                  root: {
+                    '&:hover': {
+                      backgroundColor: 'var(--muted) !important',
+                      color: 'var(--foreground) !important',
+                    },
+                  },
+                }}
                 onClick={() => window.open('/admin/dashboard/documentation', '_blank')}
               >
                 <IconFileText size={20} />
@@ -198,7 +231,19 @@ useEffect(() => {
                   variant="light"
                   color="indigo"
                   size="sm"
-                  style={{ marginRight: 12 }}
+                  style={{ 
+                    marginRight: 12,
+                    backgroundColor: 'transparent',
+                    color: 'var(--foreground)',
+                  }}
+                  styles={{
+                    root: {
+                      '&:hover': {
+                        backgroundColor: 'var(--muted) !important',
+                        color: 'var(--foreground) !important',
+                      },
+                    },
+                  }}
                   onClick={() => setAddLinkOpen(true)}
                 >
                   + Add Link
@@ -208,7 +253,19 @@ useEffect(() => {
                 variant="light"
                 color="blue"
                 size="sm"
-                style={{ marginRight: 12 }}
+                style={{ 
+                  marginRight: 12,
+                  backgroundColor: 'transparent',
+                  color: 'var(--foreground)',
+                }}
+                styles={{
+                  root: {
+                    '&:hover': {
+                      backgroundColor: 'var(--muted) !important',
+                      color: 'var(--foreground) !important',
+                    },
+                  },
+                }}
                 onClick={() => window.open('/admin/dashboard/documentation', '_blank')}
               >
                 Documentation
@@ -225,7 +282,23 @@ useEffect(() => {
                 </Avatar>
               )}
             </Menu.Target>
-            <Menu.Dropdown>
+            <Menu.Dropdown
+              styles={{
+                dropdown: {
+                  backgroundColor: 'var(--card)',
+                  borderColor: 'var(--border)',
+                },
+                item: {
+                  color: 'var(--foreground)',
+                  '&:hover': {
+                    backgroundColor: 'var(--muted)',
+                  },
+                },
+                divider: {
+                  borderColor: 'var(--border)',
+                },
+              }}
+            >
               <Menu.Item leftSection={<IconSettings size={14} />} onClick={() => setSettingsOpened(true)}>User Settings</Menu.Item>
               <Menu.Divider />
               <Menu.Item color="red" leftSection={<IconLogout size={14} />} onClick={() => signOut()}>Logout</Menu.Item>
@@ -238,31 +311,40 @@ useEffect(() => {
       <Drawer
         opened={settingsOpened}
         onClose={() => setSettingsOpened(false)}
-        title={<Text size="lg" fw={600}>User Settings</Text>}
+        title={<Text size="lg" fw={600} c="var(--foreground)">User Settings</Text>}
         position="right"
         size="lg"
         padding="xl"
+        styles={{
+          content: {
+            backgroundColor: 'var(--card)',
+          },
+          header: {
+            backgroundColor: 'var(--card)',
+            borderBottom: '1px solid var(--border)',
+          },
+        }}
       >
 
         <Box>
-          <Title order={4} mb="md">Account Info</Title>
+          <Title order={4} mb="md" c="var(--foreground)">Account Info</Title>
           {status === 'loading' ? (
             <Loader size="sm" />
           ) : (
             <>
               <Group gap="xs" mb="xs">
-                <IconMail size={18} color="gray" />
-                <Text>Email: {session?.user?.email || 'N/A'}</Text>
+                <IconMail size={18} color="var(--muted-foreground)" />
+                <Text c="var(--foreground)">Email: {session?.user?.email || 'N/A'}</Text>
               </Group>
               <Group gap="xs" mb="md">
-                <IconCalendarTime size={18} color="gray" />
-                <Text>Registered: {registeredAt || 'Loading...'}</Text>
+                <IconCalendarTime size={18} color="var(--muted-foreground)" />
+                <Text c="var(--foreground)">Registered: {registeredAt || 'Loading...'}</Text>
               </Group>
 
             </>
           )}
 
-          <Title order={5} mb="xs">Reset Password</Title>
+          <Title order={5} mb="xs" c="var(--foreground)">Reset Password</Title>
           <PasswordInput
             placeholder="Your new password"
             leftSection={<IconLock size={16} />}
@@ -289,7 +371,24 @@ useEffect(() => {
       </Drawer>
 
       {/* Add Link Modal */}
-      <Modal opened={addLinkOpen} onClose={() => setAddLinkOpen(false)} title="Add Postback Link" centered>
+      <Modal 
+        opened={addLinkOpen} 
+        onClose={() => setAddLinkOpen(false)} 
+        title="Add Postback Link" 
+        centered
+        styles={{
+          content: {
+            backgroundColor: 'var(--card)',
+          },
+          header: {
+            backgroundColor: 'var(--card)',
+            borderBottom: '1px solid var(--border)',
+          },
+          title: {
+            color: 'var(--foreground)',
+          },
+        }}
+      >
         <AddLinkForm />
       </Modal>
     </>

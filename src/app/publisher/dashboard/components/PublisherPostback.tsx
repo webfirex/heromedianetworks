@@ -241,16 +241,16 @@ const PublisherPostback: React.FC = () => {
   return (
     <div className="w-full">
       <div
-        className="backdrop-blur-xl border border-white/10 rounded-xl p-6"
+        className="backdrop-blur-xl border border-white/10 rounded-xl p-4 md:p-6"
         style={{ background: 'rgba(255, 255, 255, 0.03)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)' }}
       >
-        <Flex justify="space-between" align="center" mb="md" wrap="wrap" gap="md">
+        <Flex justify="space-between" align="center" mb="md" wrap="wrap" gap="sm">
           <TextInput
             placeholder="Search by Offer Name"
             value={searchQuery}
             onChange={handleSearchChange}
             leftSection={<IconSearch size={16} />}
-            style={{ flexGrow: 1, minWidth: '250px' }}
+            style={{ flexGrow: 1, minWidth: '200px' }}
             styles={{
               input: {
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
