@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { Card, SimpleGrid, Grid, Box, Title, Text, Group, Stack, Badge, Flex, SemiCircleProgress, Button, Loader, Avatar } from '@mantine/core';
-import { IconLayoutDashboard, IconCircleCheck, IconCurrencyDollar, IconArrowRight, IconInfoCircle, IconChevronDown, IconHelpCircle, IconDotsVertical } from '@tabler/icons-react';
+import { IconLayoutDashboard, IconCircleCheck, IconCurrencyDollar, IconArrowRight, IconInfoCircle, IconChevronDown, IconHelpCircle, IconDotsVertical, IconPercentage } from '@tabler/icons-react';
 import { BarChart, PieChart, LineChart, AreaChart } from '@mantine/charts';
 import { Skeleton } from '@mantine/core';
 import { showNotification } from '@/app/utils/notificationManager';
@@ -113,7 +113,6 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [overviewTab, setOverviewTab] = useState<'24h' | 'Week' | 'Month'>('Month');
 
   const formatApiDate = (date: Date | null | unknown): string | null => {
     if (!date) return null;
@@ -244,35 +243,48 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
   const isSalesPositive = parseFloat(salesPercentageChange) > 0;
   const salesTrendColor = isSalesPositive ? 'green' : 'red';
 
+  // Calculate conversion rate
+  const currentConversionRate = dashboardData.clicksThisMonth > 0
+    ? ((dashboardData.salesThisMonth / dashboardData.clicksThisMonth) * 100)
+    : 0;
+  const previousConversionRate = dashboardData.clicksPreviousMonth > 0
+    ? ((dashboardData.salesPreviousMonth / dashboardData.clicksPreviousMonth) * 100)
+    : 0;
+  const conversionRateChange = previousConversionRate > 0
+    ? (((currentConversionRate - previousConversionRate) / previousConversionRate) * 100)
+    : (currentConversionRate > 0 ? 100 : 0);
+  const isConversionRatePositive = conversionRateChange >= 0;
+
   const commissionPercentageChange = COMMISSION_MONTHLY_TARGET > 0
     ? ((dashboardData.commissionThisMonth / COMMISSION_MONTHLY_TARGET) * 100).toFixed(2)
     : '0.00';
   const isCommissionPositive = parseFloat(commissionPercentageChange) > 0;
   const commissionTrendColor = isCommissionPositive ? 'green' : 'red';
 
-  const overviewClicksSeries: OverviewClicks[] =
-    overviewTab === 'Month'
-      ? (dashboardData.overviewClicks?.last30d ?? [])
-      : overviewTab === 'Week'
-        ? (dashboardData.overviewClicks?.last7d ?? [])
-        : (dashboardData.overviewClicks?.last24h ?? []);
+  // Use clicksOverTime data which is already filtered by the selected date range
+  const activeOverviewSeries = (dashboardData.clicksOverTime ?? []).map(item => ({
+    period: item.period,
+    clicks: item.clicks
+  }));
 
-  const overviewFallbackSeries: OverviewClicks[] =
-    overviewTab === 'Month'
-      ? (dashboardData.clicksOverTime ?? [])
-      : overviewTab === 'Week'
-        ? (dashboardData.clicksOverTime ?? []).slice(-7)
-        : (dashboardData.clicksOverTime ?? []).slice(-1);
-
-  const activeOverviewSeries = overviewClicksSeries.length > 0 ? overviewClicksSeries : overviewFallbackSeries;
+  // Calculate percentage change for the selected date range (first vs last period)
+  const overviewPercentageChange = (() => {
+    if (activeOverviewSeries.length < 2) return '0.00';
+    const firstValue = activeOverviewSeries[0]?.clicks ?? 0;
+    const lastValue = activeOverviewSeries[activeOverviewSeries.length - 1]?.clicks ?? 0;
+    if (firstValue === 0) return lastValue > 0 ? '100.00' : '0.00';
+    const change = ((lastValue - firstValue) / firstValue) * 100;
+    return change.toFixed(2);
+  })();
+  const isOverviewPositive = parseFloat(overviewPercentageChange) >= 0;
 
   return (
     <Box p="0.5rem">
       {loading ? (
         <>
-          {/* 1. Key Metrics Row Skeleton (4 Cols) */}
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md" mb="xl">
-            {[...Array(4)].map((_, i) => (
+          {/* 1. Key Metrics Row Skeleton (3 Cols) */}
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mb="xl">
+            {[...Array(3)].map((_, i) => (
               <div
                 key={i}
                 className="p-4 rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md relative overflow-hidden"
@@ -345,7 +357,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
           {/* 3. Bottom Charts Skeleton (2 Cols) */}
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-            {[...Array(2)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <div
                 key={i}
                 className="h-[350px] rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md p-6 relative overflow-hidden flex flex-col"
@@ -359,7 +371,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
       ) : error ? null : (
         <>
           {/* Key Metrics Row - New Addition */}
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm" mb="lg">
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm" mb="lg">
             {/* Clicks This Month */}
             <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
               <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
@@ -393,6 +405,24 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
               </div>
               <div className="text-[9px] md:text-[10px] text-zinc-500">
                 Previous month: {formatNumber(dashboardData.salesPreviousMonth)} conversions
+              </div>
+            </NeoCard>
+
+            {/* Conversion Rate % This Month */}
+            <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+              <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 transition-colors">
+                <IconPercentage size={18} className="md:w-5 md:h-5" />
+              </div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Conversion Rate %</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">{currentConversionRate.toFixed(2)}%</div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className={`text-xs font-bold ${isConversionRatePositive ? 'text-green-400' : 'text-red-400'}`}>
+                  {isConversionRatePositive ? '▲' : '▼'} {Math.abs(conversionRateChange).toFixed(2)}%
+                </div>
+                <span className="text-[9px] md:text-[10px] text-zinc-500">vs previous month</span>
+              </div>
+              <div className="text-[9px] md:text-[10px] text-zinc-500">
+                Previous month: {previousConversionRate.toFixed(2)}%
               </div>
             </NeoCard>
           </SimpleGrid>
@@ -432,35 +462,6 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         <IconInfoCircle size={18} className="text-zinc-500 cursor-pointer hover:text-zinc-300" />
                       </div>
 
-                      {/* Tabs */}
-                      <div
-                        className="bg-[#131416]/50 rounded-xl p-1.5 grid grid-cols-3 gap-1 mb-3 border border-white/5"
-                        role="tablist"
-                        aria-label="Overview range"
-                      >
-                        {(['24h', 'Week', 'Month'] as const).map((tab) => {
-                          const isActive = overviewTab === tab;
-                          return (
-                            <button
-                              key={tab}
-                              type="button"
-                              role="tab"
-                              aria-selected={isActive}
-                              onClick={() => setOverviewTab(tab)}
-                              className={cn(
-                                'text-center py-2 text-xs rounded-lg transition font-medium outline-none',
-                                'focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0C]',
-                                isActive
-                                  ? 'text-white bg-[#2C2D31] shadow-md border border-white/10'
-                                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                              )}
-                            >
-                              {tab === '24h' ? '24H' : tab}
-                            </button>
-                          );
-                        })}
-                      </div>
-
                       {/* Quick Stats Row */}
                       <div className="grid grid-cols-3 gap-1.5 md:gap-2 mb-4">
                         <div className="bg-white/5 rounded-lg p-1.5 md:p-2 border border-white/5">
@@ -477,8 +478,11 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         </div>
                       </div>
 
+                      {/* Spacer to push chart down */}
+                      <div className="flex-1"></div>
+
                       {/* Chart Area */}
-                      <div className="flex-1 w-full min-h-[140px] relative overview-chart-area" style={{ marginLeft: '-16px', marginRight: '-16px', marginBottom: '-16px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 32px)' }}>
+                      <div className="w-full h-[150px] relative overview-chart-area mt-4" style={{ marginLeft: '-16px', marginRight: '-16px', paddingLeft: 0, paddingRight: 0, width: 'calc(100% + 32px)' }}>
                         <style jsx>{`
                           :global(.overview-chart-area .mantine-AreaChart-root) {
                             background: transparent !important;
@@ -506,7 +510,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           :global(.overview-chart-area .recharts-line-curve),
                           :global(.overview-chart-area path[name="clicks"]) {
                             stroke: #3B82F6 !important;
-                            stroke-width: 4px !important;
+                            stroke-width: 1.5px !important;
                             opacity: 1 !important;
                             fill: none !important;
                           }
@@ -521,7 +525,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           withYAxis={false}
                           gridAxis="none"
                           withDots={false}
-                          strokeWidth={3.5}
+                          strokeWidth={1.5}
                           fillOpacity={0.4}
                           textColor="#9CA3AF"
                           xAxisProps={{
@@ -566,8 +570,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       {/* Footer Stats */}
                       <div className="mt-4 md:mt-6 flex justify-between items-end">
                         <div className="flex items-center gap-1">
-                          <div className={`text-2xl md:text-3xl font-bold mb-1 ${isClicksPositive ? 'text-blue-500' : 'text-red-500'}`}>{isClicksPositive ? '+' : '-'}</div>
-                          <div className="text-3xl md:text-4xl font-bold text-white tracking-tight">{Math.abs(Number(clicksPercentageChange))}<span className="text-xl md:text-2xl text-white ml-1">%</span></div>
+                          <div className={`text-2xl md:text-3xl font-bold mb-1 ${isOverviewPositive ? 'text-blue-500' : 'text-red-500'}`}>{isOverviewPositive ? '+' : ''}</div>
+                          <div className="text-3xl md:text-4xl font-bold text-white tracking-tight">{Math.abs(Number(overviewPercentageChange))}<span className="text-xl md:text-2xl text-white ml-1">%</span></div>
                         </div>
                         <div className="text-right">
                           <div className="text-[9px] md:text-[10px] text-zinc-600">Last updated</div>
@@ -703,7 +707,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                               withYAxis={false}
                               gridAxis="none"
                               withDots={false}
-                              strokeWidth={3}
+                              strokeWidth={1.5}
                               fillOpacity={0.2}
                               textColor="#9CA3AF"
                               xAxisProps={{
@@ -769,6 +773,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         series={[{ name: 'clicks', color: primary }]}
                         curveType="monotone"
                         withTooltip
+                        strokeWidth={1.5}
                         textColor="#9CA3AF"
                         xAxisProps={{
                           tick: { fill: '#9CA3AF', fontSize: 11 },
@@ -846,6 +851,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   series={[{ name: 'conversions', color: '#66BB6A' }]}
                   curveType="monotone"
                   withTooltip
+                  strokeWidth={1.5}
                   textColor="#9CA3AF"
                   xAxisProps={{
                     tick: { fill: '#9CA3AF', fontSize: 11 },
@@ -974,6 +980,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     series={[{ name: 'commission', color: '#42A5F5' }]}
                     curveType="monotone"
                     withTooltip
+                    strokeWidth={1.5}
                     textColor="#9CA3AF"
                     xAxisProps={{
                       tick: { fill: '#9CA3AF', fontSize: 11 },

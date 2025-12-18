@@ -121,8 +121,10 @@ export default function PublisherDashboard() {
 
       {/* Main Content Area - responsive margins */}
       <div
-        className={`flex flex-col flex-1 transition-all duration-300 w-full ml-0 md:ml-[260px] ${
-          collapsed ? 'md:ml-[70px]' : 'md:ml-[260px]'
+        className={`flex flex-col flex-1 transition-all duration-300 ml-0 ${
+          collapsed 
+            ? 'md:ml-[70px] md:w-[calc(100%-70px)]' 
+            : 'md:ml-[260px] md:w-[calc(100%-260px)]'
         }`}
       >
         {/* Mobile-responsive Dark Topbar */}
