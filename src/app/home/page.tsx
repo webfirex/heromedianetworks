@@ -48,7 +48,7 @@ export default function Home() {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, 100]);
   const y2 = useTransform(scrollY, [0, 300], [0, -100]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const opacity = useTransform(scrollY, [0, 500], [1, 0.4]);
   const { data: session } = useSession();
 
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -255,7 +255,7 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-sky-600/20 via-teal-600/20 to-emerald-600/20 rounded-2xl blur-2xl" />
                 <img 
-                  src="/hmn-hero.png" 
+                  src="/heromediabg.png" 
                   alt="Dashboard Preview" 
                   className='relative rounded-xl max-w-[950px] w-full border border-border shadow-2xl' 
                 />

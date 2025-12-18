@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { Card, SimpleGrid, Box, Title, Text, Group, Stack, rem, Badge } from '@mantine/core';
-import { IconLayoutDashboard, IconCircleCheck, IconCurrencyRupee, IconFileCheck } from '@tabler/icons-react';
+import { IconLayoutDashboard, IconCircleCheck, IconPercentage } from '@tabler/icons-react';
 import { Skeleton } from '@mantine/core';
 import { showNotification } from '@/app/utils/notificationManager'; // Assuming this path is correct
 import { BarChart, PieChart, LineChart, AreaChart } from '@mantine/charts';
@@ -92,8 +92,11 @@ const getColorForSegment = (name: string, index: number, palette: string[]) => {
 };
 // --- End Dummy Data and Helper Functions ---
 
+interface AdminDashboardContentProps {
+  dateRange: [Date | null, Date | null];
+}
 
-const AdminDashboardContent = () => {
+const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({ dateRange }) => {
   console.log('AdminDashboardContent component mounted');
 
   const [dashboardData, setDashboardData] = useState<DashboardData>({
@@ -115,14 +118,37 @@ const AdminDashboardContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Updated the API endpoint to use the new admin dashboard route
+  // Helper function to format date for API
+  const formatApiDate = (date: Date | null | unknown): string | null => {
+    if (!date) return null;
+    let dateObj = date as Date;
+    if (!(dateObj instanceof Date)) {
+      dateObj = new Date(date as string);
+    }
+    if (isNaN(dateObj.getTime())) return null;
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Updated the API endpoint to use the new admin dashboard route with date range
   useEffect(() => {
     const fetchDashboardData = async () => {
+      // Don't fetch if date range is not complete
+      if (!dateRange[0] || !dateRange[1]) return;
+
       setLoading(true);
       setError(null);
       try {
         console.log('Fetching admin dashboard data...');
-        const res = await fetch('/api/admin/dashboard', { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+        const startDate = formatApiDate(dateRange[0]);
+        const endDate = formatApiDate(dateRange[1]);
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const url = `/api/admin/dashboard?${params.toString()}`;
+        const res = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
 
         if (!res.ok) {
           const errorData = await res.json();
@@ -146,7 +172,7 @@ const AdminDashboardContent = () => {
       }
     };
     fetchDashboardData();
-  }, []);
+  }, [dateRange]);
 
   // Add fallback values to prevent errors when fields are undefined
   const safeValue = (value: number | null | undefined, defaultValue = 0): number => (value !== undefined && value !== null ? value : defaultValue);
@@ -189,8 +215,8 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
       </style>
       {loading ? (
         <>
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="sm" mb="sm">
-            {[...Array(4)].map((_, i) => (
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm" mb="sm">
+            {[...Array(3)].map((_, i) => (
               <Card key={i} shadow="md" radius="md" withBorder>
                 <Skeleton height={rem(32)} width="60%" mb="sm" />
                 <Skeleton height={rem(24)} width="40%" />
@@ -202,7 +228,7 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
         <Text c="var(--destructive)">{error}</Text>
       ) : (
         <>
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="xs" mb="sm">
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="xs" mb="sm">
             {[
               {
                 icon: <IconLayoutDashboard size={28} color="#3B82F6" />,
@@ -212,20 +238,19 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
               },
               {
                 icon: <IconCircleCheck size={28} color="#10B981" />,
-                label: 'Conversions',
+                label: 'Total Conversions',
                 value: safeValue(dashboardData.totalConversions).toLocaleString(),
                 accentColor: '#10B981',
               },
               {
-                icon: <IconCurrencyRupee size={28} color="#F59E0B" />,
-                label: 'Total Earning',
-                value: safeValue(dashboardData.totalEarnings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                accentColor: '#F59E0B',
-              },
-              {
-                icon: <IconFileCheck size={28} color="#8B5CF6" />,
-                label: 'Approvals',
-                value: safeValue(dashboardData.totalApprovals).toLocaleString(),
+                icon: <IconPercentage size={28} color="#8B5CF6" />,
+                label: 'Conversion Rate %',
+                value: (() => {
+                  const clicks = safeValue(dashboardData.totalClicks);
+                  const conversions = safeValue(dashboardData.totalConversions);
+                  if (clicks === 0) return '0.00%';
+                  return `${((conversions / clicks) * 100).toFixed(2)}%`;
+                })(),
                 accentColor: '#8B5CF6',
               },
             ].map((stat) => (

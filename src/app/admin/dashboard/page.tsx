@@ -20,6 +20,12 @@ const AdminDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>(() => {
+    const today = new Date();
+    const oneWeekFromToday = new Date(today);
+    oneWeekFromToday.setDate(today.getDate() - 7);
+    return [oneWeekFromToday, today];
+  });
 
   const renderContent = () => {
     switch (activeTab) {
@@ -41,8 +47,8 @@ const AdminDashboard = () => {
         return <ApproveAdmin/>
       case 'mail':
         return <AdminMail/>
-        default:
-        return <AdminDashboardContent />;
+      default:
+        return <AdminDashboardContent dateRange={dateRange} />;
     }
   };
 
@@ -93,6 +99,8 @@ const AdminDashboard = () => {
             activeTab={activeTab}
             isMobile={isMobile}
             setSidebarOpen={setSidebarOpen}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
           />
 
           {/* Scrollable Content */}

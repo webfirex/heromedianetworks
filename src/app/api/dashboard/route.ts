@@ -291,19 +291,38 @@ export async function GET(req: NextRequest) {
     console.log('[DEBUG] Publisher ID:', publisher_id);
 
     // Parse Click Stats
-    const totalClicks = Number(clicksStats.find(s => s.metric === 'total')?.count || 0);
+    const totalClicksGlobal = Number(clicksStats.find(s => s.metric === 'total')?.count || 0);
     const clicksThisMonth = Number(clicksStats.find(s => s.metric === 'this_month')?.count || 0);
     const clicksPreviousMonth = Number(clicksStats.find(s => s.metric === 'prev_month')?.count || 0);
+
+    // Calculate clicks for selected date range (for Overview card)
+    const totalClicks = startDate && endDate
+      ? Number(clicksOverTimeResult.reduce((sum, row) => sum + Number(row.clicks), 0))
+      : totalClicksGlobal;
 
     // Parse Conversion Stats (grouped by offer)
     const globalConversions = conversionsStats.filter(s => s.metric === 'global').map(s => ({ offer_id: s.offer_id, _count: { id: Number(s.count) } }));
     const thisMonthConversions = conversionsStats.filter(s => s.metric === 'this_month').map(s => ({ offer_id: s.offer_id, _count: { id: Number(s.count) } }));
     const prevMonthConversions = conversionsStats.filter(s => s.metric === 'prev_month').map(s => ({ offer_id: s.offer_id, _count: { id: Number(s.count) } }));
 
+    // Calculate conversions for selected date range (for Overview card)
+    // Use conversionsByOfferData which is already filtered by date range
+    const conversionsForRangeStats = conversionsByOfferData.map(item => ({
+      offer_id: item.offer_id,
+      _count: { id: item._count.id }
+    }));
+    const rangeStats = calculateShavedCount(conversionsForRangeStats);
+    const totalConversionsForRange = startDate && endDate ? rangeStats.shaved : 0;
+
     // Sum earnings directly from the DB results
     const totalEarnings = conversionsStats.filter(s => s.metric === 'global').reduce((sum, s) => sum + (s.sum_commission || 0), 0);
     const commissionThisMonth = conversionsStats.filter(s => s.metric === 'this_month').reduce((sum, s) => sum + (s.sum_commission || 0), 0);
     const commissionPreviousMonth = conversionsStats.filter(s => s.metric === 'prev_month').reduce((sum, s) => sum + (s.sum_commission || 0), 0);
+
+    // Calculate commission for selected date range (for Overview card)
+    const commissionForRange = startDate && endDate
+      ? Number(commissionsOverTimeResult.reduce((sum, row) => sum + Number(row.commission), 0))
+      : commissionThisMonth;
 
     // Process calculated stats
     const globalStats = calculateShavedCount(globalConversions);
@@ -322,14 +341,14 @@ export async function GET(req: NextRequest) {
     const offerMap = new Map(offers.map(o => [o.id, o.name]));
 
     const dashboardData: DashboardData = {
-      totalClicks,
-      totalConversions: globalStats.shaved, // Shaved count
+      totalClicks: totalClicks, // Use date range filtered clicks for Overview card
+      totalConversions: startDate && endDate ? totalConversionsForRange : globalStats.shaved, // Use date range filtered conversions for Overview card
       totalEarning: totalEarnings,
       clicksThisMonth,
       clicksPreviousMonth,
       salesThisMonth: thisMonthStats.shaved,
       salesPreviousMonth: prevMonthStats.shaved,
-      commissionThisMonth,
+      commissionThisMonth: startDate && endDate ? commissionForRange : commissionThisMonth, // Use date range filtered commission for Overview card
       commissionPreviousMonth,
       weeklyClicks: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
         const found = weeklyClicksResult.find(r => r.day.trim() === day); // trim just in case of padding

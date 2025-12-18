@@ -19,16 +19,20 @@ import {
 } from '@tabler/icons-react';
 import { showNotification } from '@/app/utils/notificationManager'; 
 import AddLinkForm from './AddLinkForm';
+import { DatePickerInput } from '@mantine/dates';
+import { Calendar } from 'lucide-react';
 
 interface AdminHeaderProps {
   activeTab: string;
   isMobile?: boolean;
   setSidebarOpen: (open: boolean) => void;
+  dateRange?: [Date | null, Date | null];
+  onDateRangeChange?: (range: [Date | null, Date | null]) => void;
 }
 
 const primary = 'var(--primary)';
 
-const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, isMobile, setSidebarOpen }) => {
+const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, isMobile, setSidebarOpen, dateRange, onDateRangeChange }) => {
   const [settingsOpened, setSettingsOpened] = useState(false);
   const [addLinkOpen, setAddLinkOpen] = useState(false); // State for Add Link modal
   const { data: session, status } = useSession();
@@ -173,6 +177,52 @@ useEffect(() => {
 
         {/* Action buttons and avatar: desktop vs mobile */}
         <Group gap={0}>
+          {/* Date Picker - only show on dashboard tab */}
+          {activeTab === 'dashboard' && dateRange && onDateRangeChange && (
+            <Box
+              style={{
+                marginRight: isMobile ? 8 : 12,
+                display: isMobile ? 'none' : 'block',
+              }}
+            >
+              <DatePickerInput
+                type="range"
+                placeholder="Pick dates range"
+                value={dateRange}
+                onChange={(value) => onDateRangeChange(value as unknown as [Date | null, Date | null])}
+                clearable={false}
+                numberOfColumns={2}
+                popoverProps={{
+                  styles: {
+                    dropdown: {
+                      backgroundColor: 'var(--card)',
+                      border: '1px solid var(--border)',
+                      boxShadow: '0 20px 45px rgba(0,0,0,0.6)',
+                      padding: 8,
+                    },
+                  },
+                }}
+                styles={{
+                  input: {
+                    background: 'transparent',
+                    border: '1px solid var(--border)',
+                    color: 'var(--foreground)',
+                    height: '34px',
+                    paddingLeft: '28px',
+                    paddingRight: '12px',
+                    width: '200px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                  },
+                  placeholder: {
+                    color: 'var(--muted-foreground)',
+                  },
+                }}
+                leftSection={<Calendar size={16} style={{ color: 'var(--muted-foreground)', marginLeft: 4 }} />}
+                leftSectionPointerEvents="none"
+              />
+            </Box>
+          )}
           {isMobile ? (
             <>
               {activeTab === 'postback' && (

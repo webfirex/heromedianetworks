@@ -240,11 +240,12 @@ export default function DashboardTopbar({
             <div className="hidden sm:flex items-center gap-1 h-auto py-1 pl-2 pr-1 bg-card border border-border rounded-full relative z-[60] dark-date-picker-wrapper max-w-xs lg:max-w-sm">
               <DatePickerInput
                 type="range"
-                placeholder="Pick dates range"
+                placeholder="Pick date or range"
                 value={dateRange}
                 onChange={(value) => onDateRangeChange(value as unknown as [Date | null, Date | null])}
                 clearable={false}
                 numberOfColumns={2}
+                allowSingleDateInRange
                 popoverProps={{
                   styles: {
                     dropdown: {
@@ -261,7 +262,7 @@ export default function DashboardTopbar({
                     border: 'none',
                     color: '#e4e4e7',
                     height: '34px',
-                    paddingLeft: '28px',
+                    paddingLeft: '36px',
                     paddingRight: '12px',
                     width: '100%',
                     fontSize: '13px',
@@ -291,14 +292,15 @@ export default function DashboardTopbar({
               </PopoverTrigger>
               <PopoverContent className="w-auto p-3 bg-card border-border" align="end">
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium">Select Date Range</p>
+                  <p className="text-xs text-muted-foreground font-medium">Select Date or Range</p>
                   <DatePickerInput
                     type="range"
-                    placeholder="Pick dates"
+                    placeholder="Pick date or range"
                     value={dateRange}
                     onChange={(value) => onDateRangeChange(value as unknown as [Date | null, Date | null])}
                     clearable={false}
                     numberOfColumns={1}
+                    allowSingleDateInRange
                     popoverProps={{
                       styles: {
                         dropdown: {
