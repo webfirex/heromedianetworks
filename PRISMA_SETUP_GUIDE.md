@@ -15,7 +15,7 @@ npm install -D prisma
 Ensure your `.env` file (or `.env.local`) has the database connection string:
 
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/heromedia?schema=public"
+DATABASE_URL="postgresql://username:password@localhost:5432/tapnova?schema=public"
 NEXTAUTH_SECRET="your-nextauth-secret-here"
 ```
 
@@ -33,10 +33,10 @@ npx prisma init
 
 ```bash
 # Using psql
-createdb heromedia
+createdb tapnova
 
 # Or using PostgreSQL client
-psql -U postgres -c "CREATE DATABASE heromedia;"
+psql -U postgres -c "CREATE DATABASE tapnova;"
 ```
 
 ### Step 5: Run Initial Migration

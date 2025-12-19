@@ -1,4 +1,4 @@
-// Prisma Schema for HeroMedia Networks
+// Prisma Schema for TapNova Networks
 // Affiliate Marketing Platform Database
 
 generator client {

@@ -1,4 +1,4 @@
-# 🧪 HeroMedia Networks - Complete Testing Guide
+# 🧪 TapNova Networks - Complete Testing Guide
 
 ## ✅ Publisher Account Setup
 

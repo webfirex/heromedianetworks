@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the comprehensive testing plan for the HeroMedia Networks backend and database. The test suite verifies database connectivity, Prisma operations, API endpoints, and integration between components.
+This document outlines the comprehensive testing plan for the TapNova Networks backend and database. The test suite verifies database connectivity, Prisma operations, API endpoints, and integration between components.
 
 ---
 

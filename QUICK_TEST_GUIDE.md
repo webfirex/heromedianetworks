@@ -48,7 +48,7 @@ npm run test:backend
 ## 🎯 Expected Output
 
 ```
-🚀 HeroMedia Networks - Backend & Database Test Suite
+🚀 TapNova Networks - Backend & Database Test Suite
 ============================================================
 
 🧪 Testing: Database Connection
