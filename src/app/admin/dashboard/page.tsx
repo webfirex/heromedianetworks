@@ -47,7 +47,7 @@ const AdminDashboard = () => {
         return <ApproveAdmin/>
       case 'mail':
         return <AdminMail/>
-      default:
+        default:
         return <AdminDashboardContent dateRange={dateRange} />;
     }
   };
