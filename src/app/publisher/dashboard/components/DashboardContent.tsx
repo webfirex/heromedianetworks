@@ -445,7 +445,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                   <NeoCard
                     variant="glass"
-                    className="w-full min-h-[450px] backdrop-blur-xl border border-white/20 active:scale-[0.99] transition-transform duration-300 relative overflow-hidden"
+                    className="w-full backdrop-blur-xl border border-white/20 active:scale-[0.99] transition-transform duration-300 relative overflow-hidden"
                     style={{
                       background: 'rgba(255, 255, 255, 0.05)',
                       boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
@@ -464,25 +464,31 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                       {/* Quick Stats Row */}
                       <div className="grid grid-cols-3 gap-1.5 md:gap-2 mb-4">
-                        <div className="bg-white/5 rounded-lg p-1.5 md:p-2 border border-white/5">
+                        <div className="bg-white/5 rounded-md p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Total Clicks</div>
                           <div className="text-base md:text-lg font-bold text-white">{formatNumber(dashboardData.totalClicks)}</div>
                         </div>
-                        <div className="bg-white/5 rounded-lg p-1.5 md:p-2 border border-white/5">
+                        <div className="bg-white/5 rounded-md p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Conversions</div>
                           <div className="text-base md:text-lg font-bold text-green-400">{formatNumber(dashboardData.totalConversions)}</div>
                         </div>
-                        <div className="bg-white/5 rounded-lg p-1.5 md:p-2 border border-white/5">
+                        <div className="bg-white/5 rounded-md p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Commission</div>
                           <div className="text-base md:text-lg font-bold text-blue-400">${formatNumber(dashboardData.commissionThisMonth, true)}</div>
                         </div>
                       </div>
 
-                      {/* Spacer to push chart down */}
-                      <div className="flex-1"></div>
-
                       {/* Chart Area */}
-                      <div className="w-full h-[150px] relative overview-chart-area mt-4" style={{ marginLeft: '-16px', marginRight: '-16px', paddingLeft: 0, paddingRight: 0, width: 'calc(100% + 32px)' }}>
+                      <div
+                        className="w-full h-[150px] relative overview-chart-area mt-3 md:mt-4"
+                        style={{
+                          marginLeft: '-16px',
+                          marginRight: '-16px',
+                          paddingLeft: 0,
+                          paddingRight: 0,
+                          width: 'calc(100% + 32px)',
+                        }}
+                      >
                         <style jsx>{`
                           :global(.overview-chart-area .mantine-AreaChart-root) {
                             background: transparent !important;
@@ -568,7 +574,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       </div>
 
                       {/* Footer Stats */}
-                      <div className="mt-4 md:mt-6 flex justify-between items-end">
+                      <div className="mt-3 md:mt-4 flex justify-between items-end">
                         <div className="flex items-center gap-1">
                           <div className={`text-2xl md:text-3xl font-bold mb-1 ${isOverviewPositive ? 'text-blue-500' : 'text-red-500'}`}>{isOverviewPositive ? '+' : ''}</div>
                           <div className="text-3xl md:text-4xl font-bold text-white tracking-tight">{Math.abs(Number(overviewPercentageChange))}<span className="text-xl md:text-2xl text-white ml-1">%</span></div>
@@ -584,21 +590,32 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   </NeoCard>
                 </div>
 
-                {/* Current Week Clicks (Moved Here) */}
+                {/* Current Week / Selected Period Clicks */}
                 <NeoCard
                   variant="glass"
-                  className="w-full min-h-[300px] backdrop-blur-xl border border-white/20 pt-4 px-4 md:pt-5 md:px-5 pb-0 flex flex-col overflow-hidden"
+                  className="w-full min-h-[260px] backdrop-blur-xl border border-white/20 pt-4 px-4 md:pt-5 md:px-5 pb-0 flex flex-col overflow-hidden"
                   style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                 >
-                  <div className="flex justify-between items-center mb-1">
+                  <div className="flex justify-between items-center mb-2">
                     <h3 className="text-base md:text-lg font-medium text-white">Selected Period Clicks</h3>
                   </div>
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6">
+                  <div className="text-2xl md:text-3xl font-bold text-white mb-3 md:mb-4">
                     {formatNumber(dashboardData.clicksOverTime.reduce((acc, curr) => acc + curr.clicks, 0))}
                   </div>
-                  <div className="mt-auto w-full h-[200px] md:h-[250px] relative" style={{ marginLeft: '-16px', marginRight: '-16px', marginBottom: 0, paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 32px)' }}>
+                  <div
+                    className="w-full h-[180px] md:h-[220px] relative mt-3 md:mt-4"
+                    style={{
+                      marginLeft: '-16px',
+                      marginRight: '-16px',
+                      marginBottom: 0,
+                      paddingLeft: 0,
+                      paddingRight: 0,
+                      paddingBottom: 0,
+                      width: 'calc(100% + 32px)',
+                    }}
+                  >
                     <BarChart
-                      h={250}
+                      h={220}
                       data={dashboardData.clicksOverTime.map(d => ({
                         period: formatChartDate(d.period),
                         daily_clicks: d.clicks
@@ -668,12 +685,12 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                       <NeoCard
                         variant="glass"
-                        className="min-h-[384px] backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                        className="min-h-[340px] backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
                         style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                       >
                         <div className="pt-4 px-4 md:pt-6 md:px-6 pb-0 relative z-10 flex flex-col h-full">
                           {/* Top Stats */}
-                          <div className="flex flex-wrap justify-between items-start gap-2 mb-4 md:mb-6">
+                          <div className="flex flex-wrap justify-between items-start gap-2 mb-3 md:mb-4">
                             <div className="flex items-center">
                               <span className="text-blue-500 text-2xl md:text-3xl mr-1 font-light">$</span>
                               <span className="text-3xl md:text-4xl font-bold text-white tracking-tight">
@@ -689,16 +706,27 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           </div>
 
                           {/* Sub Stats Row */}
-                          <div className="flex justify-between items-center mb-6">
+                          <div className="flex justify-between items-center mb-2 md:mb-2">
                             <div className="text-[11px] text-zinc-400 flex items-center">
                               This month: <span className="text-white ml-1 font-medium">$ {dashboardData.commissionThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                           </div>
 
                           {/* Chart Area for Balance/Commissions */}
-                          <div className="mt-auto w-full h-[200px] relative mt-4" style={{ marginLeft: '-16px', marginRight: '-16px', marginBottom: 0, paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 32px)' }}>
+                          <div
+                            className="w-full h-[180px] relative mt-3 md:mt-4"
+                            style={{
+                              marginLeft: '-16px',
+                              marginRight: '-16px',
+                              marginBottom: 0,
+                              paddingLeft: 0,
+                              paddingRight: 0,
+                              paddingBottom: 0,
+                              width: 'calc(100% + 32px)',
+                            }}
+                          >
                             <AreaChart
-                              h={200}
+                              h={205}
                               data={dashboardData.commissionsOverTime.length > 0 ? dashboardData.commissionsOverTime : emptyCommissions}
                               dataKey="period"
                               series={[{ name: 'commission', color: '#42A5F5' }]}
@@ -739,7 +767,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 <div className="flex-1">
                   <NeoCard
                     variant="glass"
-                    className="w-full flex-1 min-h-[350px] md:min-h-[401px] backdrop-blur-xl border border-white/20 p-4 md:p-6 flex flex-col overflow-hidden"
+                className="w-full flex-1 min-h-[320px] md:min-h-[360px] backdrop-blur-xl border border-white/20 p-4 md:p-6 flex flex-col overflow-hidden"
                     style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                   >
                     <Title
@@ -757,7 +785,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         size="xs"
                         style={{
                           display: 'block',
-                          marginTop: '4px',
+                          marginTop: '8px',
                           color: '#3B82F6',
                           fontWeight: 600
                         }}
@@ -765,9 +793,9 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         ▲ 12% (vs. previous month)
                       </Text>
                     </Title>
-                    <div className="flex-1 w-full min-h-[250px] md:min-h-[350px] relative" style={{ marginLeft: '-16px', marginRight: '-16px', marginBottom: '-16px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 32px)' }}>
+                    <div className="flex-1 w-full min-h-[220px] md:min-h-[260px] relative" style={{ marginLeft: '-16px', marginRight: '-16px', marginBottom: '-16px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 32px)' }}>
                       <LineChart
-                        h={350}
+                        h={310}
                         data={dashboardData.clicksOverTime.length > 0 ? dashboardData.clicksOverTime : emptyClicksOverTime}
                         dataKey="period"
                         series={[{ name: 'clicks', color: primary }]}
@@ -825,15 +853,15 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
             {/* Top row: Conversion Trend & Conversions By Offer side by side */}
             <NeoCard
               variant="glass"
-              className="pt-4 px-4 md:pt-5 md:px-5 pb-0 backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col min-h-[280px] md:min-h-[300px]"
+              className="pt-2 px-4 md:pt-3 md:px-5 pb-0 backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col"
               style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
             >
-              <div className="flex justify-between items-center mb-1">
+              <div className="flex justify-between items-center mb-2 mt-2">
                 <h3 className="text-base md:text-lg font-medium text-white">Conversion Trend</h3>
               </div>
-              <div className="flex-1 flex flex-col justify-end">
+              <div>
                 <div
-                  className="w-full h-[200px] md:h-[250px] chart-bottom-align"
+                  className="w-full h-[200px] md:h-[240px] chart-bottom-align mt-1"
                   style={{
                     marginLeft: '-16px',
                     marginRight: '-16px',
@@ -844,44 +872,44 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     width: 'calc(100% + 32px)',
                   }}
                 >
-                <AreaChart
-                  h={250}
-                  data={dashboardData.conversionTrend.length > 0 ? dashboardData.conversionTrend : emptyConversionTrend}
-                  dataKey="period"
-                  series={[{ name: 'conversions', color: '#66BB6A' }]}
-                  curveType="monotone"
-                  withTooltip
-                  strokeWidth={1.5}
-                  textColor="#9CA3AF"
-                  xAxisProps={{
-                    tick: { fill: '#9CA3AF', fontSize: 11 },
-                    tickLine: { stroke: '#374151' },
-                    axisLine: { stroke: '#374151' }
-                  }}
-                  yAxisProps={{
-                    tick: { fill: '#9CA3AF', fontSize: 11 },
-                    tickLine: { stroke: '#374151' },
-                    axisLine: { stroke: '#374151' },
-                    width: 30
-                  }}
-                  tooltipProps={{
-                  content: ({ payload }) => {
-                    if (!payload || !payload[0]) return null;
-                    const { period, conversions } = payload[0].payload;
-                    return (
-                      <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
-                        <div className="flex flex-col gap-0.5">
-                          <div className="text-[10px] text-zinc-400 mb-1">{period}</div>
-                          <div className="text-sm font-bold text-white tracking-tight">{formatNumber(conversions)} conversions</div>
-                          <div className="text-[10px] text-zinc-500 mt-1">
-                            Progress: <span className="text-white font-medium">{getPercentageOfTarget(conversions, SALES_MONTHLY_TARGET / 4)}%</span>
+                  <AreaChart
+                    h={320}
+                    data={dashboardData.conversionTrend.length > 0 ? dashboardData.conversionTrend : emptyConversionTrend}
+                    dataKey="period"
+                    series={[{ name: 'conversions', color: '#66BB6A' }]}
+                    curveType="monotone"
+                    withTooltip
+                    strokeWidth={1.5}
+                    textColor="#9CA3AF"
+                    xAxisProps={{
+                      tick: { fill: '#9CA3AF', fontSize: 11 },
+                      tickLine: { stroke: '#374151' },
+                      axisLine: { stroke: '#374151' }
+                    }}
+                    yAxisProps={{
+                      tick: { fill: '#9CA3AF', fontSize: 11 },
+                      tickLine: { stroke: '#374151' },
+                      axisLine: { stroke: '#374151' },
+                      width: 30
+                    }}
+                    tooltipProps={{
+                      content: ({ payload }) => {
+                        if (!payload || !payload[0]) return null;
+                        const { period, conversions } = payload[0].payload;
+                        return (
+                          <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                            <div className="flex flex-col gap-0.5">
+                              <div className="text-[10px] text-zinc-400 mb-1">{period}</div>
+                              <div className="text-sm font-bold text-white tracking-tight">{formatNumber(conversions)} conversions</div>
+                              <div className="text-[10px] text-zinc-500 mt-1">
+                                Progress: <span className="text-white font-medium">{getPercentageOfTarget(conversions, SALES_MONTHLY_TARGET / 4)}%</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  },
-                }}
-              />
+                        );
+                      },
+                    }}
+                  />
                 </div>
               </div>
             </NeoCard>
@@ -903,37 +931,55 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
               >
                 Conversions By Offer
               </Title>
-              <PieChart
-                h="clamp(12rem, 40vw, 16rem)"
-                data={
-                  dashboardData.conversionsByOffer.length > 0
-                    ? dashboardData.conversionsByOffer.map((offer, index) => ({
-                      ...offer,
-                      color: getColorForSegment(offer.name, index, chartColors),
-                    }))
-                    : emptyPie
-                }
-                withTooltip
-                tooltipProps={{
-                  content: ({ payload }) => {
-                    if (!payload || !payload[0]) return null;
-                    const { name, value } = payload[0].payload;
-                    const total = dashboardData.conversionsByOffer.reduce((sum, off) => sum + off.value, 0);
-                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-                    return (
-                      <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
-                        <div className="flex flex-col gap-0.5">
-                          <div className="text-[10px] text-zinc-400 mb-1">{name}</div>
-                          <div className="text-sm font-bold text-white tracking-tight">{formatNumber(value)} conversions</div>
-                          <div className="text-[10px] text-zinc-500 mt-1">
-                            Share: <span className="text-white font-medium">{percentage}%</span>
+              <div className="pie-chart-glass-container">
+                <style jsx>{`
+                  :global(.pie-chart-glass-container .recharts-sector) {
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    opacity: 0.9;
+                    stroke: rgba(255, 255, 255, 0.2) !important;
+                    stroke-width: 1.5px !important;
+                    filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1)) brightness(1.05);
+                  }
+                  :global(.pie-chart-glass-container .recharts-sector:hover) {
+                    filter: brightness(1.2) saturate(1.1) drop-shadow(0 4px 12px rgba(255, 255, 255, 0.2));
+                    opacity: 0.95;
+                    stroke: rgba(255, 255, 255, 0.35) !important;
+                    stroke-width: 2px !important;
+                  }
+                `}</style>
+                <PieChart
+                  h="clamp(12rem, 40vw, 16rem)"
+                  data={
+                    dashboardData.conversionsByOffer.length > 0
+                      ? dashboardData.conversionsByOffer.map((offer, index) => ({
+                        ...offer,
+                        color: getColorForSegment(offer.name, index, chartColors),
+                      }))
+                      : emptyPie
+                  }
+                  withTooltip
+                  tooltipProps={{
+                    content: ({ payload }) => {
+                      if (!payload || !payload[0]) return null;
+                      const { name, value } = payload[0].payload;
+                      const total = dashboardData.conversionsByOffer.reduce((sum, off) => sum + off.value, 0);
+                      const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                      return (
+                        <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="text-[10px] text-zinc-400 mb-1">{name}</div>
+                            <div className="text-sm font-bold text-white tracking-tight">{formatNumber(value)} conversions</div>
+                            <div className="text-[10px] text-zinc-500 mt-1">
+                              Share: <span className="text-white font-medium">{percentage}%</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  },
-                }}
-              />
+                      );
+                    },
+                  }}
+                />
+              </div>
               {dashboardData.conversionsByOffer.length > 0 && (
                 <Box mt={8} style={{ display: 'flex', justifyContent: 'flex-start' }}>
                   <Group gap={8} style={{ flexWrap: 'wrap' }}>
