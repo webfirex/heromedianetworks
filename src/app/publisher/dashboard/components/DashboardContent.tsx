@@ -464,15 +464,15 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                       {/* Quick Stats Row */}
                       <div className="grid grid-cols-3 gap-1.5 md:gap-2 mb-4">
-                        <div className="bg-white/5 rounded-md p-1.5 md:p-2 border border-white/5">
+                        <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Total Clicks</div>
                           <div className="text-base md:text-lg font-bold text-white">{formatNumber(dashboardData.totalClicks)}</div>
                         </div>
-                        <div className="bg-white/5 rounded-md p-1.5 md:p-2 border border-white/5">
+                        <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Conversions</div>
                           <div className="text-base md:text-lg font-bold text-green-400">{formatNumber(dashboardData.totalConversions)}</div>
                         </div>
-                        <div className="bg-white/5 rounded-md p-1.5 md:p-2 border border-white/5">
+                        <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Commission</div>
                           <div className="text-base md:text-lg font-bold text-blue-400">${formatNumber(dashboardData.commissionThisMonth, true)}</div>
                         </div>
@@ -480,7 +480,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                       {/* Chart Area */}
                       <div
-                        className="w-full h-[150px] relative overview-chart-area mt-3 md:mt-4"
+                        className="w-full h-[150px] relative mt-3 md:mt-4"
                         style={{
                           marginLeft: '-16px',
                           marginRight: '-16px',
@@ -489,38 +489,6 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           width: 'calc(100% + 32px)',
                         }}
                       >
-                        <style jsx>{`
-                          :global(.overview-chart-area .mantine-AreaChart-root) {
-                            background: transparent !important;
-                            padding: 0 !important;
-                            margin: 0 !important;
-                          }
-                          :global(.overview-chart-area .recharts-surface) {
-                            background: transparent !important;
-                            padding: 0 !important;
-                            margin: 0 !important;
-                          }
-                          :global(.overview-chart-area .recharts-wrapper) {
-                            background: transparent !important;
-                            padding: 0 !important;
-                            margin: 0 !important;
-                          }
-                          :global(.overview-chart-area .recharts-area) {
-                            opacity: 1 !important;
-                          }
-                          :global(.overview-chart-area .recharts-area-area) {
-                            fill: url(#blueGradient) !important;
-                            opacity: 0.4 !important;
-                          }
-                          :global(.overview-chart-area .recharts-area-curve),
-                          :global(.overview-chart-area .recharts-line-curve),
-                          :global(.overview-chart-area path[name="clicks"]) {
-                            stroke: #3B82F6 !important;
-                            stroke-width: 1.5px !important;
-                            opacity: 1 !important;
-                            fill: none !important;
-                          }
-                        `}</style>
                         <AreaChart
                           h={150}
                           data={activeOverviewSeries}
@@ -532,7 +500,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           gridAxis="none"
                           withDots={false}
                           strokeWidth={1.5}
-                          fillOpacity={0.4}
+                          fillOpacity={0.2}
                           textColor="#9CA3AF"
                           xAxisProps={{
                             tick: { fill: '#9CA3AF', fontSize: 11 },
@@ -563,14 +531,6 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                             }
                           }}
                         />
-                        <svg width="0" height="0">
-                          <defs>
-                            <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
-                              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.05" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
                       </div>
 
                       {/* Footer Stats */}
@@ -794,14 +754,18 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       </Text>
                     </Title>
                     <div className="flex-1 w-full min-h-[220px] md:min-h-[260px] relative" style={{ marginLeft: '-16px', marginRight: '-16px', marginBottom: '-16px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 32px)' }}>
-                      <LineChart
+                      <AreaChart
                         h={310}
                         data={dashboardData.clicksOverTime.length > 0 ? dashboardData.clicksOverTime : emptyClicksOverTime}
                         dataKey="period"
                         series={[{ name: 'clicks', color: primary }]}
                         curveType="monotone"
-                        withTooltip
+                        withXAxis={true}
+                        withYAxis={true}
+                        gridAxis="none"
+                        withDots={false}
                         strokeWidth={1.5}
+                        fillOpacity={0.2}
                         textColor="#9CA3AF"
                         xAxisProps={{
                           tick: { fill: '#9CA3AF', fontSize: 11 },
@@ -815,7 +779,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           width: 30
                         }}
                         referenceLines={[
-                          { values: (CLICK_MONTHLY_TARGET / 4).toString(), label: 'Monthly Avg Target', color: '#ef4444', strokeDasharray: '4 4' },
+                          { y: CLICK_MONTHLY_TARGET / 4, label: 'Monthly Avg Target', color: '#ef4444', strokeDasharray: '4 4' },
                         ]}
                         tooltipProps={{
                           content: ({ payload }) => {
@@ -1019,14 +983,18 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   Commissions
                 </Title>
                 <div style={{ marginLeft: '-16px', marginRight: '-16px', marginBottom: '-16px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 32px)' }}>
-                  <LineChart
+                  <AreaChart
                     h="clamp(12rem, 40vw, 16rem)"
                     data={dashboardData.commissionsOverTime.length > 0 ? dashboardData.commissionsOverTime : emptyCommissions}
                     dataKey="period"
                     series={[{ name: 'commission', color: '#42A5F5' }]}
                     curveType="monotone"
-                    withTooltip
+                    withXAxis={true}
+                    withYAxis={true}
+                    gridAxis="none"
+                    withDots={false}
                     strokeWidth={1.5}
+                    fillOpacity={0.2}
                     textColor="#9CA3AF"
                     xAxisProps={{
                       tick: { fill: '#9CA3AF', fontSize: 11 },
@@ -1039,24 +1007,24 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       axisLine: { stroke: '#374151' },
                       width: 30
                     }}
-                  tooltipProps={{
-                    content: ({ payload }) => {
-                      if (!payload || !payload[0]) return null;
-                      const { period, commission } = payload[0].payload;
-                      return (
-                        <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
-                          <div className="flex flex-col gap-0.5">
-                            <div className="text-[10px] text-zinc-400 mb-1">{period}</div>
-                            <div className="text-sm font-bold text-white tracking-tight">₹{formatNumber(commission, true)}</div>
-                            <div className="text-[10px] text-zinc-500 mt-1">
-                              Progress: <span className="text-white font-medium">{getPercentageOfTarget(commission, COMMISSION_MONTHLY_TARGET / 4)}%</span>
+                    tooltipProps={{
+                      content: ({ payload }) => {
+                        if (!payload || !payload[0]) return null;
+                        const { period, commission } = payload[0].payload;
+                        return (
+                          <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                            <div className="flex flex-col gap-0.5">
+                              <div className="text-[10px] text-zinc-400 mb-1">{period}</div>
+                              <div className="text-sm font-bold text-white tracking-tight">₹{formatNumber(commission, true)}</div>
+                              <div className="text-[10px] text-zinc-500 mt-1">
+                                Progress: <span className="text-white font-medium">{getPercentageOfTarget(commission, COMMISSION_MONTHLY_TARGET / 4)}%</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    },
-                  }}
-                />
+                        );
+                      },
+                    }}
+                  />
                 </div>
               </NeoCard>
             </div>
