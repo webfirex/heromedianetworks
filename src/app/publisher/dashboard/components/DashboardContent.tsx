@@ -873,7 +873,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   }}
                 >
                   <AreaChart
-                    h={330}
+                    h={320}
                     data={dashboardData.conversionTrend.length > 0 ? dashboardData.conversionTrend : emptyConversionTrend}
                     dataKey="period"
                     series={[{ name: 'conversions', color: '#66BB6A' }]}
@@ -931,37 +931,55 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
               >
                 Conversions By Offer
               </Title>
-              <PieChart
-                h="clamp(12rem, 40vw, 16rem)"
-                data={
-                  dashboardData.conversionsByOffer.length > 0
-                    ? dashboardData.conversionsByOffer.map((offer, index) => ({
-                      ...offer,
-                      color: getColorForSegment(offer.name, index, chartColors),
-                    }))
-                    : emptyPie
-                }
-                withTooltip
-                tooltipProps={{
-                  content: ({ payload }) => {
-                    if (!payload || !payload[0]) return null;
-                    const { name, value } = payload[0].payload;
-                    const total = dashboardData.conversionsByOffer.reduce((sum, off) => sum + off.value, 0);
-                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-                    return (
-                      <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
-                        <div className="flex flex-col gap-0.5">
-                          <div className="text-[10px] text-zinc-400 mb-1">{name}</div>
-                          <div className="text-sm font-bold text-white tracking-tight">{formatNumber(value)} conversions</div>
-                          <div className="text-[10px] text-zinc-500 mt-1">
-                            Share: <span className="text-white font-medium">{percentage}%</span>
+              <div className="pie-chart-glass-container">
+                <style jsx>{`
+                  :global(.pie-chart-glass-container .recharts-sector) {
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    opacity: 0.9;
+                    stroke: rgba(255, 255, 255, 0.2) !important;
+                    stroke-width: 1.5px !important;
+                    filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1)) brightness(1.05);
+                  }
+                  :global(.pie-chart-glass-container .recharts-sector:hover) {
+                    filter: brightness(1.2) saturate(1.1) drop-shadow(0 4px 12px rgba(255, 255, 255, 0.2));
+                    opacity: 0.95;
+                    stroke: rgba(255, 255, 255, 0.35) !important;
+                    stroke-width: 2px !important;
+                  }
+                `}</style>
+                <PieChart
+                  h="clamp(12rem, 40vw, 16rem)"
+                  data={
+                    dashboardData.conversionsByOffer.length > 0
+                      ? dashboardData.conversionsByOffer.map((offer, index) => ({
+                        ...offer,
+                        color: getColorForSegment(offer.name, index, chartColors),
+                      }))
+                      : emptyPie
+                  }
+                  withTooltip
+                  tooltipProps={{
+                    content: ({ payload }) => {
+                      if (!payload || !payload[0]) return null;
+                      const { name, value } = payload[0].payload;
+                      const total = dashboardData.conversionsByOffer.reduce((sum, off) => sum + off.value, 0);
+                      const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                      return (
+                        <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="text-[10px] text-zinc-400 mb-1">{name}</div>
+                            <div className="text-sm font-bold text-white tracking-tight">{formatNumber(value)} conversions</div>
+                            <div className="text-[10px] text-zinc-500 mt-1">
+                              Share: <span className="text-white font-medium">{percentage}%</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  },
-                }}
-              />
+                      );
+                    },
+                  }}
+                />
+              </div>
               {dashboardData.conversionsByOffer.length > 0 && (
                 <Box mt={8} style={{ display: 'flex', justifyContent: 'flex-start' }}>
                   <Group gap={8} style={{ flexWrap: 'wrap' }}>
