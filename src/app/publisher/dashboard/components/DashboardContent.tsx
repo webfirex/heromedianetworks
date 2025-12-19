@@ -474,7 +474,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         </div>
                         <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Commission</div>
-                          <div className="text-base md:text-lg font-bold text-blue-400">${formatNumber(dashboardData.commissionThisMonth, true)}</div>
+                          <div className="text-base md:text-lg font-bold text-blue-400">₹{formatNumber(dashboardData.commissionThisMonth, true)}</div>
                         </div>
                       </div>
 
@@ -493,7 +493,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           h={150}
                           data={activeOverviewSeries}
                           dataKey="period"
-                          series={[{ name: 'clicks', color: '#3B82F6' }]}
+                          series={[{ name: 'clicks', color: primary }]}
                           curveType="monotone"
                           withXAxis={true}
                           withYAxis={false}
@@ -581,7 +581,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                         daily_clicks: d.clicks
                       }))}
                       dataKey="period"
-                      series={[{ name: 'daily_clicks', color: '#10B981' }]}
+                      series={[{ name: 'daily_clicks', color: primary }]}
                       withTooltip
                       textColor="#9CA3AF"
                       xAxisProps={{
@@ -635,7 +635,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                             className="bg-zinc-800 text-zinc-300 pr-2 cursor-pointer hover:bg-zinc-700 transition"
                             rightSection={<IconChevronDown size={14} />}
                           >
-                            US Dollar
+                            INR
                           </Badge>
                         </div>
                         <p className="text-xs text-zinc-500">
@@ -645,14 +645,22 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
 
                       <NeoCard
                         variant="glass"
-                        className="min-h-[340px] backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300"
+                        className="min-h-[340px] backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300 relative"
                         style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                       >
+                        {/* Subtle Yellow Gradient from Bottom Right */}
+                        <div 
+                          className="absolute bottom-0 right-0 w-64 h-64 pointer-events-none"
+                          style={{
+                            background: 'radial-gradient(circle at bottom right, rgba(255, 193, 7, 0.15) 0%, rgba(255, 193, 7, 0.08) 30%, transparent 70%)',
+                            zIndex: 1
+                          }}
+                        />
                         <div className="pt-4 px-4 md:pt-6 md:px-6 pb-0 relative z-10 flex flex-col h-full">
                           {/* Top Stats */}
                           <div className="flex flex-wrap justify-between items-start gap-2 mb-3 md:mb-4">
                             <div className="flex items-center">
-                              <span className="text-blue-500 text-2xl md:text-3xl mr-1 font-light">$</span>
+                              <span className="text-blue-500 text-2xl md:text-3xl mr-1 font-light">₹</span>
                               <span className="text-3xl md:text-4xl font-bold text-white tracking-tight">
                                 {dashboardData.totalEarning.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
@@ -668,7 +676,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           {/* Sub Stats Row */}
                           <div className="flex justify-between items-center mb-2 md:mb-2">
                             <div className="text-[11px] text-zinc-400 flex items-center">
-                              This month: <span className="text-white ml-1 font-medium">$ {dashboardData.commissionThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              This month: <span className="text-white ml-1 font-medium">₹ {dashboardData.commissionThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                           </div>
 
@@ -689,7 +697,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                               h={205}
                               data={dashboardData.commissionsOverTime.length > 0 ? dashboardData.commissionsOverTime : emptyCommissions}
                               dataKey="period"
-                              series={[{ name: 'commission', color: '#42A5F5' }]}
+                              series={[{ name: 'commission', color: primary }]}
                               curveType="monotone"
                               withXAxis={true}
                               withYAxis={false}
@@ -710,7 +718,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                                   return (
                                     <Box style={tooltipStyles}>
                                       <Text fw={600} style={{ color: '#fff' }}>{period}</Text>
-                                      <Text style={{ color: '#fff' }}>Commission: ${formatNumber(commission, true)}</Text>
+                                      <Text style={{ color: '#fff' }}>Commission: ₹{formatNumber(commission, true)}</Text>
                                     </Box>
                                   );
                                 }
@@ -840,7 +848,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     h={320}
                     data={dashboardData.conversionTrend.length > 0 ? dashboardData.conversionTrend : emptyConversionTrend}
                     dataKey="period"
-                    series={[{ name: 'conversions', color: '#66BB6A' }]}
+                    series={[{ name: 'conversions', color: primary }]}
                     curveType="monotone"
                     withTooltip
                     strokeWidth={1.5}
@@ -987,7 +995,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                     h="clamp(12rem, 40vw, 16rem)"
                     data={dashboardData.commissionsOverTime.length > 0 ? dashboardData.commissionsOverTime : emptyCommissions}
                     dataKey="period"
-                    series={[{ name: 'commission', color: '#42A5F5' }]}
+                    series={[{ name: 'commission', color: primary }]}
                     curveType="monotone"
                     withXAxis={true}
                     withYAxis={true}
