@@ -71,7 +71,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 if (!isMobile) setCollapsed((c) => !c);
               }}
             >
-              Hero Media Network
+              TapNova
             </Title>
           )}
         </Flex>

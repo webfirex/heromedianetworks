@@ -253,19 +253,50 @@
     background-color: transparent !important;
   }
 
-  /* Day cells - selected */
+  /* Day cells - selected (including first selected date when only one is selected) */
   .mantine-Calendar-day[data-selected],
   .mantine-Calendar-day[data-selected="true"],
-  .mantine-Calendar-day[data-in-range-boundary] {
+  .mantine-Calendar-day[data-in-range-boundary],
+  .mantine-Calendar-day[data-first-in-range],
+  .mantine-Calendar-day[data-last-in-range],
+  button.mantine-Calendar-day[data-selected],
+  button.mantine-Calendar-day[data-selected="true"] {
     background-color: #3b82f6 !important; /* primary blue */
-    color: #0b1220 !important;
+    color: #ffffff !important; /* white text for better contrast on blue */
+    font-weight: 600 !important;
+    border-radius: 8px !important;
   }
 
   /* Day cells - in range */
   .mantine-Calendar-day[data-in-range],
-  .mantine-Calendar-day[data-in-range="true"] {
+  .mantine-Calendar-day[data-in-range="true"],
+  button.mantine-Calendar-day[data-in-range] {
     background-color: rgba(59, 130, 246, 0.15) !important;
     color: #e4e4e7 !important;
+  }
+
+  /* Day cells - hover state (fix text color when background becomes white/light) */
+  .mantine-Calendar-day:hover:not([data-selected]):not([data-in-range]):not([data-outside]),
+  button.mantine-Calendar-day:hover:not([data-selected]):not([data-in-range]):not([data-outside]) {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #e4e4e7 !important; /* keep text light on dark hover */
+    border-radius: 8px !important;
+  }
+
+  /* When hover creates a light background, ensure text is dark */
+  .mantine-Calendar-day:hover[data-hovered]:not([data-selected]):not([data-in-range]),
+  button.mantine-Calendar-day:hover[data-hovered]:not([data-selected]):not([data-in-range]) {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #e4e4e7 !important;
+    border-radius: 8px !important;
+  }
+
+  /* Ensure any day with selected attribute is highlighted, even if it's the only one */
+  .mantine-Calendar-day[data-selected]:not([data-in-range]),
+  button.mantine-Calendar-day[data-selected]:not([data-in-range]) {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
   }
 
   /* Calendar header controls (prev/next buttons) */
@@ -409,19 +440,45 @@
   }
 
   .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-selected] {
-    background-color: #3b82f6;
-    color: #0b1220;
+    background-color: #3b82f6 !important;
+    color: #ffffff !important; /* white text for better contrast on blue */
+    font-weight: 600 !important;
   }
 
   .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-in-range] {
-    background-color: rgba(59, 130, 246, 0.15);
-    color: #e4e4e7;
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    color: #e4e4e7 !important;
   }
 
   .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-first-in-range],
   .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-last-in-range] {
-    background-color: #3b82f6;
-    color: #0b1220;
+    background-color: #3b82f6 !important;
+    color: #ffffff !important; /* white text for better contrast on blue */
+    font-weight: 600 !important;
+  }
+
+  /* Fix hover state - when background becomes white/light, text should be dark */
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day:hover:not([data-selected]):not([data-in-range]):not([data-outside]) {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #e4e4e7 !important; /* keep light text on subtle hover */
+  }
+
+  /* Ensure first selected date is always highlighted, even when only one date is selected */
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-selected="true"],
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day[data-selected],
+  .dark-date-picker-wrapper button.mantine-DatePickerInput-day[data-selected] {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+  }
+
+  /* Fix hover state for date picker wrapper */
+  .dark-date-picker-wrapper .mantine-DatePickerInput-day:hover:not([data-selected]):not([data-in-range]):not([data-outside]),
+  .dark-date-picker-wrapper button.mantine-DatePickerInput-day:hover:not([data-selected]):not([data-in-range]):not([data-outside]) {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #e4e4e7 !important;
+    border-radius: 8px !important;
   }
 
   .dark-date-picker-wrapper .mantine-DatePickerInput-month {
