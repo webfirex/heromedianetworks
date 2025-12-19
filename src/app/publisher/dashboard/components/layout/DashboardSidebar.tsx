@@ -102,7 +102,7 @@ export default function DashboardSidebar({
                 className="text-base font-semibold text-sidebar-foreground whitespace-nowrap cursor-pointer max-md:cursor-default"
                 onClick={onToggleCollapse}
               >
-                Hero Media Network
+                TapNova
               </motion.h2>
             )}
           </div>

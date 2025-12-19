@@ -138,12 +138,12 @@ export default function PublisherSignup() {
           <div className="flex items-center justify-center gap-3 mb-8">
             <Image
               src="/assests/logo.png"
-              alt="Hero Media Network Logo"
+              alt="TapNova Logo"
               width={56}
               height={56}
               className="rounded-xl"
             />
-            <span className="text-xl font-semibold text-foreground">Hero Media Network</span>
+            <span className="text-xl font-semibold text-foreground">TapNova</span>
           </div>
 
           <Card className="bg-card/50 backdrop-blur-sm border-border">

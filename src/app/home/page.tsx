@@ -57,7 +57,7 @@ export default function Home() {
     {
       name: "Sarah Chen",
       company: "MediaFlow Inc",
-      text: "Hero Media Networks transformed our affiliate tracking. ROI increased by 340% in just 3 months.",
+      text: "TapNova transformed our affiliate tracking. ROI increased by 340% in just 3 months.",
       avatar: "https://images.pexels.com/photos/3768894/pexels-photo-3768894.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop"
     },
     {
@@ -152,7 +152,7 @@ export default function Home() {
               whileHover={{ scale: 1.02 }}
             >
               <Image src="/assests/logoR.png" alt="Logo" width={44} height={44} />
-              <span className="text-lg font-semibold text-foreground hidden md:inline">Hero Media Networks</span>
+              <span className="text-lg font-semibold text-foreground hidden md:inline">TapNova</span>
             </motion.div>
             
             <div className="flex items-center space-x-4 md:space-x-6">
@@ -542,7 +542,7 @@ export default function Home() {
               Success <span className="text-sky-400">Stories</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              See how publishers are maximizing their revenue with Hero Media Networks
+              See how publishers are maximizing their revenue with TapNova
             </p>
           </motion.div>
 
@@ -613,7 +613,7 @@ export default function Home() {
               Ready to Transform Your Affiliate Network?
             </h2>
             <p className="text-xl text-emerald-100 mb-10 max-w-2xl mx-auto">
-              Join thousands of publishers who trust Hero Media Networks to maximize their revenue
+              Join thousands of publishers who trust TapNova to maximize their revenue
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -639,7 +639,7 @@ export default function Home() {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-3 mb-4">
                 <Image src="/assests/logoR.png" alt="Logo" width={44} height={44} />
-                <span className="text-xl font-bold text-foreground">Hero Media Networks</span>
+                <span className="text-xl font-bold text-foreground">TapNova</span>
               </div>
               <p className="text-muted-foreground max-w-md">
                 The most advanced affiliate tracking platform for publishers who demand precision, speed, and maximum revenue optimization.
@@ -668,8 +668,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-border mt-12 pt-8 text-center text-muted-foreground text-sm">
-            <Link href="https://webepex.com"><p className="mb-2">Designed & Developed by <span className='text-emerald-400 font-semibold hover:text-emerald-300 transition-colors'>WebEpex</span> | prakhar@webepex.com</p></Link>
-            <p>Copyright &copy; 2025 | Hero Media Networks | All Rights Reserved</p>
+            <p>Copyright &copy; 2025 | TapNova | All Rights Reserved</p>
           </div>
         </div>
       </footer>

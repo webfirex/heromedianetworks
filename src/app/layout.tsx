@@ -9,7 +9,7 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Hero Media Networks - Track Smarter, Earn Faster',
+  title: 'TapNova - Track Smarter, Earn Faster',
   description: 'The most advanced affiliate tracking platform for publishers who demand precision, speed, and maximum revenue optimization.',
   icons: [
     { rel: 'icon', url: '/assests/logoR2.png', type: 'image/x-icon' }

@@ -380,7 +380,7 @@ async function cleanupTestData(): Promise<void> {
 
 async function runAllTests() {
   log('\n' + '='.repeat(60), colors.blue);
-  log('🚀 HeroMedia Networks - Backend & Database Test Suite', colors.blue);
+  log('🚀 TapNova Networks - Backend & Database Test Suite', colors.blue);
   log('='.repeat(60) + '\n', colors.blue);
 
   // Database tests

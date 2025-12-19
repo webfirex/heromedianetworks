@@ -71,7 +71,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 if (!isMobile) setCollapsed((c) => !c);
               }}
             >
-              Hero Media Network
+              TapNova
             </Title>
           )}
         </Flex>
@@ -272,7 +272,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           label={collapsed ? null : 'Customer Support'}
           leftSection={<IconHeadset size={18} />}
           active={activeTab === 'customer-support'}
-          onClick={() => window.open('mailto:support@heromedianetwork.com', '_blank')}
+          onClick={() => window.open('mailto:support@tapnova.com', '_blank')}
           styles={{
             root: {
               color: 'var(--sidebar-foreground)',
