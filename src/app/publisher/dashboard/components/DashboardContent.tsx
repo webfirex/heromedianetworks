@@ -395,7 +395,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
               <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-green-500/10 text-green-400 group-hover:bg-green-500/20 transition-colors">
                 <IconCircleCheck size={18} className="md:w-5 md:h-5" />
               </div>
-              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Sales This Month</div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Total conversions</div>
               <div className="text-2xl md:text-3xl font-bold text-white mb-2">{formatNumber(dashboardData.salesThisMonth)}</div>
               <div className="flex items-center gap-2 mb-1">
                 <div className={`text-xs font-bold ${isSalesPositive ? 'text-green-400' : 'text-red-400'}`}>
@@ -473,7 +473,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                           <div className="text-base md:text-lg font-bold text-green-400">{formatNumber(dashboardData.totalConversions)}</div>
                         </div>
                         <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
-                          <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Commission</div>
+                          <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Earning</div>
                           <div className="text-base md:text-lg font-bold text-blue-400">₹{formatNumber(dashboardData.commissionThisMonth, true)}</div>
                         </div>
                       </div>
@@ -718,7 +718,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                                   return (
                                     <Box style={tooltipStyles}>
                                       <Text fw={600} style={{ color: '#fff' }}>{period}</Text>
-                                      <Text style={{ color: '#fff' }}>Commission: ₹{formatNumber(commission, true)}</Text>
+                                      <Text style={{ color: '#fff' }}>Earning: ₹{formatNumber(commission, true)}</Text>
                                     </Box>
                                   );
                                 }
@@ -988,7 +988,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                   }}
                   mb="sm"
                 >
-                  Commissions
+                  Earning
                 </Title>
                 <div style={{ marginLeft: '-16px', marginRight: '-16px', marginBottom: '-16px', paddingLeft: 0, paddingRight: 0, paddingBottom: 0, width: 'calc(100% + 32px)' }}>
                   <AreaChart
