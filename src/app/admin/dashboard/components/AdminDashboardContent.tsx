@@ -1,10 +1,11 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Card, SimpleGrid, Box, Title, Text, Group, Stack, rem, Badge } from '@mantine/core';
-import { IconLayoutDashboard, IconCircleCheck, IconPercentage } from '@tabler/icons-react';
+import { SimpleGrid, Grid, Box, Title, Text, Group, Stack, rem, Badge } from '@mantine/core';
+import { IconLayoutDashboard, IconCircleCheck, IconPercentage, IconArrowRight, IconCurrencyDollar } from '@tabler/icons-react';
 import { Skeleton } from '@mantine/core';
-import { showNotification } from '@/app/utils/notificationManager'; // Assuming this path is correct
+import { showNotification } from '@/app/utils/notificationManager';
 import { BarChart, PieChart, LineChart, AreaChart } from '@mantine/charts';
+import NeoCard from '@/components/ui/flip-card';
 
 // // --- Dummy Data Structures and Helper Functions (You might move these to a separate utils file) ---
 // const emptyConversionTrend = [{ period: 'No Data', conversions: 0 }];
@@ -40,6 +41,19 @@ interface ConversionTrend {
   conversions: number;
 }
 
+interface ConversionByOffer {
+  name: string;
+  value: number;
+  color?: string;
+}
+
+interface TopPerformingOffer {
+  offerName: string;
+  clicks: number;
+  conversions: number;
+  revenue: string;
+}
+
 interface DashboardData {
   totalClicks: number;
   totalConversions: number;
@@ -55,6 +69,8 @@ interface DashboardData {
   trafficSources: TrafficSource[];
   clicksOverTime: ClickOverTime[];
   conversionTrend: ConversionTrend[];
+  conversionsByOffer: ConversionByOffer[];
+  topPerformingOffers: TopPerformingOffer[];
 }
 
 
@@ -114,6 +130,8 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({ dateRange
     trafficSources: [],
     clicksOverTime: [],
     conversionTrend: [],
+    conversionsByOffer: [],
+    topPerformingOffers: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,444 +223,590 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
   );
 
   return (
-    <div style={{ overflow: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-      <style>
-        {`
-          div::-webkit-scrollbar {
-            display: none;
-          }
-        `}
-      </style>
+    <Box p="0.5rem">
       {loading ? (
         <>
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm" mb="sm">
+          {/* Key Metrics Row Skeleton */}
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mb="xl">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} shadow="md" radius="md" withBorder>
-                <Skeleton height={rem(32)} width="60%" mb="sm" />
-                <Skeleton height={rem(24)} width="40%" />
-              </Card>
+              <div
+                key={i}
+                className="p-4 rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" style={{ transform: 'skewX(-20deg)' }}></div>
+                <div className="flex justify-between items-start mb-2">
+                  <div className="h-8 w-8 rounded-lg bg-zinc-800/50 animate-pulse"></div>
+                </div>
+                <div className="h-3 w-24 bg-zinc-800/50 rounded animate-pulse mb-2"></div>
+                <div className="h-6 w-32 bg-zinc-800/80 rounded animate-pulse mb-2"></div>
+                <div className="h-3 w-16 bg-zinc-800/50 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </SimpleGrid>
+
+          {/* Main Grid Skeleton */}
+          <Grid gutter="md" mb="md">
+            {/* Left Column (Span 4 on desktop, full width on mobile) */}
+            <Grid.Col span={{ base: 12, lg: 4 }}>
+              <div className="flex flex-col gap-4">
+                {/* Overview Card Skeleton */}
+                <div className="w-full h-[520px] rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md p-6 relative overflow-hidden flex flex-col">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="h-5 w-32 bg-zinc-800/80 rounded animate-pulse"></div>
+                    <div className="h-5 w-5 bg-zinc-800/50 rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="h-10 w-full bg-zinc-800/30 rounded-lg animate-pulse mb-8"></div>
+                  <div className="flex-1 w-full bg-zinc-800/20 rounded-xl animate-pulse mb-6"></div>
+                  <div className="flex justify-between items-end">
+                    <div className="h-10 w-24 bg-zinc-800/60 rounded animate-pulse"></div>
+                    <div className="h-4 w-20 bg-zinc-800/40 rounded animate-pulse"></div>
+                  </div>
+                </div>
+
+                {/* Current Week Clicks Skeleton */}
+                <div className="w-full h-[300px] rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md p-6 relative overflow-hidden flex flex-col">
+                  <div className="h-5 w-40 bg-zinc-800/80 rounded animate-pulse mb-4"></div>
+                  <div className="flex-1 w-full bg-zinc-800/20 rounded-xl animate-pulse"></div>
+                </div>
+              </div>
+            </Grid.Col>
+
+            {/* Right Column (Span 8 on desktop, full width on mobile) */}
+            <Grid.Col span={{ base: 12, lg: 8 }}>
+              <div className="flex flex-col gap-4">
+                {/* Balance Card Skeleton */}
+                <div className="w-full h-[384px] rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md p-6 relative overflow-hidden flex flex-col">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="h-10 w-48 bg-zinc-800/80 rounded animate-pulse"></div>
+                    <div className="h-6 w-16 bg-zinc-800/50 rounded animate-pulse"></div>
+                  </div>
+                  <div className="h-4 w-32 bg-zinc-800/40 rounded animate-pulse mb-6"></div>
+                  <div className="flex-1 w-full bg-zinc-800/20 rounded-xl animate-pulse"></div>
+                </div>
+
+                {/* Traffic Sources Skeleton */}
+                <div className="w-full h-[384px] rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md p-0 relative overflow-hidden flex flex-col">
+                  <div className="p-6 border-b border-white/5">
+                    <div className="h-6 w-48 bg-zinc-800/80 rounded animate-pulse"></div>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="h-12 w-full bg-zinc-800/30 rounded-lg animate-pulse"></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Grid.Col>
+          </Grid>
+
+          {/* Bottom Charts Skeleton */}
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            {[...Array(2)].map((_, i) => (
+              <div
+                key={i}
+                className="h-[350px] rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md p-6 relative overflow-hidden flex flex-col"
+              >
+                <div className="h-5 w-40 bg-zinc-800/80 rounded animate-pulse mb-4"></div>
+                <div className="flex-1 w-full bg-zinc-800/20 rounded-xl animate-pulse"></div>
+              </div>
             ))}
           </SimpleGrid>
         </>
-      ) : error ? (
-        <Text c="var(--destructive)">{error}</Text>
-      ) : (
+      ) : error ? null : (
         <>
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="xs" mb="sm">
-            {[
-              {
-                icon: <IconLayoutDashboard size={28} color="#3B82F6" />,
-                label: 'Total Clicks',
-                value: safeValue(dashboardData.totalClicks).toLocaleString(),
-                accentColor: '#3B82F6',
-              },
-              {
-                icon: <IconCircleCheck size={28} color="#10B981" />,
-                label: 'Total Conversions',
-                value: safeValue(dashboardData.totalConversions).toLocaleString(),
-                accentColor: '#10B981',
-              },
-              {
-                icon: <IconPercentage size={28} color="#8B5CF6" />,
-                label: 'Conversion Rate %',
-                value: (() => {
+          {/* Key Metrics Row */}
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm" mb="lg">
+            {/* Total Clicks */}
+            <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+              <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
+                <IconArrowRight size={18} className="md:w-5 md:h-5" />
+              </div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Total Clicks</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">{safeValue(dashboardData.totalClicks).toLocaleString()}</div>
+              <div className="text-[9px] md:text-[10px] text-zinc-500">
+                All-time platform clicks
+              </div>
+            </NeoCard>
+
+            {/* Total Conversions */}
+            <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+              <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-green-500/10 text-green-400 group-hover:bg-green-500/20 transition-colors">
+                <IconCircleCheck size={18} className="md:w-5 md:h-5" />
+              </div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Total Conversions</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">{safeValue(dashboardData.totalConversions).toLocaleString()}</div>
+              <div className="text-[9px] md:text-[10px] text-zinc-500">
+                All-time platform conversions
+              </div>
+            </NeoCard>
+
+            {/* Conversion Rate % */}
+            <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+              <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 transition-colors">
+                <IconPercentage size={18} className="md:w-5 md:h-5" />
+              </div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Conversion Rate %</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">
+                {(() => {
                   const clicks = safeValue(dashboardData.totalClicks);
                   const conversions = safeValue(dashboardData.totalConversions);
                   if (clicks === 0) return '0.00%';
                   return `${((conversions / clicks) * 100).toFixed(2)}%`;
-                })(),
-                accentColor: '#8B5CF6',
-              },
-            ].map((stat) => (
-              <Card
-                key={stat.label}
-                shadow=""
-                radius="26px"
-                withBorder={false}
-                p="lg"
-                style={{
-                  background: 'rgba(128, 128, 128, 0.1)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(20px)',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    background: 'rgba(128, 128, 128, 0.15)',
-                    boxShadow: '0 25px 50px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
-                    backdropFilter: 'blur(25px)',
-                  },
-                }}
-              >
-                <Group align="flex-start" gap="md" wrap="nowrap">
-                  <Box style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    borderRadius: '16px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px rgba(255,255,255,0.1)',
-                    padding: rem(14),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: rem(56),
-                    minHeight: rem(56),
-                  }}>
-                    {stat.icon}
-                  </Box>
-                  <Stack gap={2} style={{ flex: 1 }}>
-                    <Text
-                      size="xs"
-                      fw={500}
-                      tt="uppercase"
-                      style={{
-                        letterSpacing: '0.5px',
-                        color: '#8B94A7',
-                        opacity: 0.8
-                      }}
-                    >
-                      {stat.label}
-                    </Text>
-                    <Title
-                      order={2}
-                      style={{
-                        fontWeight: 700,
-                        color: '#E6EAF0',
-                        fontSize: rem(28),
-                        lineHeight: 1.1,
-                        marginTop: rem(4)
-                      }}
-                    >
-                      {stat.value}
-                    </Title>
-                  </Stack>
-                </Group>
-              </Card>
-            ))}
+                })()}
+              </div>
+              <div className="text-[9px] md:text-[10px] text-zinc-500">
+                Overall platform conversion rate
+              </div>
+            </NeoCard>
           </SimpleGrid>
 
-          <Box>
-            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
-              {/* Weekly Clicks Bar Chart */}
-              <Card
-                shadow=""
-                radius="26px"
-                withBorder={false}
-                p="lg"
-                style={{
-                  background: 'rgba(128, 128, 128, 0.1)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(20px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
-                    background: 'rgba(128, 128, 128, 0.15)',
-                    boxShadow: '0 22px 44px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
-                    backdropFilter: 'blur(25px)',
-                  },
-                }}
-              >
-                <Title
-                  order={4}
-                  style={{
-                    color: '#E6EAF0',
-                    fontWeight: 500,
-                    marginBottom: rem(12)
-                  }}
-                  mb="sm"
-                >
-                  Weekly Clicks
-                  <Text
-                    size="sm"
+          <Grid gutter="md" mb="md">
+            {/* Left Column (Span 4 on desktop, full width on mobile) */}
+            <Grid.Col span={{ base: 12, lg: 4 }}>
+              <div className="flex flex-col gap-4 h-full">
+                {/* Card 1: Overview (Platform Statistics) */}
+                <div className="flex flex-col">
+                  {/* External Header */}
+                  <div className="mb-4 pl-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <h2 className="text-lg font-bold text-white">Platform Overview</h2>
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      Overview of platform-wide statistics and metrics.
+                    </p>
+                  </div>
+
+                  <NeoCard
+                    variant="glass"
+                    className="w-full backdrop-blur-xl border border-white/20 active:scale-[0.99] transition-transform duration-300 relative"
                     style={{
-                      display: 'block',
-                      marginTop: rem(4),
-                      color: '#3B82F6',
-                      fontWeight: 600
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
                     }}
                   >
-                    ▲ 5% (vs. last week)
-                  </Text>
-                </Title>
+                    {/* Ambient Glows */}
+                    <div className="absolute top-0 left-0 w-72 h-72 bg-white/20 blur-[120px] pointer-events-none" />
+                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/30 blur-[140px] rounded-full pointer-events-none" />
 
-                <BarChart
-                  h={250}
-                  data={chartData}
-                  dataKey="day"
-                  series={[{ name: 'clicks', color: primary }]}
-                  withTooltip
-                  referenceLines={[
-                    {
-                      values: (CLICK_MONTHLY_TARGET / 7).toString(),
-                      label: 'Daily Target',
-                      color: 'red',
-                      strokeDasharray: '4 4',
-                    },
-                  ]}
-                  tooltipProps={{
-                    cursor: { fill: 'rgba(66, 133, 244, 0.15)', stroke: 'transparent' },
-                    wrapperStyle: tooltipStyles,
-                    content: ({ payload }) => {
-                      if (!payload || !payload[0]) return null;
-                      const { day, clicks } = payload[0].payload;
-                      const dailyAvgTarget = CLICK_MONTHLY_TARGET / 7;
-                      const targetProgress = getPercentageOfTarget(clicks, dailyAvgTarget);
+                    <div className="flex flex-col h-full p-4 md:p-6 relative z-10">
+                      {/* Card Internal Header */}
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-lg font-medium text-white">Overview</h3>
+                      </div>
 
-                      return (
-                        <Box style={tooltipStyles}>
-                          <Text fw={600} size="md">{day}</Text>
-                          <Text mt="xs">
-                            Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span>
-                          </Text>
-                          <Text>
-                            Target Progress:{' '}
-                            <span style={{ color: Number(targetProgress) >= 100 ? 'green' : 'orange', fontWeight: 700 }}>
-                              {targetProgress}%
-                            </span>{' '}
-                            of daily avg target
-                          </Text>
-                        </Box>
-                      );
-                    },
-                  }}
-                />
-              </Card>
+                      {/* Quick Stats Row */}
+                      <div className="grid grid-cols-3 gap-1.5 md:gap-2 mb-4">
+                        <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
+                          <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Total Clicks</div>
+                          <div className="text-base md:text-lg font-bold text-white">{safeValue(dashboardData.totalClicks).toLocaleString()}</div>
+                        </div>
+                        <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
+                          <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Conversions</div>
+                          <div className="text-base md:text-lg font-bold text-green-400">{safeValue(dashboardData.totalConversions).toLocaleString()}</div>
+                        </div>
+                        <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
+                          <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Earnings</div>
+                          <div className="text-base md:text-lg font-bold text-blue-400">₹{safeValue(dashboardData.totalEarnings).toLocaleString()}</div>
+                        </div>
+                      </div>
 
-              {/* Traffic Sources Pie Chart */}
-              <Card
-                shadow=""
-                radius="26px"
-                withBorder={false}
-                p="lg"
-                style={{
-                  background: 'rgba(128, 128, 128, 0.1)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(20px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
-                    background: 'rgba(128, 128, 128, 0.15)',
-                    boxShadow: '0 22px 44px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
-                    backdropFilter: 'blur(25px)',
-                  },
-                }}
-              >
-                <Title
-                  order={4}
-                  style={{
-                    color: '#E6EAF0',
-                    fontWeight: 500,
-                    marginBottom: rem(12)
-                  }}
-                  mb="sm"
+                      {/* Chart Area */}
+                      <div
+                        className="w-full h-[150px] relative mt-3 md:mt-4"
+                        style={{
+                          marginLeft: '-16px',
+                          marginRight: '-16px',
+                          paddingLeft: 0,
+                          paddingRight: 0,
+                          width: 'calc(100% + 32px)',
+                        }}
+                      >
+                        <BarChart
+                          h={150}
+                          data={chartData}
+                          dataKey="day"
+                          series={[{ name: 'clicks', color: primary }]}
+                          withXAxis={true}
+                          withYAxis={false}
+                          gridAxis="none"
+                          textColor="#9CA3AF"
+                          xAxisProps={{
+                            tick: { fill: '#9CA3AF', fontSize: 11 },
+                            tickLine: { stroke: '#374151' },
+                            axisLine: { stroke: '#374151' }
+                          }}
+                          tooltipProps={{
+                            content: ({ payload }) => {
+                              if (!payload || !payload[0]) return null;
+                              const { day, clicks } = payload[0].payload;
+                              return (
+                                <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="text-[10px] text-zinc-400 mb-1">{day}</div>
+                                    <div className="text-sm font-bold text-white tracking-tight">{formatNumber(clicks)} clicks</div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {/* Footer Stats */}
+                      <div className="mt-3 md:mt-4 flex justify-between items-end">
+                        <div className="text-right">
+                          <div className="text-[9px] md:text-[10px] text-zinc-600">Last updated</div>
+                          <div className="text-[10px] md:text-[11px] font-medium text-zinc-400">
+                            Today, {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </NeoCard>
+                </div>
+
+                {/* Weekly Clicks Chart */}
+                <NeoCard
+                  variant="glass"
+                  className="w-full min-h-[260px] backdrop-blur-xl border border-white/20 pt-4 px-4 md:pt-5 md:px-5 pb-0 flex flex-col overflow-hidden"
+                  style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
                 >
-                  Traffic Sources
-                </Title>
-
-                {safeArray(dashboardData.trafficSources).length > 0 ? (
-                  <>
-                    <PieChart
-                      h={250}
-                      data={
-                        dashboardData.trafficSources.map((source, index) => ({
-                          ...source,
-                          color: getColorForSegment(source.name, index, chartColors),
-                        }))
-                      }
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-base md:text-lg font-medium text-white">Weekly Clicks</h3>
+                  </div>
+                  <div className="text-2xl md:text-3xl font-bold text-white mb-3 md:mb-4">
+                    {chartData.reduce((acc, curr) => acc + (curr.clicks || 0), 0).toLocaleString()}
+                  </div>
+                  <div
+                    className="w-full h-[180px] md:h-[220px] relative mt-3 md:mt-4"
+                    style={{
+                      marginLeft: '-16px',
+                      marginRight: '-16px',
+                      marginBottom: 0,
+                      paddingLeft: 0,
+                      paddingRight: 0,
+                      paddingBottom: 0,
+                      width: 'calc(100% + 32px)',
+                    }}
+                  >
+                    <BarChart
+                      h={220}
+                      data={chartData}
+                      dataKey="day"
+                      series={[{ name: 'clicks', color: primary }]}
                       withTooltip
+                      textColor="#9CA3AF"
+                      xAxisProps={{
+                        tick: { fill: '#9CA3AF', fontSize: 11 },
+                        tickLine: { stroke: '#374151' },
+                        axisLine: { stroke: '#374151' }
+                      }}
+                      yAxisProps={{
+                        tick: { fill: '#9CA3AF', fontSize: 11 },
+                        tickLine: { stroke: '#374151' },
+                        axisLine: { stroke: '#374151' },
+                        width: 30
+                      }}
                       tooltipProps={{
-                        wrapperStyle: tooltipStyles,
                         content: ({ payload }) => {
                           if (!payload || !payload[0]) return null;
-                          const { name, value } = payload[0].payload;
-                          const total = safeArray(dashboardData.trafficSources).reduce((sum, src) => sum + (src.value || 0), 0);
-                          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                          const { day, clicks } = payload[0].payload;
                           return (
-                            <Box style={tooltipStyles}>
-                              <Text fw={600}>{name || 'Unknown'}</Text>
-                              <Text>Clicks: {formatNumber(value)}</Text>
-                              <Text>Share: {percentage}%</Text>
-                            </Box>
+                            <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                              <div className="flex flex-col gap-0.5">
+                                <div className="text-[10px] text-zinc-400 mb-1">{day}</div>
+                                <div className="text-sm font-bold text-white tracking-tight">{formatNumber(clicks)} clicks</div>
+                              </div>
+                            </div>
                           );
                         },
                       }}
                     />
-                    <Box mt={10} style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                      <Group gap={12} style={{ flexWrap: 'wrap' }}>
-                        {dashboardData.trafficSources.map((source, idx) => (
-                          <Group key={source.name || `source-${idx}`} gap={6} align="center">
-                            <Box w={14} h={14} style={{ borderRadius: rem(4), background: getColorForSegment(source.name, idx, chartColors), border: `1.5px solid #e0e0e0` }} />
-                            <Text size="sm" fw={600} style={{ color: '#333', letterSpacing: rem(0.2) }}>{source.name || 'Unknown'}</Text>
-                            <Badge color="gray" variant="light" size="xs" radius="sm" style={{ fontWeight: 500 }}>
-                              {formatNumber(source.value)}
-                            </Badge>
-                          </Group>
-                        ))}
+                  </div>
+                </NeoCard>
+              </div>
+            </Grid.Col>
+
+            {/* Right Column (Span 8 on desktop, full width on mobile) */}
+            <Grid.Col span={{ base: 12, lg: 8 }}>
+              <div className="flex flex-col gap-4 h-full">
+                {/* Row 1: Total Earnings (Full Width now) */}
+                <div className="grid grid-cols-12 gap-4">
+                  {/* Total Earnings */}
+                  <div className="col-span-12">
+                    <div className="flex flex-col h-full">
+                      {/* External Header */}
+                      <div className="mb-4 pl-1">
+                        <div className="flex flex-wrap justify-between items-center gap-2 mb-1">
+                          <h2 className="text-lg font-bold text-white">Total Earnings</h2>
+                          <Badge
+                            variant="filled"
+                            color="dark"
+                            radius="md"
+                            size="lg"
+                            className="bg-zinc-800 text-zinc-300 pr-2 cursor-pointer hover:bg-zinc-700 transition"
+                            rightSection={<Text size="xs">INR</Text>}
+                          >
+                            ₹
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-zinc-500">
+                          Total earnings across the entire platform.
+                        </p>
+                      </div>
+
+                      <NeoCard
+                        variant="glass"
+                        className="min-h-[340px] backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col active:scale-[0.99] transition-transform duration-300 relative"
+                        style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
+                      >
+                        {/* Subtle Yellow Gradient from Bottom Right */}
+                        <div
+                          className="absolute bottom-0 right-0 w-64 h-64 pointer-events-none"
+                          style={{
+                            background: 'radial-gradient(circle at bottom right, rgba(255, 193, 7, 0.15) 0%, rgba(255, 193, 7, 0.08) 30%, transparent 70%)',
+                            zIndex: 1
+                          }}
+                        />
+                        <div className="pt-4 px-4 md:pt-6 md:px-6 pb-0 relative z-10 flex flex-col h-full">
+                          {/* Top Stats */}
+                          <div className="flex flex-wrap justify-between items-start gap-2 mb-3 md:mb-4">
+                            <div className="flex items-center">
+                              <span className="text-blue-500 text-2xl md:text-3xl mr-1 font-light">₹</span>
+                              <span className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                                {safeValue(dashboardData.totalEarnings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Sub Stats Row */}
+                          <div className="flex justify-between items-center mb-2 md:mb-2">
+                            <div className="text-[11px] text-zinc-400 flex items-center">
+                              Total earnings from all conversions
+                            </div>
+                          </div>
+
+                          {/* Chart Area for Earnings */}
+                          <div
+                            className="w-full h-[180px] relative mt-3 md:mt-4"
+                            style={{
+                              marginLeft: '-16px',
+                              marginRight: '-16px',
+                              marginBottom: 0,
+                              paddingLeft: 0,
+                              paddingRight: 0,
+                              paddingBottom: 0,
+                              width: 'calc(100% + 32px)',
+                            }}
+                          >
+                            <AreaChart
+                              h={205}
+                              data={dashboardData.conversionTrend.length > 0 ? dashboardData.conversionTrend : [{ period: 'No Data', conversions: 0 }]}
+                              dataKey="period"
+                              series={[{ name: 'conversions', color: primary }]}
+                              curveType="monotone"
+                              withXAxis={true}
+                              withYAxis={false}
+                              gridAxis="none"
+                              withDots={false}
+                              strokeWidth={1.5}
+                              fillOpacity={0.2}
+                              textColor="#9CA3AF"
+                              xAxisProps={{
+                                tick: { fill: '#9CA3AF', fontSize: 11 },
+                                tickLine: { stroke: '#374151' },
+                                axisLine: { stroke: '#374151' }
+                              }}
+                              tooltipProps={{
+                                content: ({ payload }) => {
+                                  if (!payload || !payload[0]) return null;
+                                  const { period, conversions } = payload[0].payload;
+                                  return (
+                                    <Box style={tooltipStyles}>
+                                      <Text fw={600} style={{ color: '#fff' }}>{period}</Text>
+                                      <Text style={{ color: '#fff' }}>Conversions: {formatNumber(conversions)}</Text>
+                                    </Box>
+                                  );
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </NeoCard>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Grid.Col>
+          </Grid>
+
+          {/* Charts Grid */}
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            {/* Traffic Sources Pie Chart */}
+            <NeoCard
+              variant="glass"
+              className="pt-2 px-4 md:pt-3 md:px-5 pb-0 backdrop-blur-xl border border-white/20 overflow-hidden flex flex-col"
+              style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
+            >
+              <div className="flex justify-between items-center mb-2 mt-2">
+                <h3 className="text-base md:text-lg font-medium text-white">Traffic Sources</h3>
+              </div>
+              <div>
+                <div
+                  className="w-full h-[200px] md:h-[240px] chart-bottom-align mt-1"
+                  style={{
+                    marginLeft: '-16px',
+                    marginRight: '-16px',
+                    marginBottom: 0,
+                    paddingLeft: 0,
+                    paddingRight: 0,
+                    paddingBottom: 0,
+                    width: 'calc(100% + 32px)',
+                  }}
+                >
+                  <PieChart
+                    h={320}
+                    data={
+                      dashboardData.trafficSources.length > 0
+                        ? dashboardData.trafficSources.map((source, index) => ({
+                            ...source,
+                            color: getColorForSegment(source.name, index, chartColors),
+                          }))
+                        : [{ name: 'No Data', value: 1, color: 'rgba(255,255,255,0.1)' }]
+                    }
+                    withTooltip
+                    tooltipProps={{
+                      content: ({ payload }) => {
+                        if (!payload || !payload[0]) return null;
+                        const { name, value } = payload[0].payload;
+                        const total = dashboardData.trafficSources.reduce((sum, src) => sum + src.value, 0);
+                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                        return (
+                          <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[100px]">
+                            <div className="flex flex-col gap-0.5">
+                              <div className="text-[10px] text-zinc-400 mb-1">{name}</div>
+                              <div className="text-sm font-bold text-white tracking-tight">{formatNumber(value)} clicks</div>
+                              <div className="text-[10px] text-zinc-500 mt-1">
+                                Share: <span className="text-white font-medium">{percentage}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      },
+                    }}
+                  />
+                </div>
+              </div>
+              {dashboardData.trafficSources.length > 0 && (
+                <Box mt={8} style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <Group gap={8} style={{ flexWrap: 'wrap' }}>
+                    {dashboardData.trafficSources.map((source, idx) => (
+                      <Group key={source.name || 'Unknown'} gap={4} align="center">
+                        <Box w={12} h={12} style={{ borderRadius: 4, background: getColorForSegment(source.name, idx, chartColors), border: '1.5px solid rgba(255,255,255,0.1)' }} />
+                        <Text size="xs" fw={600} style={{ color: 'rgba(255,255,255,0.9)', letterSpacing: 0.2 }}>
+                          {source.name || 'Unknown'}
+                        </Text>
+                        <Badge color="gray" variant="light" size="xs" radius="sm" style={{ fontWeight: 500, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)' }}>
+                          {formatNumber(source.value)}
+                        </Badge>
                       </Group>
-                    </Box>
-                  </>
-                ) : (
-                  <NoDataMessage message="No traffic source data available." />
-                )}
-              </Card>
+                    ))}
+                  </Group>
+                </Box>
+              )}
+            </NeoCard>
 
-              {/* Clicks Over Time Line Chart */}
-              <Card
-                shadow=""
-                radius="26px"
-                withBorder={false}
-                p="lg"
+            {/* Conversions By Offer */}
+            <NeoCard
+              variant="glass"
+              className="p-4 md:p-6 backdrop-blur-xl border border-white/20"
+              style={{ background: 'rgba(255, 255, 255, 0.05)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)' }}
+            >
+              <Title
+                order={4}
                 style={{
-                  background: 'rgba(128, 128, 128, 0.1)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(20px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
-                    background: 'rgba(128, 128, 128, 0.15)',
-                    boxShadow: '0 22px 44px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
-                    backdropFilter: 'blur(25px)',
-                  },
+                  color: '#E6EAF0',
+                  fontWeight: 500,
+                  fontSize: 'clamp(0.9rem, 3vw, 1.125rem)',
+                  marginBottom: '12px'
                 }}
+                mb="sm"
               >
-                <Title
-                  order={4}
-                  style={{
-                    color: '#E6EAF0',
-                    fontWeight: 500,
-                    marginBottom: rem(12)
+                Top Performing Offers
+              </Title>
+              <div className="pie-chart-glass-container">
+                <style jsx>{`
+                  :global(.pie-chart-glass-container .recharts-sector) {
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    opacity: 0.9;
+                    stroke: rgba(255, 255, 255, 0.2) !important;
+                    stroke-width: 1.5px !important;
+                    filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1)) brightness(1.05);
+                  }
+                  :global(.pie-chart-glass-container .recharts-sector:hover) {
+                    filter: brightness(1.2) saturate(1.1) drop-shadow(0 4px 12px rgba(255, 255, 255, 0.2));
+                    opacity: 0.95;
+                    stroke: rgba(255, 255, 255, 0.35) !important;
+                    stroke-width: 2px !important;
+                  }
+                `}</style>
+                <PieChart
+                  h="clamp(12rem, 40vw, 16rem)"
+                  data={
+                    dashboardData.topPerformingOffers.length > 0
+                      ? dashboardData.topPerformingOffers.slice(0, 8).map((offer, index) => ({
+                          name: offer.offerName,
+                          value: offer.conversions,
+                          color: getColorForSegment(offer.offerName, index, chartColors),
+                        }))
+                      : [{ name: 'No Data', value: 1, color: 'rgba(255,255,255,0.1)' }]
+                  }
+                  withTooltip
+                  tooltipProps={{
+                    content: ({ payload }) => {
+                      if (!payload || !payload[0]) return null;
+                      const { name, value } = payload[0].payload;
+                      const offer = dashboardData.topPerformingOffers.find(o => o.offerName === name);
+                      return (
+                        <div className="bg-[#121420]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md min-w-[120px]">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="text-[10px] text-zinc-400 mb-1">{name}</div>
+                            <div className="text-sm font-bold text-white tracking-tight">{formatNumber(value)} conversions</div>
+                            {offer && (
+                              <div className="text-[10px] text-zinc-500 mt-1">
+                                Revenue: <span className="text-white font-medium">₹{offer.revenue}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    },
                   }}
-                  mb="sm"
-                >
-                  Clicks Over Time
-                  <Text
-                    size="sm"
-                    style={{
-                      display: 'block',
-                      marginTop: rem(4),
-                      color: '#3B82F6',
-                      fontWeight: 600
-                    }}
-                  >
-                    ▲ 12% (vs. previous month)
-                  </Text>
-                </Title>
-                {safeArray(dashboardData.clicksOverTime).length > 0 ? (
-                  <LineChart
-                    h={250}
-                    data={dashboardData.clicksOverTime}
-                    dataKey="period"
-                    series={[
-                      { name: 'clicks', color: primary }
-                    ]}
-                    curveType="monotone"
-                    withTooltip
-                    referenceLines={[
-                    { values: (CLICK_MONTHLY_TARGET / 4).toString(), label: 'Monthly Avg Target', color: 'red', strokeDasharray: '4 4' }
-                  ]}
-                    tooltipProps={{
-                      wrapperStyle: tooltipStyles,
-                      content: ({ payload }) => {
-                        if (!payload || !payload[0]) return null;
-                        // Payload might contain `clicks` directly if series name is 'clicks'
-                        const { period, clicks } = payload[0].payload;
-                        const weeklyAvgTarget = CLICK_MONTHLY_TARGET / 4;
-                        const targetProgress = getPercentageOfTarget(clicks, weeklyAvgTarget);
-                        return (
-                          <Box style={tooltipStyles}>
-                            <Text fw={600} size="md">{period}</Text>
-                            <Text mt="xs">Total Clicks: <span style={{ fontWeight: 700 }}>{formatNumber(clicks)}</span></Text>
-                            <Text>Target Progress: <span style={{ color: Number(targetProgress) >= 100 ? 'green' : 'orange', fontWeight: 700 }}>{targetProgress}%</span> of weekly avg target</Text>
-                          </Box>
-                        );
-                      },
-                    }}
-                  />
-                ) : (
-                  <NoDataMessage message="No click data available for the selected period.<br />Please adjust your date range or check back later!" />
-                )}
-              </Card>
-
-              {/* Conversion Trend Area Chart */}
-              <Card
-                shadow=""
-                radius="26px"
-                withBorder={false}
-                p="lg"
-                style={{
-                  background: 'rgba(128, 128, 128, 0.1)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(20px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
-                    background: 'rgba(128, 128, 128, 0.15)',
-                    boxShadow: '0 22px 44px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.12)',
-                    backdropFilter: 'blur(25px)',
-                  },
-                }}
-              >
-                <Title
-                  order={4}
-                  style={{
-                    color: '#E6EAF0',
-                    fontWeight: 500,
-                    marginBottom: rem(12)
-                  }}
-                  mb="sm"
-                >
-                  Conversion Trend
-                  <Text
-                    size="sm"
-                    style={{
-                      display: 'block',
-                      marginTop: rem(4),
-                      color: '#3B82F6',
-                      fontWeight: 600
-                    }}
-                  >
-                    ▲ 7% (vs. previous period)
-                  </Text>
-                </Title>
-                {safeArray(dashboardData.conversionTrend).length > 0 ? (
-                  <AreaChart
-                    h={250}
-                    data={dashboardData.conversionTrend}
-                    dataKey="period"
-                    series={[{ name: 'conversions', color: primary }]} // Changed to 'conversions'
-                    curveType="monotone"
-                    withTooltip
-                    tooltipProps={{
-                      wrapperStyle: tooltipStyles,
-                      content: ({ payload }) => {
-                        if (!payload || !payload[0]) return null;
-                        const { period, conversions } = payload[0].payload; // Updated to 'conversions'
-                        const periodAvgTarget = CONVERSION_MONTHLY_TARGET / (safeArray(dashboardData.conversionTrend).length || 1);
-                        const targetProgress = getPercentageOfTarget(conversions, periodAvgTarget);
-                        return (
-                          <Box style={tooltipStyles}>
-                            <Text fw={600}>{period}</Text>
-                            <Text mt="xs">Conversions: <span style={{ fontWeight: 700 }}>{formatNumber(conversions)}</span></Text>
-                            <Text>Target Progress: <span style={{ color: Number(targetProgress) >= 100 ? 'green' : 'orange', fontWeight: 700 }}>{targetProgress}%</span> of expected</Text>
-                          </Box>
-                        );
-                      },
-                    }}
-                  />
-                ) : (
-                  <NoDataMessage message="No conversion trend data available." />
-                )}
-              </Card>
-
-
-            </SimpleGrid>
-          </Box>
+                />
+              </div>
+              {dashboardData.topPerformingOffers.length > 0 && (
+                <Box mt={8} style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <Group gap={8} style={{ flexWrap: 'wrap' }}>
+                    {dashboardData.topPerformingOffers.slice(0, 8).map((offer, idx) => (
+                      <Group key={offer.offerName} gap={4} align="center">
+                        <Box w={12} h={12} style={{ borderRadius: 4, background: getColorForSegment(offer.offerName, idx, chartColors), border: '1.5px solid rgba(255,255,255,0.1)' }} />
+                        <Text size="xs" fw={600} style={{ color: 'rgba(255,255,255,0.9)', letterSpacing: 0.2 }}>
+                          {offer.offerName}
+                        </Text>
+                        <Badge color="gray" variant="light" size="xs" radius="sm" style={{ fontWeight: 500, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)' }}>
+                          {formatNumber(offer.conversions)}
+                        </Badge>
+                      </Group>
+                    ))}
+                  </Group>
+                </Box>
+              )}
+            </NeoCard>
+          </SimpleGrid>
         </>
       )}
-    </div>
+    </Box>
   );
 };
 
