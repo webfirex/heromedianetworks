@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 // DELETE /api/admin/links/delete
 export async function DELETE(req: NextRequest) {
@@ -11,24 +11,34 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
-    let linksToDelete = [];
+
+    let linksToDelete: string[] = [];
     if (link_id) {
       linksToDelete = [link_id];
     } else {
       // Find all links for this offer and publisher
-      const linksRes = await pool.query(
-        'SELECT id FROM links WHERE offer_id = $1 AND publisher_id = $2',
-        [offer_id, publisher_id]
-      );
-      linksToDelete = linksRes.rows.map((row: { id: string }) => row.id);
+      const links = await prisma.link.findMany({
+        where: {
+          offer_id: parseInt(offer_id, 10),
+          publisher_id: publisher_id,
+        },
+        select: { id: true },
+      });
+      linksToDelete = links.map((link) => link.id);
     }
+
+    // Delete links (cascades will handle clicks and conversions)
     for (const id of linksToDelete) {
-      await pool.query('DELETE FROM clicks WHERE link_id = $1', [id]);
-      await pool.query('DELETE FROM conversions WHERE link_id = $1', [id]);
-      await pool.query('DELETE FROM links WHERE id = $1', [id]);
+      await prisma.link.delete({
+        where: { id },
+      });
     }
+
     return NextResponse.json({ message: 'Link(s) deleted successfully' });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.code === 'P2025') {
+      return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+    }
     console.error('DELETE /api/admin/links/delete error:', err);
     return NextResponse.json({ error: 'Failed to delete link(s)' }, { status: 500 });
   }

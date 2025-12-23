@@ -1,6 +1,6 @@
 // app/api/smartlink/create/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function POST(req: NextRequest) {
   // Accept both camelCase and snake_case keys
@@ -15,42 +15,53 @@ export async function POST(req: NextRequest) {
 
   try {
     // Check if a smartlink already exists for this publisher-offer pair
-    const existing = await pool.query(
-      `SELECT id, created_at FROM smartlinks WHERE offer_id = $1 AND publisher_id = $2 LIMIT 1`,
-      [offerId, publisherId]
-    );
-    let smartlinkId;
-    let createdAt;
-    if (existing.rows.length > 0) {
-      smartlinkId = existing.rows[0].id;
-      createdAt = existing.rows[0].created_at;
+    const existing = await prisma.smartlink.findUnique({
+      where: {
+        offer_id_publisher_id: {
+          offer_id: parseInt(offerId, 10),
+          publisher_id: publisherId,
+        },
+      },
+      select: {
+        id: true,
+        created_at: true,
+      },
+    });
+
+    let smartlink;
+    if (existing) {
+      smartlink = existing;
     } else {
       // Create a new smartlink
-      const { rows } = await pool.query(
-        `INSERT INTO smartlinks (offer_id, publisher_id) VALUES ($1, $2) RETURNING id, created_at`,
-        [offerId, publisherId]
-      );
-      smartlinkId = rows[0].id;
-      createdAt = rows[0].created_at;
+      smartlink = await prisma.smartlink.create({
+        data: {
+          offer_id: parseInt(offerId, 10),
+          publisher_id: publisherId,
+        },
+        select: {
+          id: true,
+          created_at: true,
+        },
+      });
     }
 
     // Get offer name for frontend display
-    const offerRes = await pool.query('SELECT name FROM offers WHERE id = $1', [offerId]);
-    const offerName = offerRes.rows[0]?.name || '';
+    const offer = await prisma.offer.findUnique({
+      where: { id: parseInt(offerId, 10) },
+      select: { name: true },
+    });
+    const offerName = offer?.name || '';
 
     // Build the smartlink URL using pub_id and offer_id for compatibility
     const protocol = req.headers.get('x-forwarded-proto') || 'https';
     const host = req.headers.get('host') || 'localhost';
     const smartlinkUrl = `${protocol}://${host}/api/postback?pub_id=${publisherId}&offer_id=${offerId}`;
 
-    // Always use the current time for created_at if just created, otherwise use DB value
-    const createdAtIso = createdAt ? new Date(createdAt).toISOString() : new Date().toISOString();
-
     return NextResponse.json({
-      id: smartlinkId,
-      offer_id: offerId,
+      id: smartlink.id,
+      offer_id: parseInt(offerId, 10),
       offer_name: offerName,
-      created_at: createdAtIso,
+      created_at: smartlink.created_at.toISOString(),
       smartlink_url: smartlinkUrl,
     });
   } catch (error) {

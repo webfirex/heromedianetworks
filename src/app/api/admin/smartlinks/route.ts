@@ -1,75 +1,63 @@
 // app/api/admin/smartlinks/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search') || '';
-  const status = searchParams.get('status');
+  const status = searchParams.get('status') as 'pending' | 'active' | 'terminated' | null;
   const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = 10;
   const offset = (page - 1) * limit;
 
   try {
-    const values: unknown[] = [];
-
-    let query = `
-      SELECT 
-        s.id,
-        s.created_at,
-        s.status,
-        o.name AS offer_name,
-        o.offer_url,
-        p.name AS publisher_name
-      FROM smartlinks s
-      JOIN offers o ON s.offer_id = o.id
-      JOIN publishers p ON s.publisher_id = p.id
-      WHERE 1=1
-    `;
+    const where: any = {};
 
     if (status && ['pending', 'active', 'terminated'].includes(status)) {
-      query += ` AND s.status = $${values.length + 1}`;
-      values.push(status);
+      where.status = status;
     }
 
     if (search) {
-      query += ` AND (
-        LOWER(o.name) ILIKE $${values.length + 1} OR
-        LOWER(o.offer_url) ILIKE $${values.length + 1} OR
-        LOWER(p.name) ILIKE $${values.length + 1}
-      )`;
-      values.push(`%${search.toLowerCase()}%`);
+      where.OR = [
+        { offer: { name: { contains: search, mode: 'insensitive' } } },
+        { offer: { offer_url: { contains: search, mode: 'insensitive' } } },
+        { publisher: { name: { contains: search, mode: 'insensitive' } } },
+      ];
     }
 
-    query += ` ORDER BY s.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    const [smartlinks, total] = await Promise.all([
+      prisma.smartlink.findMany({
+        where,
+        include: {
+          offer: {
+            select: {
+              name: true,
+              offer_url: true,
+            },
+          },
+          publisher: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: { created_at: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.smartlink.count({ where }),
+    ]);
 
-    const { rows } = await pool.query(query, values);
-
-    // Count total filtered items
-    const countQuery = `
-      SELECT COUNT(*) FROM smartlinks s
-      JOIN offers o ON s.offer_id = o.id
-      JOIN publishers p ON s.publisher_id = p.id
-      WHERE 1=1
-      ${status ? `AND s.status = '${status}'` : ''}
-      ${search ? `AND (
-        LOWER(o.name) ILIKE '%${search.toLowerCase()}%' OR
-        LOWER(o.offer_url) ILIKE '%${search.toLowerCase()}%' OR
-        LOWER(p.name) ILIKE '%${search.toLowerCase()}%'
-      )` : ''}
-    `;
-    const countResult = await pool.query(countQuery);
-    const total = parseInt(countResult.rows[0].count, 10);
     const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
-      data: rows.map(r => ({
-        id: r.id,
-        name: r.offer_name,
-        url: r.offer_url,
-        creationDate: r.created_at,
-        createdBy: r.publisher_name,
-        status: r.status,
+      data: smartlinks.map((s) => ({
+        id: s.id,
+        name: s.offer.name,
+        url: s.offer.offer_url,
+        creationDate: s.created_at,
+        createdBy: s.publisher.name,
+        status: s.status,
       })),
       totalPages,
       totalFilteredItems: total,

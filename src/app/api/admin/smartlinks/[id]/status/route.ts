@@ -1,6 +1,6 @@
 // app/api/admin/smartlinks/[id]/status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const {id} = await params;
@@ -12,17 +12,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   try {
-    const result = await pool.query(
-      `UPDATE smartlinks SET status = $1 WHERE id = $2 RETURNING id`,
-      [status, id]
-    );
-
-    if (result.rowCount === 0) {
-      return NextResponse.json({ error: 'Smartlink not found' }, { status: 404 });
-    }
+    await prisma.smartlink.update({
+      where: { id },
+      data: { status: status as 'active' | 'terminated' },
+    });
 
     return NextResponse.json({ success: true, message: `Smartlink ${status} successfully` });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.code === 'P2025') {
+      return NextResponse.json({ error: 'Smartlink not found' }, { status: 404 });
+    }
     console.error(err);
     return NextResponse.json({ error: 'Failed to update smartlink status' }, { status: 500 });
   }

@@ -115,7 +115,17 @@ export default function CouponsPage() {
 
   if (loading) {
     return (
-      <Card shadow="md" radius="md" withBorder>
+      <Card
+        shadow=""
+        radius="26px"
+        withBorder={false}
+        style={{
+          background: 'rgba(128, 128, 128, 0.1)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
         <Skeleton height={32} width="40%" mb="md" />
         {[...Array(4)].map((_, i) => (
           <Skeleton key={i} height={40} width="100%" mb="sm" />
@@ -129,14 +139,32 @@ export default function CouponsPage() {
   const showPagination = coupons.length >= itemsPerPage || page > 1;
 
   return (
-    <Card shadow="md" radius="md" withBorder>
+    <Card
+      shadow=""
+      radius="26px"
+      withBorder={false}
+      style={{
+        background: 'rgba(128, 128, 128, 0.1)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.1)',
+        backdropFilter: 'blur(20px)',
+      }}
+    >
       <Flex gap="md" mb="md" direction={isMobile ? 'column' : 'row'}>
         <TextInput
-          leftSection={<IconSearch size={16} />}
+          leftSection={<IconSearch size={16} style={{ color: 'rgba(255,255,255,0.6)' }} />}
           placeholder="Search by code or offer..."
           value={search}
           onChange={(e) => setSearch(e.target.value)} // Only update search state
           style={{ flexGrow: 1, minWidth: '250px' }}
+          styles={{
+            input: {
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#E6EAF0',
+              '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+            }
+          }}
         />
         <Select
           placeholder="Filter status"
@@ -152,6 +180,29 @@ export default function CouponsPage() {
             { label: 'Active', value: 'active' },
             { label: 'Expired', value: 'expired' }
           ]}
+          styles={{
+            input: {
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#E6EAF0',
+              '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+            },
+            dropdown: {
+              backgroundColor: '#0B0F16',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px'
+            },
+            option: {
+              color: '#E6EAF0',
+              '&[data-selected]': {
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                color: '#3B82F6'
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.05)'
+              }
+            }
+          }}
         />
       </Flex>
 

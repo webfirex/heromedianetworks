@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
@@ -28,19 +28,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Insert into offers table
-    const offerResult = await pool.query(
-      `INSERT INTO offers 
-        (name, payout, currency, geo, description, offer_url, status)
-       VALUES 
-        ($1, $2, $3, $4, $5, $6, 'active') 
-       RETURNING *`,
-      [name, payout, currency, geo, description, offer_url]
-    );
-
-    const offer = offerResult.rows[0];
-    const offerId = offer.id;
-
     // Determine publishers to link
     let publishersToLink: string[] = [];
 
@@ -54,12 +41,12 @@ export async function POST(req: NextRequest) {
       }
 
       // Confirm publisher IDs exist
-      const { rows: validPublishers } = await pool.query(
-        `SELECT id FROM publishers WHERE id = ANY($1::uuid[])`,
-        [validUUIDs]
-      );
+      const validPublishers = await prisma.publisher.findMany({
+        where: { id: { in: validUUIDs } },
+        select: { id: true },
+      });
 
-      const existingIds = validPublishers.map((row) => row.id);
+      const existingIds = validPublishers.map((p) => p.id);
       const invalidIds = validUUIDs.filter((id) => !existingIds.includes(id));
 
       if (invalidIds.length > 0) {
@@ -69,18 +56,29 @@ export async function POST(req: NextRequest) {
       publishersToLink = existingIds;
     } else {
       // Global offer: link all publishers
-      const allPublishers = await pool.query(`SELECT id FROM publishers`);
-      publishersToLink = allPublishers.rows.map((row) => row.id);
+      const allPublishers = await prisma.publisher.findMany({
+        select: { id: true },
+      });
+      publishersToLink = allPublishers.map((p) => p.id);
     }
 
-    // Insert mappings into offer_publishers table
-    if (publishersToLink.length > 0) {
-      const valuePlaceholders = publishersToLink.map((_, i) => `($1, $${i + 2})`).join(', ');
-      await pool.query(
-        `INSERT INTO offer_publishers (offer_id, publisher_id) VALUES ${valuePlaceholders}`,
-        [offerId, ...publishersToLink]
-      );
-    }
+    // Create offer with publisher links in a transaction
+    const offer = await prisma.offer.create({
+      data: {
+        name,
+        payout,
+        currency,
+        geo,
+        description,
+        offer_url,
+        status: 'active',
+        offerPublishers: {
+          create: publishersToLink.map((publisherId) => ({
+            publisher_id: publisherId,
+          })),
+        },
+      },
+    });
 
     return NextResponse.json(
       { message: 'Offer created successfully', offer },

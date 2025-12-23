@@ -1,91 +1,109 @@
-import pool from "@/lib/db";
+import prisma from "@/lib/db-prisma";
 import { NextResponse } from "next/server";
+
+// Helper function to format date as day name
+function getDayName(date: Date): string {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return days[date.getDay()];
+}
 
 export async function GET() {
   try {
-    const client = await pool.connect();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Fetch total clicks across all publishers
-    const totalClicksResult = await client.query(
-      `SELECT COUNT(*) AS total_clicks FROM clicks;`
-    );
-    const totalClicks = parseInt(totalClicksResult.rows[0].total_clicks, 10) || 0;
+    // Fetch all stats in parallel
+    const [
+      totalClicks,
+      totalConversions,
+      totalEarningsData,
+      totalApprovalsData,
+      weeklyClicksData,
+      trafficSourcesData,
+      topPerformingOffersData,
+    ] = await Promise.all([
+      prisma.click.count(),
+      prisma.conversion.count(),
+      prisma.conversion.aggregate({
+        _sum: { amount: true },
+      }),
+      prisma.conversion.count({
+        where: { status: 'approved' },
+      }),
+      prisma.click.findMany({
+        where: {
+          timestamp: { gte: sevenDaysAgo },
+        },
+        select: { timestamp: true },
+      }),
+      prisma.click.findMany({
+        include: {
+          offer: {
+            select: { name: true },
+          },
+        },
+      }),
+      prisma.offer.findMany({
+        include: {
+          clicks: true,
+          conversions: true,
+        },
+        take: 10,
+      }),
+    ]);
 
-    // Fetch total conversions across all publishers
-    const totalConversionsResult = await client.query(
-      `SELECT COUNT(*) AS total_conversions FROM conversions;`
-    );
-    const totalConversions = parseInt(totalConversionsResult.rows[0].total_conversions, 10) || 0;
+    // Process weekly clicks by day
+    const weeklyClicksMap = new Map<string, number>();
+    weeklyClicksData.forEach((click) => {
+      const day = getDayName(click.timestamp);
+      weeklyClicksMap.set(day, (weeklyClicksMap.get(day) || 0) + 1);
+    });
+    const weeklyClicks = Array.from(weeklyClicksMap.entries())
+      .map(([day, clicks]) => ({ day, clicks }))
+      .sort((a, b) => {
+        const dayOrder = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+      });
 
-    // Fetch total earnings across all publishers
-    const totalEarningsResult = await client.query(
-      `SELECT COALESCE(SUM(amount), 0) AS total_earnings FROM conversions;`
-    );
-    const totalEarnings = parseFloat(totalEarningsResult.rows[0].total_earnings) || 0;
+    // Process traffic sources (group by offer name)
+    const trafficSourcesMap = new Map<string, number>();
+    trafficSourcesData.forEach((click) => {
+      const name = click.offer.name;
+      trafficSourcesMap.set(name, (trafficSourcesMap.get(name) || 0) + 1);
+    });
+    const trafficSources = Array.from(trafficSourcesMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
-    // Fetch total approvals across all publishers
-    const totalApprovalsResult = await client.query(
-      `SELECT COUNT(*) AS total_approvals FROM conversions WHERE status = 'approved';`
-    );
-    const totalApprovals = parseInt(totalApprovalsResult.rows[0].total_approvals, 10) || 0;
-
-    // Fetch weekly clicks grouped by day across all publishers
-    const weeklyClicksResult = await client.query(
-      `SELECT
-        TO_CHAR(timestamp AT TIME ZONE 'UTC', 'Dy') AS day,
-        COUNT(*) AS clicks
-      FROM clicks
-      WHERE timestamp >= NOW() - INTERVAL '7 days'
-      GROUP BY TO_CHAR(timestamp AT TIME ZONE 'UTC', 'Dy'), EXTRACT(DOW FROM timestamp AT TIME ZONE 'UTC')
-      ORDER BY EXTRACT(DOW FROM timestamp AT TIME ZONE 'UTC');`
-    );
-    const weeklyClicks = weeklyClicksResult.rows.map(row => ({
-      day: row.day,
-      clicks: parseInt(row.clicks, 10),
-    }));
-
-    // Fetch traffic sources across all publishers
-    const trafficSourcesResult = await client.query(
-      `SELECT
-        source,
-        COUNT(*) AS value
-      FROM clicks
-      GROUP BY source
-      ORDER BY value DESC;`
-    );
-    const trafficSources = trafficSourcesResult.rows.map(row => ({
-      name: row.source,
-      value: parseInt(row.value, 10),
-    }));
-
-    // Fetch top performing offers across all publishers
-    const topPerformingOffersResult = await client.query(
-      `SELECT
-        o.name AS offer_name,
-        COUNT(c.id) AS clicks,
-        COUNT(cv.id) AS conversions,
-        COALESCE(SUM(cv.amount), 0) AS revenue
-      FROM offers o
-      LEFT JOIN clicks c ON o.id = c.offer_id
-      LEFT JOIN conversions cv ON o.id = cv.offer_id
-      GROUP BY o.name
-      ORDER BY revenue DESC, conversions DESC, clicks DESC
-      LIMIT 10;`
-    );
-    const topPerformingOffers = topPerformingOffersResult.rows.map(row => ({
-      offerName: row.offer_name,
-      clicks: parseInt(row.clicks, 10),
-      conversions: parseInt(row.conversions, 10),
-      revenue: parseFloat(row.revenue).toFixed(2),
-    }));
-
-    client.release();
+    // Process top performing offers
+    const topPerformingOffers = topPerformingOffersData
+      .map((offer) => {
+        const clicks = offer.clicks.length;
+        const conversions = offer.conversions.length;
+        const revenue = offer.conversions.reduce((sum, c) => sum + Number(c.amount), 0);
+        return {
+          offerName: offer.name,
+          clicks,
+          conversions,
+          revenue: revenue.toFixed(2),
+        };
+      })
+      .sort((a, b) => {
+        if (Number(b.revenue) !== Number(a.revenue)) {
+          return Number(b.revenue) - Number(a.revenue);
+        }
+        if (b.conversions !== a.conversions) {
+          return b.conversions - a.conversions;
+        }
+        return b.clicks - a.clicks;
+      })
+      .slice(0, 10);
 
     return NextResponse.json({
       totalClicks,
       totalConversions,
-      totalEarnings,
-      totalApprovals,
+      totalEarnings: Number(totalEarningsData._sum.amount || 0),
+      totalApprovals: totalApprovalsData,
       weeklyClicks,
       trafficSources,
       topPerformingOffers,

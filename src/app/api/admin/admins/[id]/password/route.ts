@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import pool from '@/lib/db';
+import prisma from '@/lib/db-prisma';
 import bcrypt from 'bcryptjs';
 
 const secret = process.env.NEXTAUTH_SECRET;
@@ -22,18 +22,16 @@ export async function PATCH(req: NextRequest, {params}: { params: Promise<{ id: 
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    const result = await pool.query(
-      `UPDATE admins SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id`,
-      [hashedPassword, id]
-    );
-
-    if (result.rowCount === 0) {
-      return new NextResponse(JSON.stringify({ error: 'Administrator not found.' }), { status: 404 });
-    }
+    await prisma.admin.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
 
     return NextResponse.json({ message: 'Password updated successfully.' });
-
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return new NextResponse(JSON.stringify({ error: 'Administrator not found.' }), { status: 404 });
+    }
     console.error('Error updating administrator password:', error);
     return new NextResponse(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
   }

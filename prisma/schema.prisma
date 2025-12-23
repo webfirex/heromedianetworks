@@ -1,0 +1,317 @@
+// Prisma Schema for TapNova Networks
+// Affiliate Marketing Platform Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// USER MODELS
+// ============================================
+
+model Admin {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  email         String   @unique
+  password      String   // bcrypt hashed password
+  role          AdminRole @default(admin)
+  status        AdminStatus @default(active)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@map("admins")
+  @@index([email])
+  @@index([status])
+}
+
+model Publisher {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  email         String   @unique
+  password      String   // bcrypt hashed password
+  company       String?
+  phone         String?
+  status        PublisherStatus @default(pending)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  links         Link[]
+  clicks        Click[]
+  conversions   Conversion[]
+  smartlinks    Smartlink[]
+  offerPublishers OfferPublisher[]
+  couponPublishers CouponPublisher[]
+
+  @@map("publishers")
+  @@index([email])
+  @@index([status])
+}
+
+// ============================================
+// OFFER & CAMPAIGN MODELS
+// ============================================
+
+model Offer {
+  id            Int      @id @default(autoincrement())
+  name          String
+  offer_url     String   @db.Text
+  description   String?  @db.Text
+  geo           String?
+  payout        Decimal  @db.Decimal(10, 2)
+  currency      String?  @default("USD")
+  status        OfferStatus @default(pending)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  links         Link[]
+  clicks        Click[]
+  conversions   Conversion[]
+  smartlinks    Smartlink[]
+  coupons       Coupon[]
+  offerPublishers OfferPublisher[]
+
+  @@map("offers")
+  @@index([status])
+  @@index([created_at])
+}
+
+// ============================================
+// TRACKING MODELS
+// ============================================
+
+model Link {
+  id            String   @id @default(uuid()) @db.Uuid
+  offer_id      Int
+  publisher_id  String   @db.Uuid
+  name          String?
+  created_at    DateTime @default(now())
+
+  // Relations
+  offer         Offer    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  publisher     Publisher @relation(fields: [publisher_id], references: [id], onDelete: Cascade)
+  clicks        Click[]
+  conversions   Conversion[]
+
+  @@map("links")
+  @@index([offer_id])
+  @@index([publisher_id])
+  @@unique([offer_id, publisher_id, name])
+}
+
+model Click {
+  id            Int      @id @default(autoincrement())
+  click_id      String   @unique @db.Uuid
+  pub_id        String   @db.Uuid
+  offer_id      Int
+  link_id       String?  @db.Uuid
+  ip_address    String?
+  user_agent    String?  @db.Text
+  device        String?
+  browser       String?
+  geo           String?
+  timestamp     DateTime @default(now())
+
+  // Relations
+  publisher     Publisher @relation(fields: [pub_id], references: [id], onDelete: Cascade)
+  offer         Offer    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  link          Link?    @relation(fields: [link_id], references: [id], onDelete: SetNull)
+  conversions   Conversion[] @relation("ClickConversions")
+
+  @@map("clicks")
+  @@index([click_id])
+  @@index([pub_id])
+  @@index([offer_id])
+  @@index([link_id])
+  @@index([timestamp])
+  @@index([pub_id, timestamp]) // Composite index for dashboard date filtering
+  @@index([pub_id, offer_id])  // Composite index for grouping by offer
+}
+
+model Conversion {
+  id                Int       @id @default(autoincrement())
+  click_id          String?   @db.Uuid
+  offer_id          Int
+  link_id           String?   @db.Uuid
+  pub_id            String    @db.Uuid
+  amount            Decimal   @db.Decimal(10, 2)
+  commission_amount Decimal   @db.Decimal(10, 2)
+  status            ConversionStatus?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  // Relations
+  click             Click?    @relation("ClickConversions", fields: [click_id], references: [click_id], onDelete: SetNull)
+  offer             Offer     @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  link              Link?     @relation(fields: [link_id], references: [id], onDelete: SetNull)
+  publisher         Publisher @relation(fields: [pub_id], references: [id], onDelete: Cascade)
+
+  @@map("conversions")
+  @@index([click_id])
+  @@index([offer_id])
+  @@index([link_id])
+  @@index([pub_id])
+  @@index([status])
+  @@index([created_at])
+  @@index([pub_id, created_at]) // Composite index for dashboard date filtering
+  @@index([pub_id, offer_id])   // Composite index for grouping by offer
+}
+
+model Smartlink {
+  id            String   @id @default(uuid()) @db.Uuid
+  offer_id      Int
+  publisher_id  String   @db.Uuid
+  status        SmartlinkStatus @default(pending)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  offer         Offer    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  publisher     Publisher @relation(fields: [publisher_id], references: [id], onDelete: Cascade)
+
+  @@map("smartlinks")
+  @@unique([offer_id, publisher_id])
+  @@index([status])
+  @@index([publisher_id])
+}
+
+// ============================================
+// COUPON MODELS
+// ============================================
+
+model Coupon {
+  id            Int      @id @default(autoincrement())
+  code          String   @unique
+  description   String?  @db.Text
+  discount      Decimal  @db.Decimal(10, 2)
+  discount_type DiscountType
+  offer_id      Int
+  valid_from    DateTime?
+  valid_to      DateTime
+  status        CouponStatus @default(active)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  offer         Offer    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  couponPublishers CouponPublisher[]
+
+  @@map("coupons")
+  @@index([code])
+  @@index([offer_id])
+  @@index([status])
+  @@index([valid_to])
+}
+
+// ============================================
+// JUNCTION TABLES
+// ============================================
+
+model OfferPublisher {
+  offer_id          Int
+  publisher_id      String   @db.Uuid
+  commission_percent Decimal? @db.Decimal(5, 2)
+  commission_cut    Decimal? @db.Decimal(10, 2)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  offer             Offer    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  publisher         Publisher @relation(fields: [publisher_id], references: [id], onDelete: Cascade)
+
+  @@id([offer_id, publisher_id])
+  @@map("offer_publishers")
+  @@index([publisher_id])
+  @@index([offer_id])
+}
+
+model CouponPublisher {
+  coupon_id     Int
+  publisher_id  String   @db.Uuid
+  created_at    DateTime @default(now())
+
+  // Relations
+  coupon        Coupon   @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
+  publisher     Publisher @relation(fields: [publisher_id], references: [id], onDelete: Cascade)
+
+  @@id([coupon_id, publisher_id])
+  @@map("coupon_publishers")
+  @@index([publisher_id])
+  @@index([coupon_id])
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum AdminRole {
+  admin
+  super_admin
+  editor
+
+  @@map("admin_role")
+}
+
+enum AdminStatus {
+  active
+  inactive
+  suspended
+
+  @@map("admin_status")
+}
+
+enum PublisherStatus {
+  pending
+  approved
+  rejected
+
+  @@map("publisher_status")
+}
+
+enum OfferStatus {
+  active
+  inactive
+  pending
+  terminated
+
+  @@map("offer_status")
+}
+
+enum SmartlinkStatus {
+  pending
+  active
+  terminated
+
+  @@map("smartlink_status")
+}
+
+enum CouponStatus {
+  active
+  inactive
+  expired
+
+  @@map("coupon_status")
+}
+
+enum DiscountType {
+  percentage
+  fixed
+
+  @@map("discount_type")
+}
+
+enum ConversionStatus {
+  pending
+  approved
+  rejected
+
+  @@map("conversion_status")
+}
+

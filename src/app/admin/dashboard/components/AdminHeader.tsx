@@ -19,16 +19,20 @@ import {
 } from '@tabler/icons-react';
 import { showNotification } from '@/app/utils/notificationManager'; 
 import AddLinkForm from './AddLinkForm';
+import { DatePickerInput } from '@mantine/dates';
+import { Calendar } from 'lucide-react';
 
 interface AdminHeaderProps {
   activeTab: string;
   isMobile?: boolean;
   setSidebarOpen: (open: boolean) => void;
+  dateRange?: [Date | null, Date | null];
+  onDateRangeChange?: (range: [Date | null, Date | null]) => void;
 }
 
-const primary = '#4169E1';
+const primary = 'var(--primary)';
 
-const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, isMobile, setSidebarOpen }) => {
+const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, isMobile, setSidebarOpen, dateRange, onDateRangeChange }) => {
   const [settingsOpened, setSettingsOpened] = useState(false);
   const [addLinkOpen, setAddLinkOpen] = useState(false); // State for Add Link modal
   const { data: session, status } = useSession();
@@ -143,8 +147,13 @@ useEffect(() => {
         align="center"
         px="xl"
         py="md"
-        bg="white"
-        style={{ borderBottom: '1px solid #e0e0e0', position: 'sticky', top: 0, zIndex: 10 }}
+        style={{ 
+          backgroundColor: 'var(--card)',
+          borderBottom: '1px solid var(--border)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10
+        }}
       >
         {isMobile ? (
           <Box style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -156,18 +165,64 @@ useEffect(() => {
               style={{ cursor: 'pointer', flexShrink: 0 }}
               onClick={() => setSidebarOpen(true)}
             />
-            <Title order={4} style={{ color: primary, fontSize: '16px', whiteSpace: 'nowrap' }}>
+            <Title order={4} style={{ color: 'var(--foreground)', fontSize: '16px', whiteSpace: 'nowrap' }}>
               {getTabTitle(activeTab)}
             </Title>
           </Box>
         ) : (
-          <Title order={3} style={{ color: primary, marginRight: 24, minWidth: 180 }}>
+          <Title order={3} style={{ color: 'var(--foreground)', marginRight: 24, minWidth: 180 }}>
             {getTabTitle(activeTab)}
           </Title>
         )}
 
         {/* Action buttons and avatar: desktop vs mobile */}
         <Group gap={0}>
+          {/* Date Picker - only show on dashboard tab */}
+          {activeTab === 'dashboard' && dateRange && onDateRangeChange && (
+            <Box
+              style={{
+                marginRight: isMobile ? 8 : 12,
+                display: isMobile ? 'none' : 'block',
+              }}
+            >
+              <DatePickerInput
+                type="range"
+                placeholder="Pick dates range"
+                value={dateRange}
+                onChange={(value) => onDateRangeChange(value as unknown as [Date | null, Date | null])}
+                clearable={false}
+                numberOfColumns={2}
+                popoverProps={{
+                  styles: {
+                    dropdown: {
+                      backgroundColor: 'var(--card)',
+                      border: '1px solid var(--border)',
+                      boxShadow: '0 20px 45px rgba(0,0,0,0.6)',
+                      padding: 8,
+                    },
+                  },
+                }}
+                styles={{
+                  input: {
+                    background: 'transparent',
+                    border: '1px solid var(--border)',
+                    color: 'var(--foreground)',
+                    height: '34px',
+                    paddingLeft: '28px',
+                    paddingRight: '12px',
+                    width: '200px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                  },
+                  placeholder: {
+                    color: 'var(--muted-foreground)',
+                  },
+                }}
+                leftSection={<Calendar size={16} style={{ color: 'var(--muted-foreground)', marginLeft: 4 }} />}
+                leftSectionPointerEvents="none"
+              />
+            </Box>
+          )}
           {isMobile ? (
             <>
               {activeTab === 'postback' && (
@@ -175,7 +230,21 @@ useEffect(() => {
                   variant="light"
                   color="indigo"
                   size="sm"
-                  style={{ marginRight: 8, padding: 6, minWidth: 0 }}
+                  style={{ 
+                    marginRight: 8, 
+                    padding: 6, 
+                    minWidth: 0,
+                    backgroundColor: 'transparent',
+                    color: 'var(--foreground)',
+                  }}
+                  styles={{
+                    root: {
+                      '&:hover': {
+                        backgroundColor: 'var(--muted) !important',
+                        color: 'var(--foreground) !important',
+                      },
+                    },
+                  }}
                   onClick={() => setAddLinkOpen(true)}
                 >
                   <IconPlus size={20} />
@@ -185,7 +254,21 @@ useEffect(() => {
                 variant="light"
                 color="blue"
                 size="sm"
-                style={{ padding: 6, minWidth: 0, marginRight: 8 }}
+                style={{ 
+                  padding: 6, 
+                  minWidth: 0, 
+                  marginRight: 8,
+                  backgroundColor: 'transparent',
+                  color: 'var(--foreground)',
+                }}
+                styles={{
+                  root: {
+                    '&:hover': {
+                      backgroundColor: 'var(--muted) !important',
+                      color: 'var(--foreground) !important',
+                    },
+                  },
+                }}
                 onClick={() => window.open('/admin/dashboard/documentation', '_blank')}
               >
                 <IconFileText size={20} />
@@ -198,7 +281,19 @@ useEffect(() => {
                   variant="light"
                   color="indigo"
                   size="sm"
-                  style={{ marginRight: 12 }}
+                  style={{ 
+                    marginRight: 12,
+                    backgroundColor: 'transparent',
+                    color: 'var(--foreground)',
+                  }}
+                  styles={{
+                    root: {
+                      '&:hover': {
+                        backgroundColor: 'var(--muted) !important',
+                        color: 'var(--foreground) !important',
+                      },
+                    },
+                  }}
                   onClick={() => setAddLinkOpen(true)}
                 >
                   + Add Link
@@ -208,7 +303,19 @@ useEffect(() => {
                 variant="light"
                 color="blue"
                 size="sm"
-                style={{ marginRight: 12 }}
+                style={{ 
+                  marginRight: 12,
+                  backgroundColor: 'transparent',
+                  color: 'var(--foreground)',
+                }}
+                styles={{
+                  root: {
+                    '&:hover': {
+                      backgroundColor: 'var(--muted) !important',
+                      color: 'var(--foreground) !important',
+                    },
+                  },
+                }}
                 onClick={() => window.open('/admin/dashboard/documentation', '_blank')}
               >
                 Documentation
@@ -238,31 +345,40 @@ useEffect(() => {
       <Drawer
         opened={settingsOpened}
         onClose={() => setSettingsOpened(false)}
-        title={<Text size="lg" fw={600}>User Settings</Text>}
+        title={<Text size="lg" fw={600} c="var(--foreground)">User Settings</Text>}
         position="right"
         size="lg"
         padding="xl"
+        styles={{
+          content: {
+            backgroundColor: 'var(--card)',
+          },
+          header: {
+            backgroundColor: 'var(--card)',
+            borderBottom: '1px solid var(--border)',
+          },
+        }}
       >
 
         <Box>
-          <Title order={4} mb="md">Account Info</Title>
+          <Title order={4} mb="md" c="var(--foreground)">Account Info</Title>
           {status === 'loading' ? (
             <Loader size="sm" />
           ) : (
             <>
               <Group gap="xs" mb="xs">
-                <IconMail size={18} color="gray" />
-                <Text>Email: {session?.user?.email || 'N/A'}</Text>
+                <IconMail size={18} color="var(--muted-foreground)" />
+                <Text c="var(--foreground)">Email: {session?.user?.email || 'N/A'}</Text>
               </Group>
               <Group gap="xs" mb="md">
-                <IconCalendarTime size={18} color="gray" />
-                <Text>Registered: {registeredAt || 'Loading...'}</Text>
+                <IconCalendarTime size={18} color="var(--muted-foreground)" />
+                <Text c="var(--foreground)">Registered: {registeredAt || 'Loading...'}</Text>
               </Group>
 
             </>
           )}
 
-          <Title order={5} mb="xs">Reset Password</Title>
+          <Title order={5} mb="xs" c="var(--foreground)">Reset Password</Title>
           <PasswordInput
             placeholder="Your new password"
             leftSection={<IconLock size={16} />}
@@ -289,7 +405,24 @@ useEffect(() => {
       </Drawer>
 
       {/* Add Link Modal */}
-      <Modal opened={addLinkOpen} onClose={() => setAddLinkOpen(false)} title="Add Postback Link" centered>
+      <Modal 
+        opened={addLinkOpen} 
+        onClose={() => setAddLinkOpen(false)} 
+        title="Add Postback Link" 
+        centered
+        styles={{
+          content: {
+            backgroundColor: 'var(--card)',
+          },
+          header: {
+            backgroundColor: 'var(--card)',
+            borderBottom: '1px solid var(--border)',
+          },
+          title: {
+            color: 'var(--foreground)',
+          },
+        }}
+      >
         <AddLinkForm />
       </Modal>
     </>

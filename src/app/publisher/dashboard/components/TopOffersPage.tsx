@@ -86,20 +86,31 @@ export default function MyOffersPage() {
   const totalPages = Math.ceil(totalOffersCount / itemsPerPage);
 
   if (loading) return (
-    <Card shadow="md" radius="md" withBorder>
-      <Skeleton height={40} width="100%" mb="sm" />
-      <Skeleton height={40} width="100%" mb="sm" />
-      <Skeleton height={40} width="100%" mb="sm" />
-      <Skeleton height={40} width="100%" mb="sm" />
-      <Skeleton height={40} width="100%" mb="sm" />
-      <Skeleton height={40} width="100%" mb="sm" />
-    </Card>
+    <div
+      className="backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-6"
+      style={{
+        background: 'rgba(255, 255, 255, 0.03)',
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+      }}
+    >
+      <div className="space-y-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-12 w-full bg-white/5 rounded-lg border border-white/5 animate-pulse" />
+        ))}
+      </div>
+    </div>
   );
   if (error) return null;
 
   return (
-    <Card shadow="md" radius="md" withBorder>
-      <Group mb="md">
+    <div
+      className="backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-6"
+      style={{
+        background: 'rgba(255, 255, 255, 0.03)',
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+      }}
+    >
+      <Group mb="md" wrap="wrap" gap="sm">
         <TextInput
           placeholder="Search offers by name or description"
           value={search}
@@ -107,8 +118,16 @@ export default function MyOffersPage() {
             setSearch(event.currentTarget.value);
             setPage(1);
           }}
-          leftSection={<IconSearch size={16} />}
+          leftSection={<IconSearch size={16} style={{ color: 'rgba(255,255,255,0.6)' }} />}
           style={{ flexGrow: 1 }}
+          styles={{
+            input: {
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#E6EAF0',
+              '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+            }
+          }}
         />
         <Select
           placeholder="Filter by status"
@@ -124,6 +143,29 @@ export default function MyOffersPage() {
           }}
           clearable
           style={{ width: isMobile ? '100%' : 'auto' }}
+          styles={{
+            input: {
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#E6EAF0',
+              '&::placeholder': { color: 'rgba(255,255,255,0.5)' }
+            },
+            dropdown: {
+              backgroundColor: '#0B0F16',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px'
+            },
+            option: {
+              color: '#E6EAF0',
+              '&[data-selected]': {
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                color: '#3B82F6'
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.05)'
+              }
+            }
+          }}
         />
       </Group>
 
@@ -131,21 +173,35 @@ export default function MyOffersPage() {
         <Text>No offers found with the current filters.</Text>
       ) : (
         <>
-          <Table striped highlightOnHover withTableBorder>
+          <Table
+            verticalSpacing="sm"
+            horizontalSpacing="md"
+            style={{
+              backgroundColor: 'transparent',
+              color: '#E6EAF0'
+            }}
+          >
             <Table.Thead>
-              <Table.Tr>
-                <Table.Th><Group gap={4} style={{ fontSize: 14 }}><IconGift size={18} /> Name</Group></Table.Th>
-                <Table.Th><Group gap={4} style={{ fontSize: 14 }}><IconCoin size={18} /> Payout</Group></Table.Th>
-                {!isMobile && <Table.Th><Group gap={4} style={{ fontSize: 14 }}><IconMapPin size={18} /> Geo</Group></Table.Th>}
-                {!isMobile && <Table.Th><Group gap={4} style={{ fontSize: 14 }}><IconInfoCircle size={18} /> Description</Group></Table.Th>}
-                {!isMobile && <Table.Th><Group gap={4} style={{ fontSize: 14 }}><IconClick size={18} /> Clicks</Group></Table.Th>}
-                {!isMobile && <Table.Th><Group gap={4} style={{ fontSize: 14 }}><IconInfoCircle size={18} /> Status</Group></Table.Th>}
-                <Table.Th><Group gap={4} style={{ fontSize: 15 }}><IconExternalLink size={18} /> Link</Group></Table.Th>
+              <Table.Tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4} style={{ fontSize: 14 }}><IconGift size={18} /> Name</Group></Table.Th>
+                <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4} style={{ fontSize: 14 }}><IconCoin size={18} /> Payout</Group></Table.Th>
+                {!isMobile && <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4} style={{ fontSize: 14 }}><IconMapPin size={18} /> Geo</Group></Table.Th>}
+                {!isMobile && <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4} style={{ fontSize: 14 }}><IconInfoCircle size={18} /> Description</Group></Table.Th>}
+                {!isMobile && <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4} style={{ fontSize: 14 }}><IconClick size={18} /> Clicks</Group></Table.Th>}
+                {!isMobile && <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4} style={{ fontSize: 14 }}><IconInfoCircle size={18} /> Status</Group></Table.Th>}
+                <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4} style={{ fontSize: 15 }}><IconExternalLink size={18} /> Link</Group></Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {offers.map((offer) => (
-                <Table.Tr key={offer.id}>
+                <Table.Tr
+                  key={offer.id}
+                  style={{
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    transition: 'background-color 0.2s',
+                  }}
+                  className="hover:bg-white/5"
+                >
                   <Table.Td>
                     <Text fw={500} style={{ fontSize: 14 }}>{offer.name}</Text>
                   </Table.Td>
@@ -187,7 +243,7 @@ export default function MyOffersPage() {
                               onClick={copy}
                               style={{
                                 cursor: 'pointer',
-                                color: '#4169E1',
+                                color: 'var(--primary)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 4,
@@ -213,11 +269,19 @@ export default function MyOffersPage() {
                 total={totalPages}
                 value={activePage}
                 onChange={setPage}
+                color="gray"
+                styles={{
+                  control: {
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#E6EAF0'
+                  }
+                }}
               />
             </Flex>
           )}
         </>
       )}
-    </Card>
+    </div>
   );
 }
