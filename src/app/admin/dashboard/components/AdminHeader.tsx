@@ -206,19 +206,23 @@ useEffect(() => {
                   input: {
                     background: 'transparent',
                     border: '1px solid var(--border)',
+                    borderRadius: '9999px',
                     color: 'var(--foreground)',
                     height: '34px',
-                    paddingLeft: '28px',
+                    paddingLeft: '32px',
                     paddingRight: '12px',
-                    width: '200px',
+                    width: '260px',
                     fontSize: '13px',
                     fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   },
                   placeholder: {
                     color: 'var(--muted-foreground)',
                   },
                 }}
-                leftSection={<Calendar size={16} style={{ color: 'var(--muted-foreground)', marginLeft: 4 }} />}
+                leftSection={<Calendar size={16} style={{ color: 'var(--muted-foreground)', marginLeft: 6 }} />}
                 leftSectionPointerEvents="none"
               />
             </Box>
