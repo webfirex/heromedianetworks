@@ -8,7 +8,7 @@ import '@mantine/core/styles.css';
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <MantineProvider>
+      <MantineProvider forceColorScheme="dark">
         <Notifications position="top-right" zIndex={1000} />
         {children}
       </MantineProvider>
