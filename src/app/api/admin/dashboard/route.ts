@@ -19,6 +19,34 @@ export async function GET() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    // 1. Fetch all OfferPublisher configs for commission cut calculations
+    const offerPublishers = await prisma.offerPublisher.findMany({
+      select: { offer_id: true, commission_cut: true },
+    });
+    const cutMap = new Map(offerPublishers.map(op => [op.offer_id, Number(op.commission_cut || 0)]));
+
+    // Helper to calculate shaved counts based on cuts
+    const calculateShavedCount = (offerCounts: { offer_id: number; _count: { id: number } }[]) => {
+      let rawTotal = 0;
+      let shavedTotal = 0;
+      let weightedCutSum = 0;
+
+      for (const item of offerCounts) {
+        const count = item._count.id;
+        const cut = cutMap.get(item.offer_id) || 0;
+
+        rawTotal += count;
+        shavedTotal += count * (1 - cut / 100);
+        weightedCutSum += count * cut;
+      }
+
+      return {
+        raw: rawTotal,
+        shaved: Math.round(shavedTotal),
+        avgCut: rawTotal > 0 ? weightedCutSum / rawTotal : 0
+      };
+    };
+
     // Fetch all stats in parallel
     const [
       totalClicks,
@@ -30,6 +58,7 @@ export async function GET() {
       topPerformingOffersData,
       clicksOverTimeData,
       conversionTrendData,
+      globalConversionsData,
     ] = await Promise.all([
       prisma.click.count(),
       prisma.conversion.count(),
@@ -73,6 +102,12 @@ export async function GET() {
           created_at: { gte: thirtyDaysAgo },
         },
         select: { created_at: true },
+      }),
+
+      // Global conversions grouped by offer for commission cut calculations
+      prisma.conversion.groupBy({
+        by: ['offer_id'],
+        _count: { id: true },
       }),
     ]);
 
@@ -143,9 +178,12 @@ export async function GET() {
       .map(([period, conversions]) => ({ period, conversions }))
       .sort((a, b) => a.period.localeCompare(b.period));
 
+    // Calculate commission cut analytics
+    const globalStats = calculateShavedCount(globalConversionsData);
+
     return NextResponse.json({
       totalClicks,
-      totalConversions,
+      totalConversions: globalStats.shaved, // Use shaved count for display
       totalEarnings: Number(totalEarningsData._sum.amount || 0),
       totalApprovals,
       weeklyClicks,
@@ -153,6 +191,9 @@ export async function GET() {
       clicksOverTime,
       conversionTrend,
       topPerformingOffers,
+      rawTotalConversions: globalStats.raw,
+      conversionsDifference: globalStats.raw - globalStats.shaved,
+      avgCommissionCut: globalStats.avgCut,
     });
   } catch (error) {
     console.error("Error fetching admin dashboard data:", error);

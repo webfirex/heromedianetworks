@@ -35,11 +35,22 @@ export async function GET(req: NextRequest) {
   const geo = 'unknown'; // IP geolocation logic later
 
   try {
+    // Check if this click comes from an active smartlink
+    const smartlink = await prisma.smartlink.findFirst({
+      where: {
+        publisher_id: publisherId!,
+        offer_id: parseInt(offer_id, 10),
+        status: 'active',
+      },
+      select: { id: true },
+    });
+
     await prisma.click.create({
       data: {
         click_id,
         pub_id: publisherId!,
         offer_id: parseInt(offer_id, 10),
+        smartlink_id: smartlink?.id,
         ip_address: ip,
         user_agent: userAgent,
         device,

@@ -113,6 +113,7 @@ model Click {
   pub_id        String   @db.Uuid
   offer_id      Int
   link_id       String?  @db.Uuid
+  smartlink_id  String?  @db.Uuid
   ip_address    String?
   user_agent    String?  @db.Text
   device        String?
@@ -124,6 +125,7 @@ model Click {
   publisher     Publisher @relation(fields: [pub_id], references: [id], onDelete: Cascade)
   offer         Offer    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
   link          Link?    @relation(fields: [link_id], references: [id], onDelete: SetNull)
+  smartlink     Smartlink? @relation(fields: [smartlink_id], references: [id], onDelete: SetNull)
   conversions   Conversion[] @relation("ClickConversions")
 
   @@map("clicks")
@@ -131,6 +133,7 @@ model Click {
   @@index([pub_id])
   @@index([offer_id])
   @@index([link_id])
+  @@index([smartlink_id])
   @@index([timestamp])
   @@index([pub_id, timestamp]) // Composite index for dashboard date filtering
   @@index([pub_id, offer_id])  // Composite index for grouping by offer
@@ -141,6 +144,7 @@ model Conversion {
   click_id          String?   @db.Uuid
   offer_id          Int
   link_id           String?   @db.Uuid
+  smartlink_id      String?   @db.Uuid
   pub_id            String    @db.Uuid
   amount            Decimal   @db.Decimal(10, 2)
   commission_amount Decimal   @db.Decimal(10, 2)
@@ -152,12 +156,14 @@ model Conversion {
   click             Click?    @relation("ClickConversions", fields: [click_id], references: [click_id], onDelete: SetNull)
   offer             Offer     @relation(fields: [offer_id], references: [id], onDelete: Cascade)
   link              Link?     @relation(fields: [link_id], references: [id], onDelete: SetNull)
+  smartlink         Smartlink? @relation(fields: [smartlink_id], references: [id], onDelete: SetNull)
   publisher         Publisher @relation(fields: [pub_id], references: [id], onDelete: Cascade)
 
   @@map("conversions")
   @@index([click_id])
   @@index([offer_id])
   @@index([link_id])
+  @@index([smartlink_id])
   @@index([pub_id])
   @@index([status])
   @@index([created_at])
@@ -176,6 +182,8 @@ model Smartlink {
   // Relations
   offer         Offer    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
   publisher     Publisher @relation(fields: [publisher_id], references: [id], onDelete: Cascade)
+  clicks        Click[]
+  conversions   Conversion[]
 
   @@map("smartlinks")
   @@unique([offer_id, publisher_id])

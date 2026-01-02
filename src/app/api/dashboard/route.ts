@@ -46,25 +46,6 @@ export async function GET(req: NextRequest) {
     const firstDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-    // Filters
-    const clicksDateFilter = startDate && endDate
-      ? {
-        timestamp: {
-          gte: new Date(startDate),
-          lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000),
-        },
-      }
-      : {};
-
-    const conversionsDateFilter = startDate && endDate
-      ? {
-        created_at: {
-          gte: new Date(startDate),
-          lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000),
-        },
-      }
-      : {};
-
     // 1. Fetch all OfferPublisher configs for this publisher once (small dataset)
     const offerPublishers = await prisma.offerPublisher.findMany({
       where: { publisher_id },
@@ -93,6 +74,25 @@ export async function GET(req: NextRequest) {
         avgCut: rawTotal > 0 ? weightedCutSum / rawTotal : 0
       };
     };
+
+    // Filters
+    const clicksDateFilter = startDate && endDate
+      ? {
+        timestamp: {
+          gte: new Date(startDate),
+          lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000),
+        },
+      }
+      : {};
+
+    const conversionsDateFilter = startDate && endDate
+      ? {
+        created_at: {
+          gte: new Date(startDate),
+          lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000),
+        },
+      }
+      : {};
 
     // Determine chart date range: Use user input if provided, otherwise default to current month
     const queryStartDate = startDate ? new Date(startDate) : firstDayOfMonth;

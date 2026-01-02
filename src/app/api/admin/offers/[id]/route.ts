@@ -64,6 +64,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
   }
 
+  // Handle commission updates if publisher_id is provided with commission fields
+  const hasCommissionFields = (body.commission_percent !== undefined || body.commission_cut !== undefined) && body.publisher_id;
+
   try {
     await prisma.$transaction(async (tx) => {
       // Update offer if there are fields to update
@@ -79,6 +82,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         await tx.offer.update({
           where: { id: parseInt(id, 10) },
           data: updateData,
+        });
+      }
+
+      // Update commission if commission fields are provided
+      if (hasCommissionFields) {
+        const commissionUpdateData: any = {};
+        if (body.commission_percent !== undefined) {
+          commissionUpdateData.commission_percent = body.commission_percent;
+        }
+        if (body.commission_cut !== undefined) {
+          commissionUpdateData.commission_cut = body.commission_cut;
+        }
+
+        await tx.offerPublisher.update({
+          where: {
+            offer_id_publisher_id: {
+              offer_id: parseInt(id, 10),
+              publisher_id: body.publisher_id,
+            },
+          },
+          data: commissionUpdateData,
         });
       }
 
@@ -125,7 +149,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
     });
 
-    return NextResponse.json({ message: 'Offer updated successfully' });
+    // Return success message indicating what was updated
+    const updateTypes = [];
+    if (Object.keys(updateData).length > 0) updateTypes.push('offer details');
+    if (hasCommissionFields) updateTypes.push('commission');
+
+    return NextResponse.json({
+      message: `${updateTypes.join(' and ')} updated successfully`,
+      updated: true
+    });
   } catch (err: any) {
     if (err.message === 'Offer not found' || err.code === 'P2025') {
       return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
