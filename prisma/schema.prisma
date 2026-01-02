@@ -70,6 +70,7 @@ model Offer {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
+
   // Relations
   links         Link[]
   clicks        Click[]
