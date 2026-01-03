@@ -71,6 +71,9 @@ interface DashboardData {
   conversionTrend: ConversionTrend[];
   conversionsByOffer: ConversionByOffer[];
   topPerformingOffers: TopPerformingOffer[];
+  rawTotalConversions?: number;
+  conversionsDifference?: number;
+  avgCommissionCut?: number;
 }
 
 
@@ -358,6 +361,20 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
                 Overall platform conversion rate
               </div>
             </NeoCard>
+
+            {/* Commission Cut Analytics */}
+            <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+              <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-orange-500/10 text-orange-400 group-hover:bg-orange-500/20 transition-colors">
+                <IconCurrencyDollar size={18} className="md:w-5 md:h-5" />
+              </div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Avg Commission Cut</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">
+                {safeValue(dashboardData.avgCommissionCut).toFixed(1)}%
+              </div>
+              <div className="text-[9px] md:text-[10px] text-zinc-500">
+                Revenue retained by platform
+              </div>
+            </NeoCard>
           </SimpleGrid>
 
           <Grid gutter="md" mb="md">
@@ -407,6 +424,10 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
                         <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Earnings</div>
                           <div className="text-base md:text-lg font-bold text-blue-400">₹{safeValue(dashboardData.totalEarnings).toLocaleString()}</div>
+                        </div>
+                        <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
+                          <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Cuts Applied</div>
+                          <div className="text-base md:text-lg font-bold text-orange-400">{safeValue(dashboardData.conversionsDifference).toLocaleString()}</div>
                         </div>
                       </div>
 
