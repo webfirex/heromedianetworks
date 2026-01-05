@@ -389,15 +389,28 @@ const AllOffers: React.FC = () => {
 
     setLoading(true);
     try {
+      // Prepare commission data - convert empty strings to undefined/null
+      const commissionData: { publisher_id: string; commission_percent?: number | null; commission_cut?: number | null } = {
+        publisher_id: advertiserForm.publisher_id!,
+      };
+
+      // Convert commission_percent: empty string -> null, otherwise parse to number
+      if (advertiserForm.commission_percent !== undefined && advertiserForm.commission_percent !== null) {
+        const percentValue = advertiserForm.commission_percent.toString().trim();
+        commissionData.commission_percent = percentValue === '' ? null : parseFloat(percentValue);
+      }
+
+      // Convert commission_cut: empty string -> null, otherwise parse to number
+      if (advertiserForm.commission_cut !== undefined && advertiserForm.commission_cut !== null) {
+        const cutValue = advertiserForm.commission_cut.toString().trim();
+        commissionData.commission_cut = cutValue === '' ? null : parseFloat(cutValue);
+      }
+
       // The backend PATCH method updates offer_publishers table based on offer_id and publisher_id
       const response = await fetch(`/api/admin/offers/${editingOffer.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          publisher_id: advertiserForm.publisher_id, // This is crucial for the backend to know which commission to update
-          commission_percent: advertiserForm.commission_percent,
-          commission_cut: advertiserForm.commission_cut,
-        }),
+        body: JSON.stringify(commissionData),
       });
 
       if (!response.ok) {

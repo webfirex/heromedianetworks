@@ -4,26 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const pub_id = searchParams.get('pub_id');
-  const offer_id = searchParams.get('offer_id');
-
-  // If pub_id is an email, fetch the publisher's id from the database
-  let publisherId = pub_id;
-  if (pub_id && pub_id.includes('@')) {
-    const publisher = await prisma.publisher.findUnique({
-      where: { email: pub_id },
-      select: { id: true },
-    });
-    if (publisher) {
-      publisherId = publisher.id;
-    } else {
-      return NextResponse.json({ error: 'Publisher not found' }, { status: 404 });
-    }
-  }
-
-  if (!pub_id || !offer_id) {
-    return NextResponse.json({ error: 'Missing pub_id or offer_id' }, { status: 400 });
-  }
+  const link_id = searchParams.get('link_id');
+  const pub_id = searchParams.get('pub_id'); // Fallback for smartlinks
+  const offer_id = searchParams.get('offer_id'); // Fallback for smartlinks
 
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
   const userAgent = req.headers.get('user-agent') || '';
@@ -35,11 +18,70 @@ export async function GET(req: NextRequest) {
   const geo = 'unknown'; // IP geolocation logic later
 
   try {
+    let publisherId: string;
+    let offerId: number;
+    let linkId: string | null = null;
+    let offerUrl: string;
+
+    if (link_id) {
+      // Primary method: Use link_id
+      const link = await prisma.link.findUnique({
+        where: { id: link_id },
+        select: {
+          offer_id: true,
+          publisher_id: true,
+          offer: {
+            select: {
+              offer_url: true,
+            },
+          },
+        },
+      });
+
+      if (!link) {
+        return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+      }
+
+      publisherId = link.publisher_id;
+      offerId = link.offer_id;
+      linkId = link_id;
+      offerUrl = link.offer.offer_url;
+    } else if (pub_id && offer_id) {
+      // Fallback method: Use pub_id and offer_id (for smartlinks backward compatibility)
+      let resolvedPublisherId = pub_id;
+      if (pub_id.includes('@')) {
+        const publisher = await prisma.publisher.findUnique({
+          where: { email: pub_id },
+          select: { id: true },
+        });
+        if (publisher) {
+          resolvedPublisherId = publisher.id;
+        } else {
+          return NextResponse.json({ error: 'Publisher not found' }, { status: 404 });
+        }
+      }
+
+      const offer = await prisma.offer.findUnique({
+        where: { id: parseInt(offer_id, 10) },
+        select: { offer_url: true },
+      });
+
+      if (!offer) {
+        return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
+      }
+
+      publisherId = resolvedPublisherId;
+      offerId = parseInt(offer_id, 10);
+      offerUrl = offer.offer_url;
+    } else {
+      return NextResponse.json({ error: 'Missing link_id or (pub_id and offer_id) parameters' }, { status: 400 });
+    }
+
     // Check if this click comes from an active smartlink
     const smartlink = await prisma.smartlink.findFirst({
       where: {
-        publisher_id: publisherId!,
-        offer_id: parseInt(offer_id, 10),
+        publisher_id: publisherId,
+        offer_id: offerId,
         status: 'active',
       },
       select: { id: true },
@@ -48,8 +90,9 @@ export async function GET(req: NextRequest) {
     await prisma.click.create({
       data: {
         click_id,
-        pub_id: publisherId!,
-        offer_id: parseInt(offer_id, 10),
+        pub_id: publisherId,
+        offer_id: offerId,
+        ...(linkId && { link_id: linkId }),
         smartlink_id: smartlink?.id,
         ip_address: ip,
         user_agent: userAgent,
@@ -59,18 +102,8 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Fetch offer URL
-    const offer = await prisma.offer.findUnique({
-      where: { id: parseInt(offer_id, 10) },
-      select: { offer_url: true },
-    });
-
-    if (!offer) {
-      return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
-    }
-
     // Redirect with click_id as query param
-    const redirectUrl = new URL(offer.offer_url);
+    const redirectUrl = new URL(offerUrl);
     redirectUrl.searchParams.set('click_id', click_id);
 
     return NextResponse.redirect(redirectUrl.toString());

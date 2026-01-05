@@ -297,7 +297,7 @@ const Postback: React.FC = () => {
 
                   <Group gap="sm" justify="space-between" align="center" wrap="wrap">
                     <CopyButton
-                      value={`${window.location.origin}/api/track/click?offer_id=${offer.offerId}&pub_id=${offer.publisherId}&link_id=${offer.linkId}`}
+                      value={`${window.location.origin}/api/postback?link_id=${offer.linkId}`}
                       timeout={2000}
                     >
                       {({ copied, copy }) => (

@@ -20,7 +20,9 @@ export async function POST(req: NextRequest) {
       geo,
       description,
       offer_url,
-      publisher_ids // can be [] or undefined
+      publisher_ids, // can be [] or undefined
+      default_commission_percent, // optional
+      default_commission_cut // optional
     } = body;
 
     // Basic validation
@@ -62,6 +64,15 @@ export async function POST(req: NextRequest) {
       publishersToLink = allPublishers.map((p) => p.id);
     }
 
+    // Prepare commission data if provided
+    const commissionData: { commission_percent?: number; commission_cut?: number } = {};
+    if (default_commission_percent !== undefined && default_commission_percent !== null && default_commission_percent !== '') {
+      commissionData.commission_percent = Number(default_commission_percent);
+    }
+    if (default_commission_cut !== undefined && default_commission_cut !== null && default_commission_cut !== '') {
+      commissionData.commission_cut = Number(default_commission_cut);
+    }
+
     // Create offer with publisher links in a transaction
     const offer = await prisma.offer.create({
       data: {
@@ -75,6 +86,7 @@ export async function POST(req: NextRequest) {
         offerPublishers: {
           create: publishersToLink.map((publisherId) => ({
             publisher_id: publisherId,
+            ...commissionData,
           })),
         },
       },

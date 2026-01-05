@@ -15,6 +15,8 @@ interface OfferFormData {
   description: string;
   offer_url: string;
   publisher_ids: string[]; // new
+  default_commission_percent?: number | '';
+  default_commission_cut?: number | '';
 }
 
 interface Publisher {
@@ -38,6 +40,8 @@ const AddOfferForm: React.FC = () => {
     description: '',
     offer_url: '',
     publisher_ids: [],
+    default_commission_percent: '',
+    default_commission_cut: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -114,6 +118,8 @@ const AddOfferForm: React.FC = () => {
         description: '',
         offer_url: '',
         publisher_ids: [],
+        default_commission_percent: '',
+        default_commission_cut: '',
       });
 
     } catch (error) {
@@ -191,6 +197,27 @@ const AddOfferForm: React.FC = () => {
               searchable
               rightSection={fetchingPublishers && <Loader size="xs" />}
             />
+            <Group grow>
+              <NumberInput
+                label="Default Commission % (Optional)"
+                placeholder="e.g., 10.00"
+                value={form.default_commission_percent}
+                onChange={(value) => setForm({ ...form, default_commission_percent: value as number })}
+                min={0}
+                max={100}
+                decimalScale={2}
+                description="Percentage of payout (e.g., 10 = 10% of payout)"
+              />
+              <NumberInput
+                label="Default Commission Cut (Optional)"
+                placeholder="e.g., 5.00"
+                value={form.default_commission_cut}
+                onChange={(value) => setForm({ ...form, default_commission_cut: value as number })}
+                min={0}
+                decimalScale={2}
+                description="Fixed amount per conversion (e.g., 5.00 = $5 per conversion)"
+              />
+            </Group>
             <Button type="submit" loading={loading} size="md" radius="md" mt="md">
               Create Offer
             </Button>

@@ -132,7 +132,7 @@
 | `/api/offers/display` | GET | Display offers (public) |
 | `/api/offers/top` | GET | Top offers |
 | `/api/offers/coupons` | GET | Get coupons for offer |
-| `/api/postback` | POST | Postback handler |
+| `/api/postback` | GET | Postback handler (requires link_id parameter) |
 | `/api/webhook/conversion` | POST | Webhook for conversions |
 
 ---
@@ -274,15 +274,11 @@ curl -X GET http://localhost:3000/api/offers/coupons?offer_id=1
 
 #### 7.1 Postback Handler
 ```bash
-curl -X POST http://localhost:3000/api/postback \
-  -H "Content-Type: application/json" \
-  -d '{
-    "click_id": "uuid-here",
-    "offer_id": 1,
-    "pub_id": "publisher-uuid",
-    "amount": 10.50,
-    "status": "approved"
-  }'
+# Postback tracking uses GET request with link_id parameter
+curl "http://localhost:3000/api/postback?link_id=<link-uuid>"
+
+# For backward compatibility with smartlinks, you can also use:
+curl "http://localhost:3000/api/postback?pub_id=<publisher-uuid>&offer_id=<offer-id>"
 ```
 
 #### 7.2 Webhook Conversion

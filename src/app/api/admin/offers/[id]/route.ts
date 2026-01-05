@@ -88,11 +88,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       // Update commission if commission fields are provided
       if (hasCommissionFields) {
         const commissionUpdateData: any = {};
-        if (body.commission_percent !== undefined) {
+        if (body.commission_percent !== undefined && body.commission_percent !== null) {
           commissionUpdateData.commission_percent = body.commission_percent;
+        } else if (body.commission_percent === null) {
+          commissionUpdateData.commission_percent = null;
         }
-        if (body.commission_cut !== undefined) {
+        if (body.commission_cut !== undefined && body.commission_cut !== null) {
           commissionUpdateData.commission_cut = body.commission_cut;
+        } else if (body.commission_cut === null) {
+          commissionUpdateData.commission_cut = null;
         }
 
         await tx.offerPublisher.update({
