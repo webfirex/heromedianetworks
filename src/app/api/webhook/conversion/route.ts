@@ -2,50 +2,68 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db-prisma';
 
 // POST /api/webhook/conversion
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const { link_id, smartlink_id } = await req.json();
+    // const { link_id, smartlink_id } = await req.json();
 
-    if (!link_id && !smartlink_id) {
+    const { searchParams } = new URL(req.url)
+    const link_id = searchParams.get('linkid');
+
+    if (!link_id) {
       return NextResponse.json({ error: 'link_id or smartlink_id is required.' }, { status: 400 });
     }
 
     let offer_id: number;
     let publisher_id: string;
 
-    if (link_id) {
-      // 1a. Get offer_id and publisher_id from links table
-      const link = await prisma.link.findUnique({
-        where: { id: link_id },
-        select: {
-          offer_id: true,
-          publisher_id: true,
-        },
-      });
+    const link = await prisma.link.findUnique({
+      where: { id: link_id },
+      select: {
+        offer_id: true,
+        publisher_id: true,
+      },
+    });
 
-      if (!link) {
-        return NextResponse.json({ error: 'Invalid link_id.' }, { status: 404 });
-      }
-
-      offer_id = link.offer_id;
-      publisher_id = link.publisher_id;
-    } else {
-      // 1b. Get offer_id and publisher_id from smartlinks table
-      const smartlink = await prisma.smartlink.findUnique({
-        where: { id: smartlink_id },
-        select: {
-          offer_id: true,
-          publisher_id: true,
-        },
-      });
-
-      if (!smartlink) {
-        return NextResponse.json({ error: 'Invalid smartlink_id.' }, { status: 404 });
-      }
-
-      offer_id = smartlink.offer_id;
-      publisher_id = smartlink.publisher_id;
+    if (!link) {
+      return NextResponse.json({ error: 'Invalid link_id.' }, { status: 404 });
     }
+
+    offer_id = link.offer_id;
+    publisher_id = link.publisher_id;
+
+    // if (link_id) {
+    //   // 1a. Get offer_id and publisher_id from links table
+    //   const link = await prisma.link.findUnique({
+    //     where: { id: link_id },
+    //     select: {
+    //       offer_id: true,
+    //       publisher_id: true,
+    //     },
+    //   });
+
+    //   if (!link) {
+    //     return NextResponse.json({ error: 'Invalid link_id.' }, { status: 404 });
+    //   }
+
+    //   offer_id = link.offer_id;
+    //   publisher_id = link.publisher_id;
+    // } else {
+    //   // 1b. Get offer_id and publisher_id from smartlinks table
+    //   const smartlink = await prisma.smartlink.findUnique({
+    //     where: { id: smartlink_id },
+    //     select: {
+    //       offer_id: true,
+    //       publisher_id: true,
+    //     },
+    //   });
+
+    //   if (!smartlink) {
+    //     return NextResponse.json({ error: 'Invalid smartlink_id.' }, { status: 404 });
+    //   }
+
+    //   offer_id = smartlink.offer_id;
+    //   publisher_id = smartlink.publisher_id;
+    // }
 
     // 2. Get payout from offers table
     const offer = await prisma.offer.findUnique({
@@ -87,7 +105,7 @@ export async function POST(req: NextRequest) {
       data: {
         offer_id: offer_id,
         ...(link_id && { link_id }),
-        ...(smartlink_id && { smartlink_id }),
+        // ...(smartlink_id && { smartlink_id }),
         pub_id: publisher_id,
         amount: payout,
         commission_amount: commissionAmount,
