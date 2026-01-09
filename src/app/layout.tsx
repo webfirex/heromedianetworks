@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="w-full max-w-[100vw] overflow-x-hidden dark">
+    <html lang="en" className="w-full max-w-[100vw] overflow-x-hidden" suppressHydrationWarning>
       <body className={`w-full max-w-[100vw] overflow-x-hidden ${inter.className} dark`}>
         <Providers>
           {children}
