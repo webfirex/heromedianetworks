@@ -6,10 +6,10 @@ export async function GET(req: NextRequest) {
   try {
 
     const { searchParams } = new URL(req.url)
-    const link_id = searchParams.get('linkid');
-    const smartlink_id = searchParams.get('smartlinkid');
+    const link_id = searchParams.get('linkid') || undefined;
+    const smartlink_id = searchParams.get('smartlinkid') || undefined;
 
-    if (!link_id || !smartlink_id) {
+    if (!link_id && !smartlink_id) {
       return NextResponse.json({ error: 'link_id or smartlink_id is required.' }, { status: 400 });
     }
 
