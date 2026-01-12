@@ -17,6 +17,7 @@ interface ClickSummary {
   userAgent: string;
   publisherId: string | null;
   publisherName: string | null;
+  converted: boolean;
 }
 
 interface OfferWithClicks {
@@ -109,6 +110,12 @@ export async function GET(request: NextRequest) {
         new Map(link.clicks.map((c) => [c.click_id, c])).values()
       );
 
+      const convertedClickIds = new Set(
+        link.conversions
+          .map((c) => c.click_id)
+          .filter((id): id is string => Boolean(id))
+      )
+
       return {
         offerId: link.offer.id.toString(),
         offerName: link.offer.name,
@@ -124,6 +131,7 @@ export async function GET(request: NextRequest) {
           userAgent: click.user_agent || '',
           publisherId: click.publisher?.id || null,
           publisherName: click.publisher?.name || null,
+          converted: convertedClickIds.has(click.click_id)
         })),
       };
     });

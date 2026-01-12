@@ -255,7 +255,7 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-sky-600/20 via-teal-600/20 to-emerald-600/20 rounded-2xl blur-2xl" />
                 <img 
-                  src="/heromediabg.png" 
+                  src="/tapnovabg.png" 
                   alt="Dashboard Preview" 
                   className='relative rounded-xl max-w-[950px] w-full border border-border shadow-2xl' 
                 />

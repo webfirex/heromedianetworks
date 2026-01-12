@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db-prisma';
 
 // POST /api/webhook/conversion
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const { link_id, smartlink_id } = await req.json();
+
+    const { searchParams } = new URL(req.url)
+    const link_id = searchParams.get('linkid') || undefined;
+    const smartlink_id = searchParams.get('smartlinkid') || undefined;
 
     if (!link_id && !smartlink_id) {
       return NextResponse.json({ error: 'link_id or smartlink_id is required.' }, { status: 400 });

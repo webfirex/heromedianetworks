@@ -22,6 +22,7 @@ interface ClickSummary {
   userAgent: string;
   publisherId: string | null;
   publisherName: string | null;
+  converted: boolean;
 }
 
 interface OfferWithClicks {
@@ -404,7 +405,7 @@ const Postback: React.FC = () => {
         opened={detailModalOpened}
         onClose={closeDetailModal}
         title={`Clicks for Offer: ${selectedOffer?.offerName || ''} (Link: ${selectedOffer?.linkName || ''})`}
-        size="lg"
+        size="xl"
         centered
         scrollAreaComponent={ScrollArea.Autosize}
       >
@@ -425,6 +426,7 @@ const Postback: React.FC = () => {
                     <Table.Thead>
                       <Table.Tr>
                         <Table.Th>Click ID</Table.Th>
+                        <Table.Th>Converted</Table.Th>
                         <Table.Th>IP Address</Table.Th>
                         <Table.Th>User Agent</Table.Th>
                       </Table.Tr>
@@ -433,6 +435,7 @@ const Postback: React.FC = () => {
                       {clicks.map((click, index) => (
                         <Table.Tr key={click.clickId || index}>
                           <Table.Td>{click.clickId}</Table.Td>
+                          <Table.Td className='text-center'>{click.converted ? "✔" : "✖"}</Table.Td>
                           <Table.Td>{click.ipAddress}</Table.Td>
                           <Table.Td>{click.userAgent}</Table.Td>
                         </Table.Tr>

@@ -5,8 +5,6 @@ import prisma from '@/lib/db-prisma';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const click_id = searchParams.get('click_id');
-  const offer_id = searchParams.get('offer_id');
-  const amount = parseFloat(searchParams.get('amount') || '0');
 
   if (!click_id) {
     return NextResponse.json({ error: 'Missing click_id' }, { status: 400 });
@@ -17,17 +15,14 @@ export async function GET(req: NextRequest) {
     const click = await prisma.click.findUnique({
       where: { click_id },
     });
+    console.log("CLICKS",click)
     
     if (!click) {
       return NextResponse.json({ error: 'Click not found' }, { status: 404 });
     }
     
-    // Optionally, validate offer_id matches
-    if (offer_id && click.offer_id !== parseInt(offer_id, 10)) {
-      return NextResponse.json({ error: 'Offer mismatch for click' }, { status: 400 });
-    }
 
-    const offerIdNum = offer_id ? parseInt(offer_id, 10) : click.offer_id;
+    const offerIdNum = click.offer_id;
 
     // Check if this click_id already has a conversion for this offer
     const existing = await prisma.conversion.findFirst({
@@ -41,13 +36,49 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Conversion already recorded for this click and offer' }, { status: 409 });
     }
 
+    const offer = await prisma.offer.findUnique({
+      where: { id: offerIdNum},
+      select: { payout: true },
+    });
+
+    if (!offer) {
+      return NextResponse.json({ error: 'Invalid offer_id.' }, { status: 404 });
+    }
+
+    const payout = Number(offer.payout);
+
+    // Get commission_percent from offer_publishers table
+    const offerPublisher = await prisma.offerPublisher.findUnique({
+      where: {
+        offer_id_publisher_id: {
+          offer_id: offerIdNum,
+          publisher_id: click.pub_id,
+        },
+      },
+      select: { commission_percent: true },
+    });
+
+    if (!offerPublisher || offerPublisher.commission_percent === null) {
+      return NextResponse.json(
+        { error: 'Commission percentage not found for this offer-publisher combination.' },
+        { status: 404 }
+      );
+    }
+
+    const commissionPercent = Number(offerPublisher.commission_percent);
+
+    // Calculate commission_amount
+    const commissionAmount = payout * (commissionPercent / 100);
+
+
     await prisma.conversion.create({
       data: {
         click_id,
         offer_id: offerIdNum,
         pub_id: click.pub_id,
-        amount,
-        commission_amount: amount, // You may want to calculate this based on commission rules
+        link_id: click.link_id,
+        amount: payout,
+        commission_amount: commissionAmount,
       },
     });
 
