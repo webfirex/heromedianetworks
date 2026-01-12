@@ -128,7 +128,7 @@ export default function Documentation() {
             </Text>
             <List spacing="xs" size="sm" type="ordered" pl="md" mt="sm">
               <List.Item>
-                When a desired conversion action is completed on the advertiser&apos;s platform (e.g., a purchase, sign-up, or lead generation), the advertiser&apos;s system sends a POST request webhook to your API endpoint: <Code>/api/webhook/conversion?linkid=YOUR_UNIQUE_LINK_UUID</Code>.
+                When a desired conversion action is completed on the advertiser&apos;s platform (e.g., a purchase, sign-up, or lead generation), the advertiser&apos;s system sends a GET request webhook to your API endpoint: <Code>/api/track/convert?click_id=YOUR_UNIQUE_CLICK_UUID</Code>.
               </List.Item>
               {/* <List.Item>
                 The essential piece of information in the webhook payload is the original <Code>link_id</Code> to identify the originating click.
