@@ -6,6 +6,10 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const click_id = searchParams.get('click_id');
 
+  console.log("CLICK ID",click_id)
+  console.log("SEARCH PARAMS",searchParams)
+  console.log("REQ URL",req.url)
+  
   if (!click_id) {
     return NextResponse.json({ error: 'Missing click_id' }, { status: 400 });
   }
