@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
     // Append link_id to redirect URL instead of click_id
     const redirectUrl = new URL(offer.offer_url);
     redirectUrl.searchParams.set('click_id', click_id);
+    redirectUrl.searchParams.set('link_id', link_id);
 
     return NextResponse.redirect(redirectUrl.toString());
   } catch (err) {
