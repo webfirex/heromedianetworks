@@ -30,8 +30,10 @@ export default function Documentation() {
           Admin Documentation: Conversion Flow
         </Title>
         <Text size="lg" mb="xl" ta="center" c="dimmed">
-          An end-to-end overview of how affiliate conversions are tracked and recorded, from link generation to final reporting.
+          An end-to-end overview of how affiliate clicks and conversions are tracked, adjusted by commission rules,
+          and reported as net (post-cut) metrics in the dashboard.
         </Text>
+
 
         <Divider my="xl" label="The Conversion Journey" labelPosition="center" />
 
@@ -56,8 +58,17 @@ export default function Documentation() {
                 <b>Offer Creation:</b> An administrator defines new offers within the dashboard, specifying details like payout amount and geographical targeting.
               </List.Item>
               <List.Item>
-                <b>Publisher Assignment & Commission:</b> Publishers are assigned to offers. For each unique publisher-offer pairing, specific <Code>commission_percent</Code> (percentage of payout) and <Code>commission_cut</Code> (a fixed amount or a further adjustment) values are configured in the table.
+                <b>Publisher Assignment & Commission:</b> Publishers are assigned to offers with a configurable
+                <Code>commission_cut</Code> (percentage). This cut represents the portion of traffic and conversions
+                that is deducted before metrics are shown to the publisher.
               </List.Item>
+
+              <List.Item>
+                <b>Net Metrics Model:</b> All publisher-facing metrics (clicks, unique clicks, conversions, and conversion rate)
+                are calculated <b>after</b> applying the commission cut. Raw values are retained internally for auditing.
+              </List.Item>
+
+
             </List>
           </List.Item>
 
@@ -100,12 +111,17 @@ export default function Documentation() {
               <Badge color="orange" variant="light" size="lg">Engagement</Badge>
             </Group>
             <Text mt="xs">
-              When a potential customer interacts with an affiliate link, their activity is logged.
+              When a potential customer interacts with an affiliate link, both total clicks and unique clicks
+              are recorded and later adjusted according to commission rules.
             </Text>
+
             <List spacing="xs" size="sm" type="ordered" pl="md" mt="sm">
               <List.Item>
-                Upon a user clicking the unique tracking link, a record is immediately created in the table. This record includes the <Code>link_id</Code>, a timestamp, and relevant user-agent information, crucial for initial analytics.
+                Upon a user clicking the tracking link, a click record is stored with the associated <Code>offer_id</Code>,
+                <Code>publisher_id</Code>, timestamp, and uniqueness flag. Unique clicks are later aggregated per offer
+                and adjusted by the configured commission cut.
               </List.Item>
+
             </List>
           </List.Item>
 
@@ -138,38 +154,6 @@ export default function Documentation() {
           </List.Item>
 
           <Divider my="lg" label={<IconArrowRight size={20} />} labelPosition="center" />
-
-          {/* Step 5: Backend Processing */}
-          {/* <List.Item
-            icon={
-              <ThemeIcon color="blue" size={34} radius="xl">
-                <IconDatabase stroke={1.5} />
-              </ThemeIcon>
-            }
-          >
-            <Group align="center">
-              <Title order={3}>5. Backend Processing & Data Storage</Title>
-              <Badge color="blue" variant="light" size="lg">System Logic</Badge>
-            </Group>
-            <Text mt="xs">
-              Upon receiving the webhook, the backend validates and processes the conversion data.
-            </Text>
-            <List spacing="xs" size="sm" type="ordered" pl="md" mt="sm">
-              <List.Item>
-                The backend API endpoint receives the webhook. It then queries the <Code>links</Code> table using the provided <Code>link_id</Code> to retrieve the corresponding <Code>offer_id</Code> and <Code>publisher_id</Code>.
-              </List.Item>
-              <List.Item>
-                Subsequently, the system fetches the offer&apos;s default payout and the specific commission settings for that publisher-offer pair from the <Code>offer_publishers</Code> table.
-              </List.Item>
-              <List.Item>
-                Finally, a new, comprehensive record representing the conversion is inserted into the <Code>conversions</Code> table, accurately linking it to the offer, publisher, and the initial tracking link.
-              </List.Item>
-            </List>
-          </List.Item>
-
-          <Divider my="lg" label={<IconArrowRight size={20} />} labelPosition="center" /> */}
-
-          {/* Step 6: Reporting */}
           <List.Item
             icon={
               <ThemeIcon color="violet" size={34} radius="xl">
@@ -186,11 +170,27 @@ export default function Documentation() {
             </Text>
             <List spacing="xs" size="sm" type="ordered" pl="md" mt="sm">
               <List.Item>
-                Administrators gain access to real-time insights, allowing them to monitor all recorded conversions, calculate precise commissions, and review total earnings attributed to each offer and publisher.
+                <b>Net Clicks & Unique Clicks:</b> Total clicks and unique clicks are first grouped per offer,
+                then reduced by the commission cut percentage before being shown to publishers.
+                For example, 1,000 unique clicks with a 10% cut are reported as 900 net unique clicks.
               </List.Item>
+
               <List.Item>
-                The flexibility to update commission values per publisher-offer pair ensures that future conversions reflect the most current agreements, providing dynamic control over affiliate payouts.
+                <b>Net Conversions:</b> Conversions are similarly adjusted using the same commission cut logic,
+                ensuring consistency across all performance metrics.
               </List.Item>
+
+              <List.Item>
+                <b>Conversion Rate (CVR):</b> The conversion rate is calculated using
+                <Code>net conversions ÷ net unique clicks</Code>, guaranteeing that all reported ratios
+                accurately reflect post-cut performance.
+              </List.Item>
+
+              <List.Item>
+                <b>Commission Updates:</b> Updating commission cuts only affects future reporting,
+                allowing administrators to dynamically control publisher visibility and payouts without altering historical data.
+              </List.Item>
+
             </List>
           </List.Item>
         </List>

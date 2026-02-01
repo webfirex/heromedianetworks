@@ -13,7 +13,7 @@ const theme = createTheme({
 export default function App() {
   return (
     <MantineProvider theme={theme}>
-      {/* <HomePage/> */}
+      <HomePage/>
     </MantineProvider>
   );
 }
