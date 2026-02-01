@@ -4,29 +4,39 @@ import { Prisma } from '@prisma/client';
 
 interface DashboardData {
   totalClicks: number;
+  uniqueClicks: number;              // ✅ ADD
+  conversionRate: number;            // ✅ ADD
+
   totalConversions: number;
   totalEarning: number;
+
   clicksThisMonth: number;
   clicksPreviousMonth: number;
+
   salesThisMonth: number;
   salesPreviousMonth: number;
+
   commissionThisMonth: number;
   commissionPreviousMonth: number;
+
   weeklyClicks: { day: string; clicks: number }[];
   trafficSources: { name: string; value: number }[];
   clicksOverTime: { period: string; clicks: number }[];
   conversionTrend: { period: string; conversions: number }[];
   commissionsOverTime: { period: string; commission: number }[];
   conversionsByOffer: { name: string; value: number }[];
+
   overviewClicks?: {
     last24h: { period: string; clicks: number }[];
     last7d: { period: string; clicks: number }[];
     last30d: { period: string; clicks: number }[];
   };
+
   rawTotalConversions: number;
   conversionsDifference: number;
   avgCommissionCut: number;
 }
+
 
 export async function GET(req: NextRequest) {
   try {
@@ -52,6 +62,7 @@ export async function GET(req: NextRequest) {
       select: { offer_id: true, commission_cut: true },
     });
     const cutMap = new Map(offerPublishers.map(op => [op.offer_id, Number(op.commission_cut || 0)]));
+    const DEFAULT_COMMISSION_CUT = 0;
 
     // Helper to calculate shaved counts based on cuts
     const calculateShavedCount = (offerCounts: { offer_id: number; _count: { id: number } }[]) => {
@@ -74,6 +85,33 @@ export async function GET(req: NextRequest) {
         avgCut: rawTotal > 0 ? weightedCutSum / rawTotal : 0
       };
     };
+
+    const calculateShavedClicks = (
+      offerClicks: { offer_id: number; unique: number; total: number }[]
+    ) => {
+      let rawUnique = 0;
+      let netUnique = 0;
+      let rawTotal = 0;
+      let netTotal = 0;
+
+      for (const item of offerClicks) {
+        const cut = cutMap.get(item.offer_id) ?? DEFAULT_COMMISSION_CUT;
+
+        rawUnique += item.unique;
+        rawTotal += item.total;
+
+        netUnique += item.unique * (1 - cut / 100);
+        netTotal += item.total * (1 - cut / 100);
+      }
+
+      return {
+        rawUnique: Math.round(rawUnique),
+        netUnique: Math.round(netUnique),
+        rawTotal: Math.round(rawTotal),
+        netTotal: Math.round(netTotal),
+      };
+    };
+
 
     // Filters
     const clicksDateFilter = startDate && endDate
@@ -111,6 +149,7 @@ export async function GET(req: NextRequest) {
       overviewClicksLast24h,
       overviewClicksLast7d,
       overviewClicksLast30d,
+      clicksByOfferResult,
     ] = await Promise.all([
 
       // 1. Combined Click Stats (Total, This Month, Prev Month)
@@ -285,7 +324,29 @@ export async function GET(req: NextRequest) {
         GROUP BY days.bucket
         ORDER BY days.bucket
       `,
+
+      prisma.$queryRaw<Array<{ offer_id: number; unique_clicks: bigint; total_clicks: bigint }>>`
+        SELECT
+          offer_id,
+          COUNT(*) FILTER (WHERE is_unique = true)::bigint AS unique_clicks,
+          COUNT(*)::bigint AS total_clicks
+        FROM clicks
+        WHERE pub_id = ${publisher_id}::uuid
+          AND timestamp >= ${queryStartDate}
+          AND timestamp < ${queryEndDate}
+        GROUP BY offer_id
+      `
+
     ]);
+
+    const clicksByOffer = clicksByOfferResult.map(row => ({
+      offer_id: row.offer_id,
+      unique: Number(row.unique_clicks),
+      total: Number(row.total_clicks),
+    }));
+
+    const shavedClicksStats = calculateShavedClicks(clicksByOffer);
+
 
     console.log('[DEBUG] Weekly Clicks Raw from DB:', weeklyClicksResult);
     console.log('[DEBUG] Publisher ID:', publisher_id);
@@ -296,9 +357,9 @@ export async function GET(req: NextRequest) {
     const clicksPreviousMonth = Number(clicksStats.find(s => s.metric === 'prev_month')?.count || 0);
 
     // Calculate clicks for selected date range (for Overview card)
-    const totalClicks = startDate && endDate
-      ? Number(clicksOverTimeResult.reduce((sum, row) => sum + Number(row.clicks), 0))
-      : totalClicksGlobal;
+    const totalClicks = shavedClicksStats.netTotal;
+    const uniqueClicks = shavedClicksStats.netUnique;
+
 
     // Parse Conversion Stats (grouped by offer)
     const globalConversions = conversionsStats.filter(s => s.metric === 'global').map(s => ({ offer_id: s.offer_id, _count: { id: Number(s.count) } }));
@@ -329,6 +390,12 @@ export async function GET(req: NextRequest) {
     const thisMonthStats = calculateShavedCount(thisMonthConversions);
     const prevMonthStats = calculateShavedCount(prevMonthConversions);
 
+    const conversionRate =
+      uniqueClicks > 0
+        ? Number(((globalStats.shaved / uniqueClicks) * 100).toFixed(2))
+        : 0;
+
+
     // Fetch Offer Names for IDs
     const allOfferIds = new Set([
       ...conversionsByOfferData.map(d => d.offer_id)
@@ -342,12 +409,14 @@ export async function GET(req: NextRequest) {
 
     const dashboardData: DashboardData = {
       totalClicks: totalClicks, // Use date range filtered clicks for Overview card
+      uniqueClicks: uniqueClicks,
       totalConversions: startDate && endDate ? totalConversionsForRange : globalStats.shaved, // Use date range filtered conversions for Overview card
       totalEarning: totalEarnings,
       clicksThisMonth,
       clicksPreviousMonth,
       salesThisMonth: thisMonthStats.shaved,
       salesPreviousMonth: prevMonthStats.shaved,
+      conversionRate: conversionRate,
       commissionThisMonth: startDate && endDate ? commissionForRange : commissionThisMonth, // Use date range filtered commission for Overview card
       commissionPreviousMonth,
       weeklyClicks: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {

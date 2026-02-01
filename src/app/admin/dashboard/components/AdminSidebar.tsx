@@ -103,7 +103,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 backgroundColor: 'var(--sidebar-accent)',
                 color: 'var(--sidebar-accent-foreground)',
               },
-              '&[data-active]': {
+              '&[dataActive]': {
                 backgroundColor: 'var(--sidebar-primary)',
                 color: 'var(--sidebar-primary-foreground)',
               },
@@ -123,7 +123,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 backgroundColor: 'var(--sidebar-accent)',
                 color: 'var(--sidebar-accent-foreground)',
               },
-              '&[data-active]': {
+              '&[dataActive]': {
                 backgroundColor: 'var(--sidebar-primary)',
                 color: 'var(--sidebar-primary-foreground)',
               },
@@ -143,7 +143,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 backgroundColor: 'var(--sidebar-accent)',
                 color: 'var(--sidebar-accent-foreground)',
               },
-              '&[data-active]': {
+              '&[dataActive]': {
                 backgroundColor: 'var(--sidebar-primary)',
                 color: 'var(--sidebar-primary-foreground)',
               },
@@ -169,7 +169,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 backgroundColor: 'var(--sidebar-accent)',
                 color: 'var(--sidebar-accent-foreground)',
               },
-              '&[data-active]': {
+              '&[dataActive]': {
                 backgroundColor: 'var(--sidebar-primary)',
                 color: 'var(--sidebar-primary-foreground)',
               },
@@ -189,7 +189,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 backgroundColor: 'var(--sidebar-accent)',
                 color: 'var(--sidebar-accent-foreground)',
               },
-              '&[data-active]': {
+              '&[dataActive]': {
                 backgroundColor: 'var(--sidebar-primary)',
                 color: 'var(--sidebar-primary-foreground)',
               },
@@ -229,7 +229,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   },
                 },
               }}
-            />
+            /> 
             <Collapse in={offersOpen}>
               <Stack gap={2} pl={24} className="hide-scrollbar" style={{ overflowY: 'auto' }}>
                 {[
@@ -251,7 +251,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                           backgroundColor: 'var(--sidebar-accent)',
                           color: 'var(--sidebar-accent-foreground)',
                         },
-                        '&[data-active]': {
+                        '&[dataActive]': {
                           backgroundColor: 'var(--sidebar-primary)',
                           color: 'var(--sidebar-primary-foreground)',
                         },
