@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { SimpleGrid, Grid, Box, Title, Text, Group, Stack, rem, Badge } from '@mantine/core';
-import { IconLayoutDashboard, IconCircleCheck, IconPercentage, IconArrowRight, IconCurrencyDollar } from '@tabler/icons-react';
+import { IconLayoutDashboard, IconCircleCheck, IconPercentage, IconArrowRight, IconCurrencyDollar, IconRepeat, IconUserCheck } from '@tabler/icons-react';
 import { Skeleton } from '@mantine/core';
 import { showNotification } from '@/app/utils/notificationManager';
 import { BarChart, PieChart, LineChart, AreaChart } from '@mantine/charts';
@@ -56,6 +56,8 @@ interface TopPerformingOffer {
 
 interface DashboardData {
   totalClicks: number;
+  uniqueClicks: number;
+  duplicateClicks: number;
   totalConversions: number;
   totalEarnings: number;
   totalApprovals: number;
@@ -120,6 +122,8 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({ dateRange
 
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     totalClicks: 0,
+    uniqueClicks: 0,
+    duplicateClicks: 0,
     totalConversions: 0,
     totalEarnings: 0,
     totalApprovals: 0,
@@ -202,7 +206,7 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({ dateRange
   }
 
   const weeklyClicksData = safeArray(dashboardData.weeklyClicks);
-const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
+  const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
 
 
   // Helper component for "No Data" message
@@ -330,6 +334,26 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
                 All-time platform clicks
               </div>
             </NeoCard>
+            <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+              <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
+                <IconUserCheck size={18} className="md:w-5 md:h-5" />
+              </div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Unique Clicks</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">{safeValue(dashboardData.uniqueClicks).toLocaleString()}</div>
+              <div className="text-[9px] md:text-[10px] text-zinc-500">
+                Verified unique visitors
+              </div>
+            </NeoCard>
+            <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+              <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
+                <IconRepeat size={18} className="md:w-5 md:h-5" />
+              </div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Duplicated Clicks</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">{safeValue(dashboardData.duplicateClicks).toLocaleString()}</div>
+              <div className="text-[9px] md:text-[10px] text-zinc-500">
+              Non-unique interactions
+              </div>
+            </NeoCard>
 
             {/* Total Conversions */}
             <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
@@ -351,7 +375,7 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
               <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Conversion Rate %</div>
               <div className="text-2xl md:text-3xl font-bold text-white mb-2">
                 {(() => {
-                  const clicks = safeValue(dashboardData.totalClicks);
+                  const clicks = safeValue(dashboardData.uniqueClicks);
                   const conversions = safeValue(dashboardData.totalConversions);
                   if (clicks === 0) return '0.00%';
                   return `${((conversions / clicks) * 100).toFixed(2)}%`;
@@ -690,9 +714,9 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
                     data={
                       dashboardData.trafficSources.length > 0
                         ? dashboardData.trafficSources.map((source, index) => ({
-                            ...source,
-                            color: getColorForSegment(source.name, index, chartColors),
-                          }))
+                          ...source,
+                          color: getColorForSegment(source.name, index, chartColors),
+                        }))
                         : [{ name: 'No Data', value: 1, color: 'rgba(255,255,255,0.1)' }]
                     }
                     withTooltip
@@ -777,10 +801,10 @@ const chartData = weeklyClicksData.length > 0 ? weeklyClicksData : emptyBarData;
                   data={
                     dashboardData.topPerformingOffers.length > 0
                       ? dashboardData.topPerformingOffers.slice(0, 8).map((offer, index) => ({
-                          name: offer.offerName,
-                          value: offer.conversions,
-                          color: getColorForSegment(offer.offerName, index, chartColors),
-                        }))
+                        name: offer.offerName,
+                        value: offer.conversions,
+                        color: getColorForSegment(offer.offerName, index, chartColors),
+                      }))
                       : [{ name: 'No Data', value: 1, color: 'rgba(255,255,255,0.1)' }]
                   }
                   withTooltip

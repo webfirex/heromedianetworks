@@ -85,12 +85,15 @@ CREATE TABLE "clicks" (
     "pub_id" UUID NOT NULL,
     "offer_id" INTEGER NOT NULL,
     "link_id" UUID,
+    "smartlink_id" UUID,
     "ip_address" TEXT,
     "user_agent" TEXT,
     "device" TEXT,
     "browser" TEXT,
     "geo" TEXT,
     "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "is_unique" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "clicks_pkey" PRIMARY KEY ("id")
 );
@@ -101,6 +104,7 @@ CREATE TABLE "conversions" (
     "click_id" UUID,
     "offer_id" INTEGER NOT NULL,
     "link_id" UUID,
+    "smartlink_id" UUID,
     "pub_id" UUID NOT NULL,
     "amount" DECIMAL(10,2) NOT NULL,
     "commission_amount" DECIMAL(10,2) NOT NULL,
@@ -210,6 +214,9 @@ CREATE INDEX "clicks_offer_id_idx" ON "clicks"("offer_id");
 CREATE INDEX "clicks_link_id_idx" ON "clicks"("link_id");
 
 -- CreateIndex
+CREATE INDEX "clicks_smartlink_id_idx" ON "clicks"("smartlink_id");
+
+-- CreateIndex
 CREATE INDEX "clicks_timestamp_idx" ON "clicks"("timestamp");
 
 -- CreateIndex
@@ -226,6 +233,9 @@ CREATE INDEX "conversions_offer_id_idx" ON "conversions"("offer_id");
 
 -- CreateIndex
 CREATE INDEX "conversions_link_id_idx" ON "conversions"("link_id");
+
+-- CreateIndex
+CREATE INDEX "conversions_smartlink_id_idx" ON "conversions"("smartlink_id");
 
 -- CreateIndex
 CREATE INDEX "conversions_pub_id_idx" ON "conversions"("pub_id");
@@ -294,6 +304,9 @@ ALTER TABLE "clicks" ADD CONSTRAINT "clicks_offer_id_fkey" FOREIGN KEY ("offer_i
 ALTER TABLE "clicks" ADD CONSTRAINT "clicks_link_id_fkey" FOREIGN KEY ("link_id") REFERENCES "links"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "clicks" ADD CONSTRAINT "clicks_smartlink_id_fkey" FOREIGN KEY ("smartlink_id") REFERENCES "smartlinks"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "conversions" ADD CONSTRAINT "conversions_click_id_fkey" FOREIGN KEY ("click_id") REFERENCES "clicks"("click_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -301,6 +314,9 @@ ALTER TABLE "conversions" ADD CONSTRAINT "conversions_offer_id_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "conversions" ADD CONSTRAINT "conversions_link_id_fkey" FOREIGN KEY ("link_id") REFERENCES "links"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "conversions" ADD CONSTRAINT "conversions_smartlink_id_fkey" FOREIGN KEY ("smartlink_id") REFERENCES "smartlinks"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "conversions" ADD CONSTRAINT "conversions_pub_id_fkey" FOREIGN KEY ("pub_id") REFERENCES "publishers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
