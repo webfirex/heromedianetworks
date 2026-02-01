@@ -7,7 +7,7 @@ export async function middleware(req: NextRequest) {
   // If no token, redirect to login for protected routes
   if (!token) {
     if (
-      req.nextUrl.pathname.startsWith("/publisher") ||
+      req.nextUrl.pathname.startsWith("/publisher")  ||
       req.nextUrl.pathname.startsWith("/admin")
     ) {
       return NextResponse.redirect(new URL("/auth/login", req.url));

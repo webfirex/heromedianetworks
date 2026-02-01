@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { Card, SimpleGrid, Grid, Box, Title, Text, Group, Stack, Badge, Flex, SemiCircleProgress, Button, Loader, Avatar } from '@mantine/core';
-import { IconLayoutDashboard, IconCircleCheck, IconCurrencyDollar, IconArrowRight, IconInfoCircle, IconChevronDown, IconHelpCircle, IconDotsVertical, IconPercentage } from '@tabler/icons-react';
+import { IconLayoutDashboard, IconCircleCheck, IconCurrencyDollar, IconArrowRight, IconInfoCircle, IconChevronDown, IconHelpCircle, IconDotsVertical, IconPercentage, IconRepeat, IconUserCheck } from '@tabler/icons-react';
 import { BarChart, PieChart, LineChart, AreaChart } from '@mantine/charts';
 import { Skeleton } from '@mantine/core';
 import { showNotification } from '@/app/utils/notificationManager';
@@ -74,6 +74,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
   const { data: session } = useSession();
   const [dashboardData, setDashboardData] = useState<{
     totalClicks: number;
+    uniqueClicks: number;
+    conversionRate: number; 
     totalConversions: number;
     totalEarning: number;
     clicksThisMonth: number;
@@ -95,6 +97,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
     };
   }>({
     totalClicks: 0,
+    uniqueClicks:0,
+    conversionRate:0,
     totalConversions: 0,
     totalEarning: 0,
     clicksThisMonth: 0,
@@ -284,7 +288,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
         <>
           {/* 1. Key Metrics Row Skeleton (3 Cols) */}
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mb="xl">
-            {[...Array(3)].map((_, i) => (
+            {[...Array(4)].map((_, i) => (
               <div
                 key={i}
                 className="p-4 rounded-xl border border-white/5 bg-[#0A0A0C]/40 backdrop-blur-md relative overflow-hidden"
@@ -390,6 +394,23 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
               </div>
             </NeoCard>
 
+            <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+              <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
+                <IconUserCheck size={18} className="md:w-5 md:h-5" />
+              </div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Clicks This Month</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">{formatNumber(dashboardData.uniqueClicks)}</div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className={`text-xs font-bold ${isClicksPositive ? 'text-green-400' : 'text-red-400'}`}>
+                  {isClicksPositive ? '▲' : '▼'} {clicksPercentageChange}%
+                </div>
+                <span className="text-[9px] md:text-[10px] text-zinc-500">vs target ({CLICK_MONTHLY_TARGET})</span>
+              </div>
+              <div className="text-[9px] md:text-[10px] text-zinc-500">
+                Previous month: {formatNumber(dashboardData.clicksPreviousMonth)} clicks
+              </div>
+            </NeoCard>
+
             {/* Sales (Conversions) This Month */}
             <NeoCard variant="glass" className="p-3 md:p-4 backdrop-blur-xl border border-white/10 relative overflow-hidden group" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
               <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-green-500/10 text-green-400 group-hover:bg-green-500/20 transition-colors">
@@ -414,7 +435,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 <IconPercentage size={18} className="md:w-5 md:h-5" />
               </div>
               <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-1">Conversion Rate %</div>
-              <div className="text-2xl md:text-3xl font-bold text-white mb-2">{currentConversionRate.toFixed(2)}%</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-2">{dashboardData.conversionRate.toFixed(2)}%</div>
               <div className="flex items-center gap-2 mb-1">
                 <div className={`text-xs font-bold ${isConversionRatePositive ? 'text-green-400' : 'text-red-400'}`}>
                   {isConversionRatePositive ? '▲' : '▼'} {Math.abs(conversionRateChange).toFixed(2)}%

@@ -31,7 +31,7 @@ interface DashboardSidebarProps {
 const navigationItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'top-offers', label: 'My Offers', icon: Tag },
-  { id: 'postback', label: 'Postback', icon: Webhook },
+  { id: 'postback', label: 'Offer Links', icon: Webhook },
 ];
 
 export default function DashboardSidebar({
