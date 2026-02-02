@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
       let netTotal = 0;
 
       for (const item of offerClicks) {
-        const cut = cutMap.get(item.offer_id) ?? DEFAULT_COMMISSION_CUT;
+        const cut = DEFAULT_COMMISSION_CUT;
 
         rawUnique += item.unique;
         rawTotal += item.total;
@@ -150,6 +150,7 @@ export async function GET(req: NextRequest) {
       overviewClicksLast7d,
       overviewClicksLast30d,
       clicksByOfferResult,
+      simulatedConversionsResult
     ] = await Promise.all([
 
       // 1. Combined Click Stats (Total, This Month, Prev Month)
@@ -335,17 +336,45 @@ export async function GET(req: NextRequest) {
           AND timestamp >= ${queryStartDate}
           AND timestamp < ${queryEndDate}
         GROUP BY offer_id
-      `
+      `,
+
+      // 12. Simulated conversions from clicks (unique + fixed CR)
+      prisma.$queryRaw<Array<{ offer_id: number; simulated: number; }>>`
+        SELECT
+          offer_id,
+          FLOOR(SUM(
+            CASE
+              WHEN is_unique = true AND fixed_conversion_rate > 0
+              THEN fixed_conversion_rate / 100.0
+              ELSE 0
+            END
+          ))::int AS simulated
+        FROM clicks
+        WHERE pub_id = ${publisher_id}::uuid
+          AND timestamp >= ${queryStartDate}
+          AND timestamp < ${queryEndDate}
+        GROUP BY offer_id
+      `,
+
 
     ]);
 
+    // console.log('[DEBUG] Simulated conversions raw:', simulatedConversionsResult);
     const clicksByOffer = clicksByOfferResult.map(row => ({
       offer_id: row.offer_id,
       unique: Number(row.unique_clicks),
       total: Number(row.total_clicks),
     }));
+    console.log('[DEBUG] Simulated conversions raw:', clicksByOffer);
 
     const shavedClicksStats = calculateShavedClicks(clicksByOffer);
+
+    console.log('[DEBUG] Simulated shaved conversions raw:', shavedClicksStats);
+    const simulatedMap = new Map<number, number>(
+      simulatedConversionsResult.map(r => [r.offer_id, Number(r.simulated)])
+    );
+
+    console.log('[DEBUG] Simulated map:', simulatedMap);
 
 
     console.log('[DEBUG] Weekly Clicks Raw from DB:', weeklyClicksResult);
@@ -367,13 +396,41 @@ export async function GET(req: NextRequest) {
     const prevMonthConversions = conversionsStats.filter(s => s.metric === 'prev_month').map(s => ({ offer_id: s.offer_id, _count: { id: Number(s.count) } }));
 
     // Calculate conversions for selected date range (for Overview card)
-    // Use conversionsByOfferData which is already filtered by date range
-    const conversionsForRangeStats = conversionsByOfferData.map(item => ({
-      offer_id: item.offer_id,
-      _count: { id: item._count.id }
-    }));
+    const conversionCountMap = new Map<number, number>();
+
+    // 1. Add real conversions
+    for (const item of conversionsByOfferData) {
+      conversionCountMap.set(
+        item.offer_id,
+        item._count.id
+      );
+    }
+
+    // 2. Add simulated conversions (even if no real ones exist)
+    for (const [offer_id, simulated] of simulatedMap.entries()) {
+      conversionCountMap.set(
+        offer_id,
+        (conversionCountMap.get(offer_id) || 0) + simulated
+      );
+    }
+
+    // 3. Normalize for downstream logic
+    const conversionsForRangeStats = Array.from(conversionCountMap.entries()).map(
+      ([offer_id, count]) => ({
+        offer_id,
+        _count: { id: count },
+      })
+    );
+
+
+    console.log('[DEBUG] conversionsForRangeStats map:', conversionsForRangeStats);
+
     const rangeStats = calculateShavedCount(conversionsForRangeStats);
     const totalConversionsForRange = startDate && endDate ? rangeStats.shaved : 0;
+
+    console.log('[DEBUG] rangeStats map:', rangeStats);
+    console.log('[DEBUG] totalConversionsForRange map:', totalConversionsForRange);
+
 
     // Sum earnings directly from the DB results
     const totalEarnings = conversionsStats.filter(s => s.metric === 'global').reduce((sum, s) => sum + (s.sum_commission || 0), 0);
@@ -386,7 +443,34 @@ export async function GET(req: NextRequest) {
       : commissionThisMonth;
 
     // Process calculated stats
-    const globalStats = calculateShavedCount(globalConversions);
+    const globalConversionMap = new Map<number, number>();
+
+    // real conversions
+    for (const item of globalConversions) {
+      globalConversionMap.set(
+        item.offer_id,
+        item._count.id
+      );
+    }
+
+    // simulated conversions
+    for (const [offer_id, simulated] of simulatedMap.entries()) {
+      globalConversionMap.set(
+        offer_id,
+        (globalConversionMap.get(offer_id) || 0) + simulated
+      );
+    }
+
+    const globalStats = calculateShavedCount(
+      Array.from(globalConversionMap.entries()).map(
+        ([offer_id, count]) => ({
+          offer_id,
+          _count: { id: count },
+        })
+      )
+    );
+
+
     const thisMonthStats = calculateShavedCount(thisMonthConversions);
     const prevMonthStats = calculateShavedCount(prevMonthConversions);
 
@@ -406,6 +490,7 @@ export async function GET(req: NextRequest) {
       select: { id: true, name: true },
     });
     const offerMap = new Map(offers.map(o => [o.id, o.name]));
+    console.log('[DEBUG] global map:', globalStats.shaved);
 
     const dashboardData: DashboardData = {
       totalClicks: totalClicks, // Use date range filtered clicks for Overview card
@@ -430,8 +515,12 @@ export async function GET(req: NextRequest) {
       conversionTrend: conversionTrendResult.map(row => ({ period: row.period, conversions: Number(row.conversions) })),
       commissionsOverTime: commissionsOverTimeResult.map(row => ({ period: row.period, commission: Number(row.commission) })),
       conversionsByOffer: conversionsByOfferData
-        .map(item => ({ name: offerMap.get(item.offer_id) || 'Unknown', value: item._count.id }))
+        .map(item => ({
+          name: offerMap.get(item.offer_id) || 'Unknown',
+          value: item._count.id + (simulatedMap.get(item.offer_id) || 0),
+        }))
         .sort((a, b) => b.value - a.value),
+
       overviewClicks: {
         last24h: overviewClicksLast24h.map(r => ({ period: r.period, clicks: Number(r.clicks) })),
         last7d: overviewClicksLast7d.map(r => ({ period: r.period, clicks: Number(r.clicks) })),

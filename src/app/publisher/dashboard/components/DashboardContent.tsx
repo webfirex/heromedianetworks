@@ -417,7 +417,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                 <IconCircleCheck size={18} className="md:w-5 md:h-5" />
               </div>
               <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-3">Total conversions</div>
-              <div className="text-2xl md:text-4xl font-bold text-white mb-4">{formatNumber(dashboardData.salesThisMonth)}</div>
+              <div className="text-2xl md:text-4xl font-bold text-white mb-4">{formatNumber(dashboardData.totalConversions)}</div>
               {/* <div className="flex items-center gap-2 mb-1">
                 <div className={`text-xs font-bold ${isSalesPositive ? 'text-green-400' : 'text-red-400'}`}>
                   {isSalesPositive ? '▲' : '▼'} {salesPercentageChange}%

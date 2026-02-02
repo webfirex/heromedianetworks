@@ -43,7 +43,6 @@ export async function GET(req: NextRequest) {
   const ip = forwardedFor
     ? forwardedFor.split(',')[0].trim()
     : 'unknown';
-  
 
   const userAgent = req.headers.get('user-agent') || 'unknown';
 
@@ -53,14 +52,11 @@ export async function GET(req: NextRequest) {
   /* ----------------------------------------
      UNIQUE CLICK LOGIC
   ----------------------------------------- */
-
-  // 1️⃣ Cookie check (fast path)
   const cookieName = `u_${publisherId}_${offerId}`;
   const hasCookie = req.cookies.get(cookieName);
 
   let isUnique = false;
 
-  // 2️⃣ Server-side dedupe (authoritative)
   if (!hasCookie) {
     const existingUnique = await prisma.click.findFirst({
       where: {
@@ -80,7 +76,26 @@ export async function GET(req: NextRequest) {
   }
 
   /* ----------------------------------------
-     Store click (always)
+     Fetch link (ONLY source of fixed CR)
+  ----------------------------------------- */
+  const link = await prisma.link.findUnique({
+    where: { id: link_id },
+    select: {
+      fixed_conversion_rate: true,
+    },
+  });
+
+  if (!link) {
+    return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+  }
+
+  const fixedConversionRate =
+    link.fixed_conversion_rate
+      ? Number(link.fixed_conversion_rate)
+      : 0;
+
+  /* ----------------------------------------
+     Store click
   ----------------------------------------- */
   await prisma.click.create({
     data: {
@@ -91,11 +106,12 @@ export async function GET(req: NextRequest) {
       ip_address: ip,
       user_agent: userAgent,
       is_unique: isUnique,
+      fixed_conversion_rate: fixedConversionRate,
     },
   });
 
   /* ----------------------------------------
-     Fetch offer URL
+     Fetch offer URL (NO rate logic here)
   ----------------------------------------- */
   const offer = await prisma.offer.findUnique({
     where: { id: offerId },
@@ -123,6 +139,6 @@ export async function GET(req: NextRequest) {
       sameSite: 'lax',
     });
   }
-  
+
   return response;
 }

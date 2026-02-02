@@ -70,6 +70,8 @@ model Offer {
   created_at  DateTime    @default(now())
   updated_at  DateTime    @updatedAt
 
+  fixed_conversion_rate Decimal @default(0) @db.Decimal(5, 2)
+
   // Relations
   links           Link[]
   clicks          Click[]
@@ -93,6 +95,8 @@ model Link {
   publisher_id String   @db.Uuid
   name         String?
   created_at   DateTime @default(now())
+
+  fixed_conversion_rate Decimal @default(0) @db.Decimal(5, 2)
 
   // Relations
   offer       Offer        @relation(fields: [offer_id], references: [id], onDelete: Cascade)
@@ -121,6 +125,8 @@ model Click {
   timestamp    DateTime @default(now())
   is_unique    Boolean  @default(false)
   created_at   DateTime @default(now())
+
+  fixed_conversion_rate Decimal @default(0) @db.Decimal(5, 2)
 
   // Relations
   publisher   Publisher    @relation(fields: [pub_id], references: [id], onDelete: Cascade)

@@ -34,6 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       payout: Number(offer.payout),
       currency: offer.currency,
       status: offer.status,
+      fixed_conversion_rate: offer.fixed_conversion_rate ? Number(offer.fixed_conversion_rate) : 0,
       creationDate: offer.created_at,
       advertisers: offer.offerPublishers.map((op) => op.publisher.name),
       commissions: offer.offerPublishers.map((op) => ({

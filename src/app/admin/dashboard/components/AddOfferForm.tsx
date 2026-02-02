@@ -17,6 +17,7 @@ interface OfferFormData {
   publisher_ids: string[]; // new
   default_commission_percent?: number | '';
   default_commission_cut?: number | '';
+  fixed_conversion_rate?: number | '';
 }
 
 interface Publisher {
@@ -42,6 +43,7 @@ const AddOfferForm: React.FC = () => {
     publisher_ids: [],
     default_commission_percent: 0,
     default_commission_cut: 0,
+    fixed_conversion_rate: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -95,7 +97,7 @@ const AddOfferForm: React.FC = () => {
       const response = await fetch('/api/admin/offers/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form), // ✅ Send UUIDs as strings
+        body: JSON.stringify(form),
       });
 
 
@@ -145,7 +147,7 @@ const AddOfferForm: React.FC = () => {
               placeholder="e.g., Summer Sale Campaign"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.currentTarget.value })}
-            
+
             />
             <Group grow>
               <NumberInput
@@ -154,7 +156,7 @@ const AddOfferForm: React.FC = () => {
                 value={form.payout}
                 onChange={(value) => setForm({ ...form, payout: value as number })}
                 min={0}
-              
+
               />
               <Select
                 label="Currency"
@@ -162,7 +164,7 @@ const AddOfferForm: React.FC = () => {
                 data={['USD', 'EUR', 'GBP', 'INR']}
                 value={form.currency}
                 onChange={(value) => setForm({ ...form, currency: value || '' })}
-              
+
               />
             </Group>
             <TextInput
@@ -170,7 +172,7 @@ const AddOfferForm: React.FC = () => {
               placeholder="e.g., US"
               value={form.geo}
               onChange={(e) => setForm({ ...form, geo: e.currentTarget.value })}
-          
+
             />
             <TextInput
               label="Offer URL"
@@ -178,7 +180,7 @@ const AddOfferForm: React.FC = () => {
               value={form.offer_url}
               onChange={(e) => setForm({ ...form, offer_url: e.currentTarget.value })}
               type="url"
-            
+
             />
             <Textarea
               label="Description"
@@ -186,7 +188,7 @@ const AddOfferForm: React.FC = () => {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.currentTarget.value })}
               minRows={4}
-            
+
             />
             <MultiSelect
               label="Select Publishers"
@@ -217,6 +219,19 @@ const AddOfferForm: React.FC = () => {
                 decimalScale={2}
                 description="Fixed amount per conversion (e.g., 5.00 = $5 per conversion)"
               />
+              <NumberInput
+                label="Fixed Conversion Rate (%)"
+                placeholder="0 = real conversions"
+                value={form.fixed_conversion_rate}
+                onChange={(value) =>
+                  setForm({ ...form, fixed_conversion_rate: value as number })
+                }
+                min={0}
+                max={100}
+                decimalScale={2}
+                description="If > 0, conversions are simulated from unique clicks"
+              />
+
             </Group>
             <Button type="submit" loading={loading} size="md" radius="md" mt="md">
               Create Offer

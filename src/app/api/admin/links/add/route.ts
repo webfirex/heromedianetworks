@@ -2,17 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db-prisma';
 import { randomUUID } from 'crypto';
 
-// POST /api/admin/links/add
 export async function POST(req: NextRequest) {
   try {
-    const { offer_id, publisher_ids, name } = await req.json();
+    const { offer_id, publisher_ids, name, fixed_conversion_rate } = await req.json();
+
     if (!offer_id) {
       return NextResponse.json({ error: 'Offer is required.' }, { status: 400 });
     }
 
+    // Validate fixed conversion rate
+    let fixedRate = 0;
+    if (fixed_conversion_rate !== undefined && fixed_conversion_rate !== null && fixed_conversion_rate !== '') {
+      const rate = Number(fixed_conversion_rate);
+      if (isNaN(rate) || rate < 0 || rate > 100) {
+        return NextResponse.json(
+          { error: 'Fixed conversion rate must be between 0 and 100' },
+          { status: 400 }
+        );
+      }
+      fixedRate = rate;
+    }
+
     let publisherIdsToInsert: string[] = [];
+
     if (!publisher_ids || publisher_ids.length === 0) {
-      // If no publishers selected, select all approved publishers
       const approvedPublishers = await prisma.publisher.findMany({
         where: { status: 'approved' },
         select: { id: true },
@@ -26,15 +39,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No publishers found.' }, { status: 400 });
     }
 
-    // Insert links for each publisher
     const linksData = publisherIdsToInsert.map((pubId) => ({
       id: randomUUID(),
       offer_id: parseInt(offer_id, 10),
       publisher_id: pubId,
       name: name || null,
+      fixed_conversion_rate: fixedRate,
     }));
 
-    // Use createMany with skipDuplicates to handle conflicts
     await prisma.link.createMany({
       data: linksData,
       skipDuplicates: true,

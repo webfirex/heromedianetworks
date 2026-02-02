@@ -15,6 +15,7 @@ export default function AddLinkForm() {
   const [form, setForm] = useState<AddLinkFormState>({ offer_id: '', publisher_ids: [], name: '' });
   const [fetchingPublishers, setFetchingPublishers] = useState(false);
   const [fetchingOffers, setFetchingOffers] = useState(false);
+  const [offerFixedRate, setOfferFixedRate] = useState<number>(0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -26,6 +27,10 @@ export default function AddLinkForm() {
       })
       .finally(() => setFetchingOffers(false));
   }, []);
+
+
+
+
 
   // Fetch publishers for selected offer
   useEffect(() => {
@@ -43,35 +48,63 @@ export default function AddLinkForm() {
       .finally(() => setFetchingPublishers(false));
   }, [form.offer_id]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const response = await fetch('/api/admin/links/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to add link');
-      showNotification({
-        title: 'Success',
-        message: data.message || 'Links added successfully.',
-        color: 'green',
-        withClose: false
-      });
-      setForm({ offer_id: '', publisher_ids: [], name: '' });
-    } catch (err) {
-      showNotification({
-        title: 'Error',
-        message: (err instanceof Error ? err.message : 'Failed to add link'),
-        color: 'red',
-        withClose: false
-      });
-    } finally {
-      setLoading(false);
+
+  useEffect(() => {
+    if (!form.offer_id) {
+      setOfferFixedRate(0);
+      return;
     }
-  };
+    fetch(`/api/admin/offers/${form.offer_id}`)
+      .then(res => res.json())
+      .then(data => {
+        const rate = Number(data?.fixed_conversion_rate || 0);
+        setOfferFixedRate(rate > 0 ? rate : 0);
+      })
+      .catch(() => setOfferFixedRate(0));
+  }, [form.offer_id]);
+
+
+
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const response = await fetch('/api/admin/links/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        fixed_conversion_rate: offerFixedRate || 0,
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to add link');
+
+    showNotification({
+      title: 'Success',
+      message: data.message || 'Links added successfully.',
+      color: 'green',
+      withClose: false,
+    });
+
+    setForm({ offer_id: '', publisher_ids: [], name: '' });
+    setOfferFixedRate(0);
+  } catch (err) {
+    showNotification({
+      title: 'Error',
+      message: err instanceof Error ? err.message : 'Failed to add link',
+      color: 'red',
+      withClose: false,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
     <form onSubmit={handleSubmit}>
