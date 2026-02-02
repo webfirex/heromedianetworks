@@ -40,8 +40,8 @@ const AddOfferForm: React.FC = () => {
     description: '',
     offer_url: '',
     publisher_ids: [],
-    default_commission_percent: '',
-    default_commission_cut: '',
+    default_commission_percent: 0,
+    default_commission_cut: 0,
   });
 
   const [loading, setLoading] = useState(false);

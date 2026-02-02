@@ -138,6 +138,7 @@ const PublisherPostback: React.FC = () => {
 
       const result: OffersClicksApiResponse = await response.json();
       setOffersData(result.offers);
+      console.log("OFFERs", result.offers)
       setTotalItems(result.totalCount);
     } catch (err: unknown) {
       let errorMessage = 'An unknown error occurred while fetching your offer clicks.';
@@ -342,7 +343,7 @@ const PublisherPostback: React.FC = () => {
                   <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconExternalLink size={16} />Your Tracking Link</Group></Table.Th>
                   <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconFingerprint size={16} />Total Clicks</Group></Table.Th>
                   <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconFingerprint size={16} />Total Conversions</Group></Table.Th>
-                  <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconInfoCircle size={16} />Details</Group></Table.Th>
+                  {/* <Table.Th style={{ color: '#9CA3AF' }}><Group gap={4}><IconInfoCircle size={16} />Details</Group></Table.Th> */}
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -379,16 +380,16 @@ const PublisherPostback: React.FC = () => {
                     </Table.Td>
                     <Table.Td>{offer.totalClicks}</Table.Td>
                     <Table.Td>{offer.totalConversions}</Table.Td> {/* UPDATED: Display totalConversions */}
-                    <Table.Td>
+                    {/* <Table.Td>
                       <Button
                         variant="outline"
                         size="xs"
                         onClick={() => handleViewDetails(offer)}
                         leftSection={<IconInfoCircle size={14} />}
                       >
-                        View Details
+                        View Detailsh
                       </Button>
-                    </Table.Td>
+                    </Table.Td> */}
                   </Table.Tr>
                 ))}
               </Table.Tbody>
