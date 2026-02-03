@@ -174,7 +174,7 @@ export default function DashboardTopbar({
     const titles: Record<string, string> = {
       dashboard: 'Dashboard',
       'top-offers': 'My Offers',
-      postback: 'Postback',
+      postback: 'Offer Links',
       coupons: 'Coupons',
       'product-feed': 'Product Feed',
       'search-browse': 'Search/Browse',

@@ -313,14 +313,14 @@ const PublisherPostback: React.FC = () => {
                       )}
                     </CopyButton>
 
-                    <Button
+                    {/* <Button
                       size="xs"
                       variant="outline"
                       onClick={() => handleViewDetails(offer)}
                       leftSection={<IconInfoCircle size={14} />}
                     >
-                      View Details ({offer.clicks.length})
-                    </Button>
+                      View Detailsss ({offer.clicks.length})
+                    </Button> */}
                   </Group>
                 </Stack>
               </div>
