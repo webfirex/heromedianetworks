@@ -9,7 +9,7 @@ import {
 import {
   IconCheck, IconX, IconSearch,
   IconClockHour4, IconUserCheck, IconUserOff,
-  IconBan, IconEye
+  IconBan, IconEye, IconTrash
 } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 import { showNotification } from '@/app/utils/notificationManager';
@@ -78,6 +78,11 @@ const AdminAccessManagement: React.FC = () => {
   const [viewModalOpened, setViewModalOpened] = useState(false);
   const [selectedPublisherStats, setSelectedPublisherStats] = useState<PublisherStats | null>(null);
 
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [publisherToDelete, setPublisherToDelete] = useState<Publisher | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+
   const fetchPublishers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -132,6 +137,44 @@ const AdminAccessManagement: React.FC = () => {
       showNotification({ title: 'Error', message: errorMessage, color: 'red', withClose: false });
     }
   };
+
+
+  const deletePublisher = async () => {
+    if (!publisherToDelete) return;
+
+    try {
+      setDeleting(true);
+
+      // Dummy API call
+      const res = await fetch(`/api/admin/publishers/${publisherToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Failed to delete publisher.');
+
+      showNotification({
+        title: 'Deleted',
+        message: `${publisherToDelete.name} has been deleted.`,
+        color: 'green',
+        withClose: false,
+      });
+
+      setDeleteModalOpened(false);
+      setPublisherToDelete(null);
+      await fetchPublishers();
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      showNotification({
+        title: 'Error',
+        message: errorMessage,
+        color: 'red',
+        withClose: false,
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
 
   const handleApprove = (id: string) => updatePublisherStatus(id, 'approved');
   const handleReject = (id: string) => updatePublisherStatus(id, 'rejected');
@@ -282,6 +325,19 @@ const AdminAccessManagement: React.FC = () => {
                       {publisher.status === 'rejected' && (
                         <ActionIcon color="blue" variant="filled" onClick={() => handleApprove(publisher.id)}><IconCheck size={18} /></ActionIcon>
                       )}
+
+                      <ActionIcon
+                        color="red"
+                        variant="filled"
+                        onClick={() => {
+                          setPublisherToDelete(publisher);
+                          setDeleteModalOpened(true);
+                        }}
+                        title="Delete Publisher"
+                      >
+                        <IconTrash size={18} />
+                      </ActionIcon>
+
                     </Group>
                   </Table.Td>
                 </Table.Tr>
@@ -343,6 +399,46 @@ const AdminAccessManagement: React.FC = () => {
           </Box>
         )}
       </Modal>
+      <Modal
+        opened={deleteModalOpened}
+        onClose={() => {
+          setDeleteModalOpened(false);
+          setPublisherToDelete(null);
+        }}
+        title="Confirm Delete"
+        centered
+      >
+        <Text mb="sm">
+          Are you sure you want to delete{' '}
+          <b>{publisherToDelete?.name}</b>?
+        </Text>
+
+        <Text size="sm" color="dimmed" mb="md">
+          This action cannot be undone.
+        </Text>
+
+        <Group justify="flex-end">
+          <ActionIcon
+            variant="outline"
+            onClick={() => {
+              setDeleteModalOpened(false);
+              setPublisherToDelete(null);
+            }}
+          >
+            <IconX size={18} />
+          </ActionIcon>
+
+          <ActionIcon
+            color="red"
+            variant="filled"
+            loading={deleting}
+            onClick={deletePublisher}
+          >
+            <IconTrash size={18} />
+          </ActionIcon>
+        </Group>
+      </Modal>
+
     </Container>
   );
 };
