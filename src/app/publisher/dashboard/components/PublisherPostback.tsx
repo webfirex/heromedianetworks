@@ -319,7 +319,7 @@ const PublisherPostback: React.FC = () => {
                       onClick={() => handleViewDetails(offer)}
                       leftSection={<IconInfoCircle size={14} />}
                     >
-                      View Detailsss ({offer.clicks.length})
+                      View Details ({offer.clicks.length})
                     </Button> */}
                   </Group>
                 </Stack>

@@ -154,51 +154,100 @@ export async function GET(req: NextRequest) {
     ] = await Promise.all([
 
       // 1. Combined Click Stats (Total, This Month, Prev Month)
-      prisma.$queryRaw<Array<{ metric: string, count: bigint }>>`
-        SELECT 'total' as metric, COUNT(*) as count FROM clicks WHERE pub_id = ${publisher_id}::uuid
-        UNION ALL
-        SELECT 'this_month' as metric, COUNT(*) as count FROM clicks WHERE pub_id = ${publisher_id}::uuid AND timestamp BETWEEN ${firstDayOfMonth} AND ${lastDayOfMonth}
-        UNION ALL
-        SELECT 'prev_month' as metric, COUNT(*) as count FROM clicks WHERE pub_id = ${publisher_id}::uuid AND timestamp BETWEEN ${firstDayOfPreviousMonth} AND ${lastDayOfPreviousMonth}
-      `,
+      prisma.$queryRaw<Array<{ metric: string; count: bigint }>>`
+      SELECT 'total' AS metric, COUNT(*) AS count
+      FROM clicks
+      WHERE pub_id = ${publisher_id}::uuid
+    
+      UNION ALL
+    
+      SELECT 'this_month' AS metric, COUNT(*) AS count
+      FROM clicks
+      WHERE pub_id = ${publisher_id}::uuid
+        AND date_trunc(
+          'month',
+          timezone('Asia/Kolkata', timestamp)
+        ) = date_trunc(
+          'month',
+          timezone('Asia/Kolkata', NOW())
+        )
+    
+      UNION ALL
+    
+      SELECT 'prev_month' AS metric, COUNT(*) AS count
+      FROM clicks
+      WHERE pub_id = ${publisher_id}::uuid
+        AND date_trunc(
+          'month',
+          timezone('Asia/Kolkata', timestamp)
+        ) = date_trunc(
+          'month',
+          timezone('Asia/Kolkata', NOW()) - interval '1 month'
+        )
+    `,
 
       // 2. Combined Conversion Stats (Total, This Month, Prev Month)
-      prisma.$queryRaw<Array<{ metric: string, count: bigint, sum_commission: number, offer_id: number }>>`
-        -- Global
-        SELECT 'global' as metric, COUNT(*) as count, COALESCE(SUM(commission_amount), 0)::float as sum_commission, offer_id 
-        FROM conversions 
-        WHERE pub_id = ${publisher_id}::uuid
-        GROUP BY offer_id
-        
-        UNION ALL
-        
-        -- This Month
-        SELECT 'this_month' as metric, COUNT(*) as count, COALESCE(SUM(commission_amount), 0)::float as sum_commission, offer_id 
-        FROM conversions 
-        WHERE pub_id = ${publisher_id}::uuid AND created_at BETWEEN ${firstDayOfMonth} AND ${lastDayOfMonth}
-        GROUP BY offer_id
-        
-        UNION ALL
-        
-        -- Prev Month
-        SELECT 'prev_month' as metric, COUNT(*) as count, COALESCE(SUM(commission_amount), 0)::float as sum_commission, offer_id 
-        FROM conversions 
-        WHERE pub_id = ${publisher_id}::uuid AND created_at BETWEEN ${firstDayOfPreviousMonth} AND ${lastDayOfPreviousMonth}
-        GROUP BY offer_id
-      `,
+      prisma.$queryRaw<Array<{ metric: string; count: bigint; sum_commission: number; offer_id: number }>>`
+      -- Global
+      SELECT 'global' AS metric,
+             COUNT(*) AS count,
+             COALESCE(SUM(commission_amount), 0)::float AS sum_commission,
+             offer_id
+      FROM conversions
+      WHERE pub_id = ${publisher_id}::uuid
+      GROUP BY offer_id
+    
+      UNION ALL
+    
+      -- This Month (IST)
+      SELECT 'this_month' AS metric,
+             COUNT(*) AS count,
+             COALESCE(SUM(commission_amount), 0)::float AS sum_commission,
+             offer_id
+      FROM conversions
+      WHERE pub_id = ${publisher_id}::uuid
+        AND date_trunc(
+          'month',
+          timezone('Asia/Kolkata', created_at)
+        ) = date_trunc(
+          'month',
+          timezone('Asia/Kolkata', NOW())
+        )
+      GROUP BY offer_id
+    
+      UNION ALL
+    
+      -- Prev Month (IST)
+      SELECT 'prev_month' AS metric,
+             COUNT(*) AS count,
+             COALESCE(SUM(commission_amount), 0)::float AS sum_commission,
+             offer_id
+      FROM conversions
+      WHERE pub_id = ${publisher_id}::uuid
+        AND date_trunc(
+          'month',
+          timezone('Asia/Kolkata', created_at)
+        ) = date_trunc(
+          'month',
+          timezone('Asia/Kolkata', NOW()) - interval '1 month'
+        )
+      GROUP BY offer_id
+    `,
 
       // 3. Weekly Clicks (Always current week for specific card)
       prisma.$queryRaw<Array<{ day: string; date: string; clicks: bigint }>>`
-        SELECT 
-          TO_CHAR(timestamp::date, 'Dy') AS day,
-          TO_CHAR(timestamp::date, 'YYYY-MM-DD') AS date,
-          COUNT(*)::bigint as clicks
-        FROM clicks
-        WHERE pub_id = ${publisher_id}::uuid
-          AND timestamp >= date_trunc('week', CURRENT_DATE)
-        GROUP BY date, day
-        ORDER BY date
-      `,
+      SELECT
+      TO_CHAR(timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata','Dy') AS day,
+        TO_CHAR(timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD') AS date,
+        COUNT(*)::bigint AS clicks
+      FROM clicks
+      WHERE pub_id = ${publisher_id}::uuid
+        AND (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date >=
+          date_trunc('week',(NOW() AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata'))::date
+
+      GROUP BY date, day
+      ORDER BY date
+    `,
 
       // 4. Traffic Sources (Geo)
       prisma.click.groupBy({
@@ -216,115 +265,125 @@ export async function GET(req: NextRequest) {
 
       // 5. Clicks Over Time (Daily - Use selected range)
       prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
-        SELECT 
-          TO_CHAR(timestamp, 'YYYY-MM-DD') as period, 
-          COUNT(*)::bigint as clicks
-        FROM clicks
-        WHERE pub_id = ${publisher_id}::uuid
-          AND timestamp >= ${queryStartDate}
-          AND timestamp < ${queryEndDate}
-        GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD')
-        ORDER BY TO_CHAR(timestamp, 'YYYY-MM-DD')
-      `,
+      SELECT
+      TO_CHAR(timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD') AS period,
+        COUNT(*)::bigint AS clicks
+      FROM clicks
+      WHERE pub_id = ${publisher_id}::uuid
+        AND (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date
+          BETWEEN ${startDate}::date AND ${endDate}::date
+
+      GROUP BY period
+      ORDER BY period
+    `,
 
       // 6. Conversion Trend (Daily - Use selected range)
       prisma.$queryRaw<Array<{ period: string; conversions: bigint }>>`
-        SELECT 
-          TO_CHAR(created_at, 'YYYY-MM-DD') as period, 
-          COUNT(*)::bigint as conversions
-        FROM conversions
-        WHERE pub_id = ${publisher_id}::uuid
-          AND created_at >= ${queryStartDate}
-          AND created_at < ${queryEndDate}
-        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
-        ORDER BY TO_CHAR(created_at, 'YYYY-MM-DD')
-      `,
+      SELECT
+        TO_CHAR(
+          conversions.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata',
+          'YYYY-MM-DD'
+        ) AS period,
+        COUNT(*)::bigint AS conversions
+      FROM conversions
+      WHERE conversions.pub_id = ${publisher_id}::uuid
+        AND (conversions.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date
+            BETWEEN ${startDate}::date AND ${endDate}::date
+      GROUP BY period
+      ORDER BY period
+    `,
 
       // 7. Commissions Over Time (Daily - Use selected range)
       prisma.$queryRaw<Array<{ period: string; commission: number }>>`
-        SELECT 
-          TO_CHAR(created_at, 'YYYY-MM-DD') as period, 
-          COALESCE(SUM(commission_amount), 0)::float as commission
-        FROM conversions
-        WHERE pub_id = ${publisher_id}::uuid
-          AND created_at >= ${queryStartDate}
-          AND created_at < ${queryEndDate}
-        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
-        ORDER BY TO_CHAR(created_at, 'YYYY-MM-DD')
-      `,
+      SELECT
+        TO_CHAR(
+          conversions.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata',
+          'YYYY-MM-DD'
+        ) AS period,
+        COALESCE(SUM(commission_amount), 0)::float AS commission
+      FROM conversions
+      WHERE conversions.pub_id = ${publisher_id}::uuid
+        AND (conversions.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date
+            BETWEEN ${startDate}::date AND ${endDate}::date
+      GROUP BY period
+      ORDER BY period
+    `,
 
       // 8. Conversions By Offer (for list)
       prisma.conversion.groupBy({
         by: ['offer_id'],
         where: {
           pub_id: publisher_id,
-          created_at: { gte: queryStartDate, lt: queryEndDate }
+          created_at: {
+            gte: new Date(queryStartDate),
+            lte: new Date(queryEndDate),
+          },
         },
         _count: { id: true },
       }),
 
       // 9. Overview Clicks - Last 24 hours (hourly buckets, zero-filled)
       prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
-        WITH hours AS (
-          SELECT generate_series(
-            date_trunc('hour', NOW() - interval '23 hour'),
-            date_trunc('hour', NOW()),
-            interval '1 hour'
-          ) AS bucket
-        )
-        SELECT
-          TO_CHAR(hours.bucket, 'HH24:00') AS period,
-          COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
-        FROM hours
-        LEFT JOIN clicks
-          ON clicks.pub_id = ${publisher_id}::uuid
-          AND clicks.timestamp >= hours.bucket
-          AND clicks.timestamp < (hours.bucket + interval '1 hour')
-        GROUP BY hours.bucket
-        ORDER BY hours.bucket
-      `,
+      WITH hours AS (
+        SELECT generate_series(
+          date_trunc('hour', timezone('Asia/Kolkata', NOW()) - interval '23 hour'),
+          date_trunc('hour', timezone('Asia/Kolkata', NOW())),
+          interval '1 hour'
+        ) AS bucket
+      )
+      SELECT
+        TO_CHAR(hours.bucket, 'HH24:00') AS period,
+        COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
+      FROM hours
+      LEFT JOIN clicks
+        ON clicks.pub_id = ${publisher_id}::uuid
+        AND timezone('Asia/Kolkata', clicks.timestamp) >= hours.bucket
+        AND timezone('Asia/Kolkata', clicks.timestamp) < hours.bucket + interval '1 hour'
+      GROUP BY hours.bucket
+      ORDER BY hours.bucket
+    `,
 
       // 10. Overview Clicks - Last 7 days (daily buckets, zero-filled)
       prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
-        WITH days AS (
-          SELECT generate_series(
-            date_trunc('day', CURRENT_DATE - interval '6 day'),
-            date_trunc('day', CURRENT_DATE),
-            interval '1 day'
-          ) AS bucket
-        )
-        SELECT
-          TO_CHAR(days.bucket, 'YYYY-MM-DD') AS period,
-          COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
-        FROM days
-        LEFT JOIN clicks
-          ON clicks.pub_id = ${publisher_id}::uuid
-          AND clicks.timestamp >= days.bucket
-          AND clicks.timestamp < (days.bucket + interval '1 day')
-        GROUP BY days.bucket
-        ORDER BY days.bucket
-      `,
+      WITH days AS (
+        SELECT generate_series(
+          date_trunc('day', timezone('Asia/Kolkata', NOW()) - interval '6 day'),
+          date_trunc('day', timezone('Asia/Kolkata', NOW())),
+          interval '1 day'
+        ) AS bucket
+      )
+      SELECT
+        TO_CHAR(days.bucket, 'YYYY-MM-DD') AS period,
+        COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
+      FROM days
+      LEFT JOIN clicks
+        ON clicks.pub_id = ${publisher_id}::uuid
+        AND timezone('Asia/Kolkata', clicks.timestamp) >= days.bucket
+        AND timezone('Asia/Kolkata', clicks.timestamp) < days.bucket + interval '1 day'
+      GROUP BY days.bucket
+      ORDER BY days.bucket
+    `,
 
       // 11. Overview Clicks - Last 30 days (daily buckets, zero-filled)
       prisma.$queryRaw<Array<{ period: string; clicks: bigint }>>`
-        WITH days AS (
-          SELECT generate_series(
-            date_trunc('day', CURRENT_DATE - interval '29 day'),
-            date_trunc('day', CURRENT_DATE),
-            interval '1 day'
-          ) AS bucket
-        )
-        SELECT
-          TO_CHAR(days.bucket, 'YYYY-MM-DD') AS period,
-          COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
-        FROM days
-        LEFT JOIN clicks
-          ON clicks.pub_id = ${publisher_id}::uuid
-          AND clicks.timestamp >= days.bucket
-          AND clicks.timestamp < (days.bucket + interval '1 day')
-        GROUP BY days.bucket
-        ORDER BY days.bucket
-      `,
+      WITH days AS (
+        SELECT generate_series(
+          date_trunc('day', timezone('Asia/Kolkata', NOW()) - interval '29 day'),
+          date_trunc('day', timezone('Asia/Kolkata', NOW())),
+          interval '1 day'
+        ) AS bucket
+      )
+      SELECT
+        TO_CHAR(days.bucket, 'YYYY-MM-DD') AS period,
+        COALESCE(COUNT(clicks.*), 0)::bigint AS clicks
+      FROM days
+      LEFT JOIN clicks
+        ON clicks.pub_id = ${publisher_id}::uuid
+        AND timezone('Asia/Kolkata', clicks.timestamp) >= days.bucket
+        AND timezone('Asia/Kolkata', clicks.timestamp) < days.bucket + interval '1 day'
+      GROUP BY days.bucket
+      ORDER BY days.bucket
+    `,
 
       prisma.$queryRaw<Array<{ offer_id: number; unique_clicks: bigint; total_clicks: bigint }>>`
         SELECT
@@ -377,7 +436,7 @@ export async function GET(req: NextRequest) {
     console.log('[DEBUG] Simulated map:', simulatedMap);
 
 
-    console.log('[DEBUG] Weekly Clicks Raw from DB:', weeklyClicksResult);
+    console.log('[DEBUG] Weekly Clicks Raw from DB:',);
     console.log('[DEBUG] Publisher ID:', publisher_id);
 
     // Parse Click Stats
@@ -402,7 +461,7 @@ export async function GET(req: NextRequest) {
     for (const item of conversionsByOfferData) {
       conversionCountMap.set(
         item.offer_id,
-        item._count.id
+        item._count?.id
       );
     }
 
