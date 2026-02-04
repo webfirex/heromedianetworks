@@ -155,40 +155,45 @@ export async function GET(req: NextRequest) {
 
       // 1. Combined Click Stats (Total, This Month, Prev Month)
       prisma.$queryRaw<Array<{ metric: string; count: bigint }>>`
+      WITH params AS (
+        SELECT 
+          ${queryStartDate}::date AS start_day,
+          ${queryEndDate}::date AS end_day,
+          date_trunc('month', ${queryStartDate}::date) AS current_month_start,
+          date_trunc('month', ${queryStartDate}::date - interval '1 month') AS prev_month_start
+      )
       SELECT 'total' AS metric, COUNT(*) AS count
       FROM clicks
       WHERE pub_id = ${publisher_id}::uuid
-    
+
       UNION ALL
-    
+
+      -- This converts 3 Feb 20:18 UTC into 4 Feb 01:48 IST dynamically
       SELECT 'this_month' AS metric, COUNT(*) AS count
-      FROM clicks
+      FROM clicks, params
       WHERE pub_id = ${publisher_id}::uuid
-        AND date_trunc(
-          'month',
-          timezone('Asia/Kolkata', timestamp)
-        ) = date_trunc(
-          'month',
-          timezone('Asia/Kolkata', NOW())
-        )
-    
+        AND (clicks.timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date >= params.start_day
+        AND (clicks.timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date <= params.end_day
+
       UNION ALL
-    
+
       SELECT 'prev_month' AS metric, COUNT(*) AS count
-      FROM clicks
+      FROM clicks, params
       WHERE pub_id = ${publisher_id}::uuid
-        AND date_trunc(
-          'month',
-          timezone('Asia/Kolkata', timestamp)
-        ) = date_trunc(
-          'month',
-          timezone('Asia/Kolkata', NOW()) - interval '1 month'
-        )
+        AND (clicks.timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') >= params.prev_month_start
+        AND (clicks.timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') <  params.current_month_start;
     `,
 
       // 2. Combined Conversion Stats (Total, This Month, Prev Month)
       prisma.$queryRaw<Array<{ metric: string; count: bigint; sum_commission: number; offer_id: number }>>`
-      -- Global
+      WITH params AS (
+        SELECT 
+          ${queryStartDate}::date AS start_day,
+          ${queryEndDate}::date AS end_day,
+          date_trunc('month', ${queryStartDate}::date) AS current_month_start,
+          date_trunc('month', ${queryStartDate}::date - interval '1 month') AS prev_month_start
+      )
+      -- 1. Global (All time)
       SELECT 'global' AS metric,
              COUNT(*) AS count,
              COALESCE(SUM(commission_amount), 0)::float AS sum_commission,
@@ -199,38 +204,28 @@ export async function GET(req: NextRequest) {
     
       UNION ALL
     
-      -- This Month (IST)
+      -- 2. This Month (The selected date range)
       SELECT 'this_month' AS metric,
              COUNT(*) AS count,
              COALESCE(SUM(commission_amount), 0)::float AS sum_commission,
              offer_id
-      FROM conversions
+      FROM conversions, params
       WHERE pub_id = ${publisher_id}::uuid
-        AND date_trunc(
-          'month',
-          timezone('Asia/Kolkata', created_at)
-        ) = date_trunc(
-          'month',
-          timezone('Asia/Kolkata', NOW())
-        )
+        AND (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date >= params.start_day
+        AND (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date <= params.end_day
       GROUP BY offer_id
     
       UNION ALL
     
-      -- Prev Month (IST)
+      -- 3. Prev Month (Full calendar month prior to queryStartDate)
       SELECT 'prev_month' AS metric,
              COUNT(*) AS count,
              COALESCE(SUM(commission_amount), 0)::float AS sum_commission,
              offer_id
-      FROM conversions
+      FROM conversions, params
       WHERE pub_id = ${publisher_id}::uuid
-        AND date_trunc(
-          'month',
-          timezone('Asia/Kolkata', created_at)
-        ) = date_trunc(
-          'month',
-          timezone('Asia/Kolkata', NOW()) - interval '1 month'
-        )
+        AND (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') >= params.prev_month_start
+        AND (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') <  params.current_month_start
       GROUP BY offer_id
     `,
 
@@ -444,6 +439,9 @@ export async function GET(req: NextRequest) {
     const clicksThisMonth = Number(clicksStats.find(s => s.metric === 'this_month')?.count || 0);
     const clicksPreviousMonth = Number(clicksStats.find(s => s.metric === 'prev_month')?.count || 0);
 
+    console.log("[DEBUG] Clicks this month:", clicksThisMonth)
+    // console.log("[DEBUG] Clicks this month:", clicksThisMonth)
+    console.log("[DEBUG] Click Stats:", clicksStats)
     // Calculate clicks for selected date range (for Overview card)
     const totalClicks = shavedClicksStats.netTotal;
     const uniqueClicks = shavedClicksStats.netUnique;

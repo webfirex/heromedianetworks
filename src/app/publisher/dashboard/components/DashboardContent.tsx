@@ -150,6 +150,8 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
       // Don't fetch if only one date is selected
       if (!dateRange[0] || !dateRange[1]) return;
 
+      console.log("DATE RANGE",dateRange)
+
       setLoading(true);
       setError(null);
       try {
@@ -174,6 +176,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
         const url = `/api/dashboard?${params.toString()}`;
+        console.log("URL",url)
         const res = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
         if (!res.ok) {
           const errorData = await res.json();
@@ -398,7 +401,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
               <div className="absolute right-2 top-2 p-1.5 md:p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
                 <IconUserCheck size={18} className="md:w-5 md:h-5" />
               </div>
-              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-3">Unique Clicks This Month</div>
+              <div className="text-zinc-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-3">Unique Clicks</div>
               <div className="text-2xl md:text-4xl font-bold text-white mb-4">{formatNumber(dashboardData.uniqueClicks)}</div>
               {/* <div className="flex items-center gap-2 mb-1">
                 <div className={`text-xs font-bold ${isClicksPositive ? 'text-green-400' : 'text-red-400'}`}>
@@ -487,7 +490,7 @@ export default function DashboardContent({ dateRange }: DashboardContentProps) {
                       <div className="grid grid-cols-3 gap-1.5 md:gap-2 mb-4">
                         <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Total Clicks</div>
-                          <div className="text-base md:text-lg font-bold text-white">{formatNumber(dashboardData.totalClicks)}</div>
+                          <div className="text-base md:text-lg font-bold text-white">{formatNumber(dashboardData.clicksThisMonth)}</div>
                         </div>
                         <div className="bg-white/5 rounded-sm p-1.5 md:p-2 border border-white/5">
                           <div className="text-[9px] md:text-[10px] text-zinc-500 mb-0.5 truncate">Conversions</div>
