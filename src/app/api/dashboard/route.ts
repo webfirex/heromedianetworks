@@ -242,7 +242,8 @@ export async function GET(req: NextRequest) {
 
       GROUP BY date, day
       ORDER BY date
-    `,
+    `
+    ,
 
       // 4. Traffic Sources (Geo)
       prisma.click.groupBy({
@@ -270,7 +271,9 @@ export async function GET(req: NextRequest) {
 
       GROUP BY period
       ORDER BY period
-    `,
+
+    `
+    ,
 
       // 6. Conversion Trend (Daily - Use selected range)
       prisma.$queryRaw<Array<{ period: string; conversions: bigint }>>`

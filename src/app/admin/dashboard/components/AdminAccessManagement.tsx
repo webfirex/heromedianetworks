@@ -145,7 +145,6 @@ const AdminAccessManagement: React.FC = () => {
     try {
       setDeleting(true);
 
-      // Dummy API call
       const res = await fetch(`/api/admin/publishers/${publisherToDelete.id}`, {
         method: 'DELETE',
       });

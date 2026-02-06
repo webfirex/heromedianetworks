@@ -46,6 +46,42 @@ export async function GET(req: NextRequest) {
 
   const userAgent = req.headers.get('user-agent') || 'unknown';
 
+  /* BLOCK DESKTOP */
+  const isMobile = /android|iphone|ipad|ipod|mobile|blackberry|opera mini/i.test(userAgent);
+
+  if (!isMobile) {
+    return new NextResponse(
+      `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Blocked</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              text-align: center;
+              padding: 50px;
+              background: #f5f5f5;
+            }
+            h1 { color: #e53935; }
+          </style>
+        </head>
+        <body>
+          <h1>Desktop Traffic Blocked</h1>
+          <p>This offer is only available on mobile devices.</p>
+        </body>
+      </html>
+      `,
+      {
+        status: 403,
+        headers: {
+          "Content-Type": "text/html",
+        },
+      }
+    );
+  }
+
+
   const click_id = uuidv4();
   const offerId = Number(offer_id);
 
