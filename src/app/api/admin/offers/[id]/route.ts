@@ -240,31 +240,62 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
   const body = await req.json();
   const { publisher_id } = body;
 
   if (!publisher_id) {
-    return NextResponse.json({ error: 'Missing publisher_id' }, { status: 400 });
+    console.log("MISSING PUB ID", body);
   }
+
+  const offerId = parseInt(id, 10);
 
   try {
-    await prisma.offerPublisher.delete({
-      where: {
-        offer_id_publisher_id: {
-          offer_id: parseInt(id, 10),
-          publisher_id: publisher_id,
-        },
-      },
+    const queries = [];
+  
+    // Conditionally add advertiser delete
+    if (publisher_id) {
+      queries.push(
+        prisma.offerPublisher.delete({
+          where: {
+            offer_id_publisher_id: {
+              offer_id: offerId,
+              publisher_id,
+            },
+          },
+        })
+      );
+    }
+  
+    queries.push(
+      prisma.offer.delete({
+        where: { id: offerId },
+      })
+    );
+  
+    await prisma.$transaction(queries);
+  
+    return NextResponse.json({
+      message: 'Advertiser removed and offer deleted successfully',
     });
-
-    return NextResponse.json({ message: 'Advertiser removed from offer' });
+  
   } catch (err: any) {
     if (err.code === 'P2025') {
-      return NextResponse.json({ error: 'Advertiser not found for this offer' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Record not found' },
+        { status: 404 }
+      );
     }
+
     console.error('DELETE error:', err);
-    return NextResponse.json({ error: 'Failed to remove advertiser' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to delete offer' },
+      { status: 500 }
+    );
   }
 }
+

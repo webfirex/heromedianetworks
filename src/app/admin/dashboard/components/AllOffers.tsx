@@ -10,7 +10,7 @@ import {
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
   IconSearch, IconEdit, IconCheck, IconBan,
-  IconClockHour4, IconCircleCheck, IconCircleX
+  IconClockHour4, IconCircleCheck, IconCircleX, IconTrash, IconX
 } from '@tabler/icons-react';
 import { showNotification } from '@/app/utils/notificationManager';
 
@@ -90,6 +90,10 @@ const AllOffers: React.FC = () => {
 
   // Media query for mobile view
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
 
   // --- Frontend-side Filtering and Pagination (TEMPORARY - UNTIL BACKEND UPDATED) ---
@@ -220,6 +224,86 @@ const AllOffers: React.FC = () => {
       console.error('Error updating offer status:', err);
     }
   };
+
+  const deleteOffer = async () => {
+    if (!offerToDelete) return;
+  
+    try {
+      setDeleting(true);
+  
+      const offerId = offerToDelete.id;
+  
+      let fullOffer = offerToDelete;
+  
+      // Fetch full offer if commissions missing
+      if (!fullOffer.commissions) {
+        const res = await fetch(`/api/admin/offers/${offerId}`);
+        fullOffer = await res.json();
+      }
+  
+      const commissions = fullOffer.commissions || [];
+  
+      // CASE 1 — advertisers exist
+      if (commissions.length > 0) {
+        for (const commission of commissions) {
+          const publisherId = commission.publisher_id;
+  
+          await fetch('/api/admin/links/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              offer_id: offerId,
+              publisher_id: publisherId,
+            }),
+          });
+  
+          await fetch(`/api/admin/offers/${offerId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              publisher_id: publisherId,
+            }),
+          });
+        }
+      } else {
+        // CASE 2 — no advertisers → still delete offer itself
+        await fetch(`/api/admin/offers/${offerId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            publisher_id: null, // backend should allow this
+          }),
+        });
+      }
+  
+      showNotification({
+        title: 'Deleted',
+        message: `${offerToDelete.name} deleted successfully`,
+        color: 'green',
+        withClose: false,
+      });
+  
+      setDeleteModalOpened(false);
+      setOfferToDelete(null);
+  
+      // Optimistic UI update (better UX)
+      setOffers(prev => prev.filter(o => o.id !== offerId));
+  
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Delete failed';
+      showNotification({
+        title: 'Error',
+        message: msg,
+        color: 'red',
+        withClose: false,
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+  
+  
+  
 
   const handleApprove = (id: string) => updateOfferStatus(id, 'active');
   const handleTerminate = (id: string) => updateOfferStatus(id, 'expired');
@@ -592,6 +676,18 @@ const AllOffers: React.FC = () => {
                           <IconBan size={15} />
                         </ActionIcon>
                       )}
+
+                      <ActionIcon
+                        color="red"
+                        variant="filled"
+                        onClick={() => {
+                          setOfferToDelete(offer);
+                          setDeleteModalOpened(true);
+                        }}
+                        title="Delete Offer"
+                      >
+                        <IconTrash size={18} />
+                      </ActionIcon>
                     </Group>
                   </Table.Td>
                 </Table.Tr>
@@ -647,43 +743,43 @@ const AllOffers: React.FC = () => {
                 }
               }
               // Add advertisers (link existing publisher to offer)
-for (const adv of added) {
-  // Try to find publisher_id by name from all offers' commissions
-  let publisherId: string | undefined;
-  for (const offer of offers) {
-    if (Array.isArray(offer.commissions)) {
-      const match = offer.commissions.find(c => c.name === adv);
-      if (match) {
-        publisherId = match.publisher_id;
-        break;
-      }
-    }
-  }
-  // If not found, try backend by name (robust for new advertisers)
-  let patchRes;
-  if (publisherId) {
-    patchRes = await fetch(`/api/admin/offers/${parseInt(editingOffer.id, 10)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ publisher_id: publisherId }),
-    });
-  } else {
-    patchRes = await fetch(`/api/admin/offers/${parseInt(editingOffer.id, 10)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: adv }),
-    });
-  }
-  if (!patchRes.ok) {
-    const errorData = await patchRes.json();
-    showNotification({
-      title: 'Error',
-      message: errorData.error || `Could not add advertiser: ${adv}`,
-      color: 'red',
-      withClose: false,
-    });
-  }
-}
+              for (const adv of added) {
+                // Try to find publisher_id by name from all offers' commissions
+                let publisherId: string | undefined;
+                for (const offer of offers) {
+                  if (Array.isArray(offer.commissions)) {
+                    const match = offer.commissions.find(c => c.name === adv);
+                    if (match) {
+                      publisherId = match.publisher_id;
+                      break;
+                    }
+                  }
+                }
+                // If not found, try backend by name (robust for new advertisers)
+                let patchRes;
+                if (publisherId) {
+                  patchRes = await fetch(`/api/admin/offers/${parseInt(editingOffer.id, 10)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ publisher_id: publisherId }),
+                  });
+                } else {
+                  patchRes = await fetch(`/api/admin/offers/${parseInt(editingOffer.id, 10)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: adv }),
+                  });
+                }
+                if (!patchRes.ok) {
+                  const errorData = await patchRes.json();
+                  showNotification({
+                    title: 'Error',
+                    message: errorData.error || `Could not add advertiser: ${adv}`,
+                    color: 'red',
+                    withClose: false,
+                  });
+                }
+              }
               // After all deletions/additions, refresh the offer data
               const refreshed = await fetch(`/api/admin/offers/${parseInt(editingOffer.id, 10)}`);
               if (refreshed.ok) {
@@ -825,6 +921,47 @@ for (const adv of added) {
             </Group>
           </form>
         )}
+      </Modal>
+
+      {/* Delete Offer Modal */}
+      <Modal
+        opened={deleteModalOpened}
+        onClose={() => {
+          setDeleteModalOpened(false);
+          setOfferToDelete(null);
+        }}
+        title="Confirm Delete"
+        centered
+      >
+        <Text mb="sm">
+          Are you sure you want to delete{' '}
+          <b>{offerToDelete?.name}</b>?
+        </Text>
+
+        <Text size="sm" color="dimmed" mb="md">
+          This action cannot be undone.
+        </Text>
+
+        <Group justify="flex-end">
+          <ActionIcon
+            variant="outline"
+            onClick={() => {
+              setDeleteModalOpened(false);
+              setOfferToDelete(null);
+            }}
+          >
+            <IconX size={18} />
+          </ActionIcon>
+
+          <ActionIcon
+            color="red"
+            variant="filled"
+            loading={deleting}
+            onClick={deleteOffer}
+          >
+            <IconTrash size={18} />
+          </ActionIcon>
+        </Group>
       </Modal>
     </Container>
   );
